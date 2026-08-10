@@ -37,3 +37,15 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           force_orphan: true
+
+      - name: Show site URL
+        run: |
+          {
+            echo "## Publishing Portal site"
+            echo ""
+            echo "After enabling GitHub Pages (Settings → Pages → Deploy from a branch → \`gh-pages\` / root), open:"
+            echo ""
+            echo "### https://zainulhassan55.github.io/publishing_portal/"
+            echo ""
+            echo "Deploy branch: \`gh-pages\`"
+          } >> "$GITHUB_STEP_SUMMARY"
