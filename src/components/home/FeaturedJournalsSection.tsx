@@ -53,7 +53,7 @@ function FeaturedJournalsSection() {
                     Peer-reviewed · {journal.access}
                   </p>
                   <ActionLink to={`/journals/${journal.slug}`} variant="secondary" size="sm">
-                    View journal
+                    View journals
                   </ActionLink>
                 </div>
               </div>
