@@ -28,42 +28,46 @@ function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
-      <div className="bg-ink-950">
-        <Container className="flex items-center justify-between gap-4 py-2.5">
-          <p className="text-[11px] font-medium tracking-[0.16em] text-slate-300 uppercase">
-            Peer-reviewed journals · Open scholarly communication
+      <div className="border-b border-white/10 bg-ink-950">
+        <Container className="flex items-center justify-between gap-4 py-2">
+          <p className="text-[11px] font-medium tracking-[0.14em] text-slate-300 uppercase">
+            Peer-reviewed · Open scholarly publishing
           </p>
-          <nav className="hidden items-center gap-5 text-[12px] font-semibold text-slate-300 md:flex">
-            {secondaryNavigationItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) => (isActive ? 'text-white' : 'hover:text-white')}
-              >
-                {item.label}
-              </NavLink>
-            ))}
+          <nav className="hidden items-center gap-4 text-[12px] font-semibold text-slate-300 md:flex">
+            <NavLink
+              to="/cfp"
+              className={({ isActive }) => (isActive ? 'text-white' : 'hover:text-white')}
+            >
+              Call for Papers
+            </NavLink>
+            <span className="text-slate-600">|</span>
+            <NavLink
+              to="/contact"
+              className={({ isActive }) => (isActive ? 'text-white' : 'hover:text-white')}
+            >
+              Contact
+            </NavLink>
           </nav>
         </Container>
       </div>
 
-      <Container className="py-4">
-        <div className="flex items-center justify-between gap-6">
+      <Container className="py-3.5">
+        <div className="flex items-center justify-between gap-5">
           <NavLink to="/" className="flex min-w-0 items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-ink-950 font-display text-sm font-semibold tracking-wide text-white shadow-sm">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink-950 font-display text-sm font-semibold tracking-wide text-white">
               {brand.shortName}
             </span>
             <span className="min-w-0">
-              <span className="block font-display text-[1.2rem] leading-tight font-semibold tracking-tight text-ink-950 sm:text-[1.35rem]">
+              <span className="block truncate font-display text-[1.15rem] leading-tight font-semibold tracking-tight text-ink-950 sm:text-[1.3rem]">
                 {brand.name}
               </span>
-              <span className="mt-0.5 block text-xs tracking-[0.08em] text-slate-500 uppercase">
+              <span className="mt-0.5 hidden text-xs tracking-[0.08em] text-slate-500 uppercase sm:block">
                 {brand.tagline}
               </span>
             </span>
           </NavLink>
 
-          <nav className="hidden items-center gap-5 lg:flex xl:gap-6">
+          <nav className="hidden items-center gap-5 lg:flex">
             {navigationItems.map((item) => (
               <NavLink key={item.path} to={item.path} className={linkClass}>
                 {item.label}

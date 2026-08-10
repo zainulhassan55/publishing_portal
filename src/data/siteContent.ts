@@ -24,13 +24,13 @@ export const navigationItems: NavItem[] = [
   { label: 'Articles', path: '/articles' },
   { label: 'Books', path: '/books' },
   { label: 'Proceedings', path: '/proceedings' },
-  { label: 'Policies', path: '/policies' },
   { label: 'About', path: '/about' },
 ]
 
 export const secondaryNavigationItems: NavItem[] = [
   { label: 'Call for Papers', path: '/cfp' },
   { label: 'Guidelines', path: '/guidelines' },
+  { label: 'Policies', path: '/policies' },
   { label: 'Indexing', path: '/indexing' },
   { label: 'News', path: '/news' },
   { label: 'Contact', path: '/contact' },
