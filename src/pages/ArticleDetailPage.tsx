@@ -17,7 +17,7 @@ function ArticleDetailPage() {
   return (
     <>
       <PageHero
-        eyebrow="Article record"
+        eyebrow={article.type ?? 'Article record'}
         title={article.title}
         description={`${article.journal} · ${article.volumeIssue} · Published ${article.published}`}
       />
@@ -45,9 +45,20 @@ function ArticleDetailPage() {
 
             <div className="space-y-4">
               <SidebarPanel title="Article metadata">
-                <p>{article.doi}</p>
-                <p>{article.published}</p>
-                <p>{article.volumeIssue}</p>
+                <p>
+                  <span className="font-semibold text-ink-950">DOI:</span> {article.doi}
+                </p>
+                <p>
+                  <span className="font-semibold text-ink-950">Published:</span> {article.published}
+                </p>
+                <p>
+                  <span className="font-semibold text-ink-950">Issue:</span> {article.volumeIssue}
+                </p>
+                {article.type ? (
+                  <p>
+                    <span className="font-semibold text-ink-950">Type:</span> {article.type}
+                  </p>
+                ) : null}
               </SidebarPanel>
               <SidebarPanel title="Reader actions">
                 <p>Download PDF</p>
@@ -56,6 +67,9 @@ function ArticleDetailPage() {
               </SidebarPanel>
               <ActionLink href="#" variant="primary" className="w-full">
                 Download PDF
+              </ActionLink>
+              <ActionLink to="/articles" variant="secondary" className="w-full">
+                Back to articles
               </ActionLink>
             </div>
           </div>

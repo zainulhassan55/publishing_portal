@@ -5,15 +5,16 @@ function ProceedingsPage() {
   return (
     <CatalogPage
       eyebrow="Proceedings"
-      title="Conference proceedings with clear event and volume presentation."
-      description="Showcase proceedings series, partner events, and volume metadata in a professional academic format."
+      title="Conference proceedings series with ISBN and optional DOI support."
+      description="DMPedia organizes recurring international conference series—DMP-LNCSE and DMP-LNMR—with peer-reviewed publication, consistent formatting, and global participation."
       items={proceedings}
-      filters={['All events', 'Open CFP', 'Series volumes', '2027']}
-      sidebarTitle="Event publishing"
+      filters={['All series', 'DMP-LNCSE', 'DMP-LNMR', 'Open CFP']}
+      sidebarTitle="Series publishing"
       sidebarPoints={[
-        'Present conference name, location, and date clearly',
-        'Highlight open calls and partner volumes',
-        'Support future ISBN, DOI, and contents linking',
+        'Peer-reviewed conference volumes',
+        'ISBN assignment with optional Crossref DOIs',
+        'Online, hybrid, and physical event modes',
+        'Partner pathways for organizers and institutions',
       ]}
     />
   )

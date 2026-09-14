@@ -5,14 +5,15 @@ function IndexingPage() {
   return (
     <CatalogPage
       eyebrow="Indexing & DOI"
-      title="Visibility infrastructure for scholarly discovery."
-      description="Present DOI readiness, indexing pathways, and metadata quality in a confidence-building public format."
+      title="Discoverability infrastructure for the scholarly record."
+      description="DOI workflows, indexing pathways, metadata quality, and open-access visibility for journals and proceedings."
       items={indexingItems}
       sidebarTitle="Discoverability"
       sidebarPoints={[
         'DOI registration readiness',
         'Abstracting and indexing pathways',
         'Metadata structure for search and archives',
+        'Open access visibility under CC BY licensing',
       ]}
     />
   )

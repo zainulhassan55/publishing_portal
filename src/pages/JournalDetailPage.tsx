@@ -28,6 +28,8 @@ function JournalDetailPage() {
             <p className="mt-2 text-sm text-slate-300">
               {journal.access} · {journal.frequency}
             </p>
+            <p className="mt-3 text-sm text-slate-300">{journal.reviewType}</p>
+            <p className="mt-1 text-sm text-slate-300">License: {journal.license}</p>
             <ActionLink
               to={`/journals/${journal.slug}/issues`}
               variant="light"
@@ -47,6 +49,15 @@ function JournalDetailPage() {
               <DetailSection title="Aims and scope">
                 <p>{journal.scope}</p>
               </DetailSection>
+              <DetailSection title="Topics of interest">
+                <ul className="space-y-2">
+                  {journal.topics.map((topic) => (
+                    <li key={topic} className="text-sm leading-7 text-slate-600">
+                      {topic}
+                    </li>
+                  ))}
+                </ul>
+              </DetailSection>
               <DetailSection title="Editorial board">
                 {journal.board.map((member) => (
                   <p key={member}>{member}</p>
@@ -65,15 +76,22 @@ function JournalDetailPage() {
                 >
                   Open issue archive
                 </Link>
+                <Link to="/guidelines" className="block font-semibold text-ink-950 hover:underline">
+                  Author guidelines
+                </Link>
+                <Link to="/login" className="block font-semibold text-ink-950 hover:underline">
+                  Submit manuscript
+                </Link>
               </SidebarPanel>
               <SidebarPanel title="Journal metrics">
                 {journal.metrics.map((metric) => (
                   <p key={metric.label}>
-                    <span className="font-semibold text-ink-950">{metric.value}</span> {metric.label}
+                    <span className="font-semibold text-ink-950">{metric.value}</span> ·{' '}
+                    {metric.label}
                   </p>
                 ))}
               </SidebarPanel>
-              <ActionLink href="#" variant="primary" className="w-full">
+              <ActionLink to="/login" variant="primary" className="w-full">
                 Submit manuscript
               </ActionLink>
             </div>

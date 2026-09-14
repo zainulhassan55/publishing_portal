@@ -11,11 +11,14 @@ export type HeroMetric = {
 export type Journal = {
   slug: string
   title: string
+  shortTitle?: string
   issn: string
   area: string
   access: string
   frequency: string
   summary: string
+  editor?: string
+  reviewType?: string
 }
 
 export type Article = {
@@ -25,12 +28,15 @@ export type Article = {
   meta: string
   excerpt: string
   authors?: string
+  type?: string
+  doi?: string
 }
 
 export type Policy = {
   slug: string
   title: string
   summary: string
+  sections: { title: string; body: string }[]
 }
 
 export type InfoCard = {
@@ -38,6 +44,17 @@ export type InfoCard = {
   summary: string
   meta?: string
   badge?: string
+}
+
+export type ServiceItem = {
+  title: string
+  summary: string
+}
+
+export type ValueItem = {
+  number: string
+  title: string
+  summary: string
 }
 
 export type JournalDetail = {
@@ -49,8 +66,12 @@ export type JournalDetail = {
   access: string
   frequency: string
   scope: string
+  editor: string
+  reviewType: string
+  license: string
   metrics: { label: string; value: string }[]
   board: string[]
+  topics: string[]
   quickLinks: string[]
 }
 
@@ -72,6 +93,7 @@ export type ArticleDetail = {
   volumeIssue: string
   abstract: string
   keywords: string[]
+  type?: string
 }
 
 export type ContactChannel = {

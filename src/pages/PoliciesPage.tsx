@@ -10,8 +10,8 @@ function PoliciesPage() {
     <>
       <PageHero
         eyebrow="Policies"
-        title="Clear policy pages are a core trust signal for academic publishing."
-        description="Ethics, peer review, open access, and archiving information are presented in a structured and readable public format."
+        title="COPE-aligned publishing policies for authors, editors, and readers."
+        description="Ethics, peer review, open access licensing, and archiving standards are published openly to support trust and indexing readiness."
       />
 
       <section className="bg-paper py-14 sm:py-16">

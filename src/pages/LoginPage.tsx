@@ -48,8 +48,8 @@ function LoginPage() {
                 Sign in to manage submissions, reviews, and editorial work.
               </h1>
               <p className="mt-5 text-base leading-8 text-slate-300">
-                This login portal is prepared for authors, reviewers, and editors. In the full
-                system, authentication will connect to the Manuscript Management System (MMS).
+                Sign in as an author, reviewer, or editor. Authentication will connect to the
+                Manuscript Management System (MMS) when that platform is linked.
               </p>
             </div>
 

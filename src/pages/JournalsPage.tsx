@@ -12,8 +12,8 @@ function JournalsPage() {
     <>
       <PageHero
         eyebrow="Journals"
-        title="A clean journal catalog built for serious academic presentation."
-        description="Each journal listing connects to aims and scope, editorial board information, archives, and author pathways."
+        title="Select the right open-access journal for your research."
+        description="Browse DMPedia titles across computing, engineering, business, One Health, sustainability, and forensic science—each with transparent peer review and APC-free publishing."
       />
 
       <section className="bg-paper py-14 sm:py-16">
@@ -21,7 +21,17 @@ function JournalsPage() {
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div>
               <div className="mb-6">
-                <FilterBar items={['All disciplines', 'Open Access', 'Hybrid', 'Newest', 'A-Z']} />
+                <FilterBar
+                  items={[
+                    'All disciplines',
+                    'Computing',
+                    'Engineering',
+                    'Business',
+                    'One Health',
+                    'Sustainability',
+                    'Forensics',
+                  ]}
+                />
               </div>
 
               <div className="grid gap-4">
@@ -30,12 +40,12 @@ function JournalsPage() {
                     key={journal.slug}
                     title={journal.title}
                     description={journal.summary}
-                    meta={journal.issn}
+                    meta={`${journal.shortTitle ?? ''} · ${journal.access}`}
                     badge={journal.area}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <span className="text-sm text-slate-500">
-                        {journal.access} · {journal.frequency}
+                        {journal.reviewType} · {journal.frequency}
                       </span>
                       <ActionLink to={`/journals/${journal.slug}`} variant="secondary" size="sm">
                         View journal
@@ -47,10 +57,11 @@ function JournalsPage() {
             </div>
 
             <div className="space-y-4">
-              <SidebarPanel title="Catalog structure">
-                <p>Journal cards with metadata and access model</p>
-                <p>Dedicated journal detail pages</p>
-                <p>Issue archive routes for volume browsing</p>
+              <SidebarPanel title="Publishing model">
+                <p>APC-free open access across active journals</p>
+                <p>CC BY 4.0 licensing for published articles</p>
+                <p>Single-blind or double-blind peer review by title</p>
+                <p>DOI-ready article presentation and issue archives</p>
               </SidebarPanel>
               <SidebarPanel title="Quick paths">
                 <Link to="/guidelines" className="block font-semibold text-ink-950 hover:underline">
@@ -61,6 +72,9 @@ function JournalsPage() {
                 </Link>
                 <Link to="/indexing" className="block font-semibold text-ink-950 hover:underline">
                   Indexing and DOI
+                </Link>
+                <Link to="/login" className="block font-semibold text-ink-950 hover:underline">
+                  Submit manuscript
                 </Link>
               </SidebarPanel>
             </div>

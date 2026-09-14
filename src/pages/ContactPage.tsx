@@ -1,16 +1,16 @@
+import { brand, contactChannels } from '../data/siteContent'
 import Container from '../components/layout/Container'
 import PageHero from '../components/layout/PageHero'
 import ActionLink from '../components/shared/ActionLink'
 import SidebarPanel from '../components/shared/SidebarPanel'
-import { contactChannels } from '../data/siteContent'
 
 function ContactPage() {
   return (
     <>
       <PageHero
         eyebrow="Contact"
-        title="Reach the editorial, technical, and partnership teams."
-        description="Use this page for publishing inquiries, support requests, and collaboration discussions."
+        title="Get in touch with Digital Manuscriptpedia"
+        description="Reach the editorial office for journal inquiries, author support, proceedings partnerships, and general publishing questions."
       />
 
       <section className="bg-paper py-14 sm:py-16">
@@ -26,10 +26,12 @@ function ContactPage() {
                   <p className="mt-3 text-sm leading-7 text-slate-600">{channel.note}</p>
                 </div>
               ))}
-              <SidebarPanel title="Inquiry routing">
-                <p>General publishing questions</p>
-                <p>Editorial office support</p>
-                <p>Conference and partnership discussions</p>
+              <SidebarPanel title="Publisher">
+                <p>
+                  {brand.name} ({brand.shortName})
+                </p>
+                <p>{brand.unitLabel}</p>
+                <p>Independent academic publishing for journals, books, and proceedings</p>
               </SidebarPanel>
             </div>
 
@@ -48,8 +50,9 @@ function ContactPage() {
                   <select className="field">
                     <option>General inquiry</option>
                     <option>Editorial support</option>
-                    <option>Technical support</option>
+                    <option>Journal submission question</option>
                     <option>Proceedings partnership</option>
+                    <option>Indexing / DOI</option>
                   </select>
                 </label>
                 <label className="flex flex-col gap-2 text-sm font-semibold text-ink-950 sm:col-span-2">

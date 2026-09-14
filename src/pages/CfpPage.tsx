@@ -10,8 +10,8 @@ function CfpPage() {
     <>
       <PageHero
         eyebrow="Call for Papers"
-        title="Open calls across journals and special issues."
-        description="Review current thematic opportunities, deadlines, and submission pathways for prospective authors."
+        title="Open thematic calls across DMPedia journals and special issues."
+        description="Review current opportunities, deadlines, and submission pathways for prospective authors."
       />
 
       <section className="bg-paper py-14 sm:py-16">
@@ -26,7 +26,7 @@ function CfpPage() {
                   meta={item.meta}
                   badge={item.badge}
                 >
-                  <ActionLink href="#" variant="secondary" size="sm">
+                  <ActionLink to="/login" variant="secondary" size="sm">
                     Prepare submission
                   </ActionLink>
                 </FeatureCard>

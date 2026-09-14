@@ -5,15 +5,15 @@ function BooksPage() {
   return (
     <CatalogPage
       eyebrow="Books"
-      title="Monographs, edited volumes, and scholarly reference works."
-      description="A structured catalog for academic books with clear metadata and publishing status."
+      title="Scholarly books and edited volumes from Digital Manuscriptpedia."
+      description="Monographs and reference works supporting researchers across computing, engineering, health, business, and interdisciplinary fields."
       items={books}
       filters={['All titles', 'Forthcoming', 'Monographs', '2026']}
-      sidebarTitle="Book catalog"
+      sidebarTitle="Book publishing"
       sidebarPoints={[
-        'Browse by subject and publication status',
-        'Review ISBN and release information',
-        'Expand later into purchase or download detail pages',
+        'ISBN assignment for print and electronic editions',
+        'Editorial support for author and edited volumes',
+        'Aligned with open scholarly communication standards',
       ]}
     />
   )

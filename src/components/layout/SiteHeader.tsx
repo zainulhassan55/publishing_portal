@@ -22,16 +22,18 @@ function SiteHeader() {
   }, [])
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `text-[15px] font-semibold transition ${
-      isActive ? 'text-ink-950' : 'text-slate-600 hover:text-ink-950'
+    `relative py-1 text-[15px] font-semibold transition ${
+      isActive
+        ? 'nav-link-active'
+        : 'text-slate-600 hover:text-ink-950'
     }`
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line/80 bg-paper-soft/90 backdrop-blur-xl">
       <div className="border-b border-white/10 bg-ink-950">
         <Container className="flex items-center justify-between gap-4 py-2">
           <p className="text-[11px] font-medium tracking-[0.14em] text-slate-300 uppercase">
-            Peer-reviewed · Open scholarly publishing
+            DMPedia · Peer-reviewed · APC-free open access
           </p>
           <nav className="hidden items-center gap-4 text-[12px] font-semibold text-slate-300 md:flex">
             <NavLink
@@ -53,21 +55,21 @@ function SiteHeader() {
 
       <Container className="py-3.5">
         <div className="flex items-center justify-between gap-5">
-          <NavLink to="/" className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink-950 font-display text-sm font-semibold tracking-wide text-white">
-              {brand.shortName}
+          <NavLink to="/" className="group flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink-950 font-display text-sm font-semibold tracking-wide text-white shadow-[0_8px_20px_rgba(7,19,31,0.18)] transition group-hover:bg-ink-800">
+              {brand.shortName.slice(0, 2)}
             </span>
             <span className="min-w-0">
-              <span className="block truncate font-display text-[1.15rem] leading-tight font-semibold tracking-tight text-ink-950 sm:text-[1.3rem]">
+              <span className="block truncate font-display text-[1.2rem] leading-tight font-semibold tracking-tight text-ink-950 sm:text-[1.35rem]">
                 {brand.name}
               </span>
-              <span className="mt-0.5 hidden text-xs tracking-[0.08em] text-slate-500 uppercase sm:block">
+              <span className="mt-0.5 hidden text-[11px] tracking-[0.1em] text-slate-500 uppercase sm:block">
                 {brand.tagline}
               </span>
             </span>
           </NavLink>
 
-          <nav className="hidden items-center gap-5 lg:flex">
+          <nav className="hidden items-center gap-6 lg:flex">
             {navigationItems.map((item) => (
               <NavLink key={item.path} to={item.path} className={linkClass}>
                 {item.label}

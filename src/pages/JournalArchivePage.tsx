@@ -20,7 +20,7 @@ function JournalArchivePage() {
       <PageHero
         eyebrow="Issue archive"
         title={`${journal.title} archive`}
-        description="Browse volumes and issues in a clean scholarly archive structure."
+        description="Browse volumes and issues with highlights prepared for long-term scholarly archiving."
       />
 
       <section className="bg-paper py-14 sm:py-16">
