@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import JournalLayout from './components/journals/JournalLayout'
 import SiteLayout from './components/layout/SiteLayout'
 import AboutPage from './pages/AboutPage'
 import ArticleDetailPage from './pages/ArticleDetailPage'
@@ -11,6 +12,7 @@ import HomePage from './pages/HomePage'
 import IndexingPage from './pages/IndexingPage'
 import JournalArchivePage from './pages/JournalArchivePage'
 import JournalDetailPage from './pages/JournalDetailPage'
+import JournalPageDetailPage from './pages/JournalPageDetailPage'
 import JournalsPage from './pages/JournalsPage'
 import LoginPage from './pages/LoginPage'
 import NewsPage from './pages/NewsPage'
@@ -27,8 +29,11 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/journals" element={<JournalsPage />} />
-        <Route path="/journals/:slug" element={<JournalDetailPage />} />
-        <Route path="/journals/:slug/issues" element={<JournalArchivePage />} />
+        <Route path="/journals/:slug" element={<JournalLayout />}>
+          <Route index element={<JournalDetailPage />} />
+          <Route path="issues" element={<JournalArchivePage />} />
+          <Route path=":pageId" element={<JournalPageDetailPage />} />
+        </Route>
         <Route path="/articles" element={<ArticlesPage />} />
         <Route path="/articles/:slug" element={<ArticleDetailPage />} />
         <Route path="/books" element={<BooksPage />} />

@@ -11,8 +11,8 @@ function ArticlesPage() {
     <>
       <PageHero
         eyebrow="Articles"
-        title="Recent peer-reviewed articles across the DMPedia portfolio."
-        description="Browse newly published research with clear journal placement, DOI metadata, and full article records."
+        title="Peer-reviewed articles from the DMPedia portfolio."
+        description="Published IJDH articles will appear here with journal placement, DOI metadata, and full article records."
       />
 
       <section className="bg-paper py-14 sm:py-16">
@@ -26,25 +26,40 @@ function ArticlesPage() {
               </div>
 
               <div className="grid gap-4">
-                {latestArticles.map((article) => (
-                  <FeatureCard
-                    key={article.slug}
-                    title={article.title}
-                    description={article.excerpt}
-                    meta={article.journal}
-                    badge={article.type ?? article.meta}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <p className="text-sm text-slate-500">
-                        {article.authors}
-                        {article.doi ? ` · DOI ${article.doi}` : ''}
-                      </p>
-                      <ActionLink to={`/articles/${article.slug}`} variant="secondary" size="sm">
-                        Read article
-                      </ActionLink>
-                    </div>
-                  </FeatureCard>
-                ))}
+                {latestArticles.length > 0 ? (
+                  latestArticles.map((article) => (
+                    <FeatureCard
+                      key={article.slug}
+                      title={article.title}
+                      description={article.excerpt}
+                      meta={article.journal}
+                      badge={article.type ?? article.meta}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-sm text-slate-500">
+                          {article.authors}
+                          {article.doi ? ` · DOI ${article.doi}` : ''}
+                        </p>
+                        <ActionLink to={`/articles/${article.slug}`} variant="secondary" size="sm">
+                          Read article
+                        </ActionLink>
+                      </div>
+                    </FeatureCard>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-line bg-white p-8">
+                    <p className="font-display text-2xl font-semibold text-ink-950">
+                      No articles published yet
+                    </p>
+                    <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+                      Once IJDH articles complete peer review and production, they will be listed
+                      in this archive.
+                    </p>
+                    <ActionLink to="/journals/ijdh" variant="primary" size="sm" className="mt-5">
+                      Visit IJDH
+                    </ActionLink>
+                  </div>
+                )}
               </div>
             </div>
 

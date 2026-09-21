@@ -1,52 +1,50 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { useOutletContext } from 'react-router-dom'
 import Container from '../components/layout/Container'
-import PageHero from '../components/layout/PageHero'
 import FeatureCard from '../components/shared/FeatureCard'
-import SidebarPanel from '../components/shared/SidebarPanel'
-import { issueArchives, journalDetails } from '../data/siteContent'
+import { issueArchives } from '../data/siteContent'
+import type { JournalDetail } from '../types/content'
+
+type JournalOutletContext = {
+  journal: JournalDetail
+}
 
 function JournalArchivePage() {
-  const { slug } = useParams()
-  const journal = journalDetails.find((item) => item.slug === slug)
-
-  if (!journal) {
-    return <Navigate to="/journals" replace />
-  }
-
+  const { journal } = useOutletContext<JournalOutletContext>()
   const issues = issueArchives.filter((item) => item.journalSlug === journal.slug)
 
   return (
-    <>
-      <PageHero
-        eyebrow="Issue archive"
-        title={`${journal.title} archive`}
-        description="Browse volumes and issues with highlights prepared for long-term scholarly archiving."
-      />
+    <section className="bg-paper py-14 sm:py-16">
+      <Container>
+        <div className="mb-8 max-w-3xl">
+          <p className="meta text-accent-700">Issue archive</p>
+          <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink-950">
+            Volumes and issues
+          </h2>
+          <p className="mt-4 text-base leading-7 text-slate-600">
+            Browse published volumes for {journal.shortTitle ?? journal.title} with highlights
+            prepared for long-term scholarly archiving.
+          </p>
+        </div>
 
-      <section className="bg-paper py-14 sm:py-16">
-        <Container>
-          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="grid gap-4">
-              {issues.map((issue) => (
-                <FeatureCard
-                  key={`${issue.volume}-${issue.issue}`}
-                  title={`${issue.volume} · ${issue.issue}`}
-                  description={issue.highlight}
-                  meta={issue.year}
-                  badge="Archive"
-                />
-              ))}
-            </div>
-
-            <SidebarPanel title="Archive structure">
-              <p>Volume-first organization for long-term growth</p>
-              <p>Issue highlights and content grouping</p>
-              <p>Prepared for article listings and pagination</p>
-            </SidebarPanel>
+        {issues.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {issues.map((issue) => (
+              <FeatureCard
+                key={`${issue.volume}-${issue.issue}`}
+                title={`${issue.volume} · ${issue.issue}`}
+                description={issue.highlight}
+                meta={issue.year}
+                badge="Archive"
+              />
+            ))}
           </div>
-        </Container>
-      </section>
-    </>
+        ) : (
+          <div className="rounded-2xl border border-line bg-white p-8 text-sm leading-7 text-slate-600">
+            Issue listings will appear here as volumes are published.
+          </div>
+        )}
+      </Container>
+    </section>
   )
 }
 

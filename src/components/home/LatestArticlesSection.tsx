@@ -18,11 +18,12 @@ function LatestArticlesSection() {
             <SectionHeading
               eyebrow="Recent Research"
               title="Latest articles"
-              description="Newly published work across the Digital Manuscriptpedia journal portfolio."
+              description="Newly published work from IJDH will appear here as manuscripts are accepted and released."
             />
 
             <div className="mt-8 overflow-hidden rounded-2xl border border-line bg-paper-soft/70">
-              {latestArticles.slice(0, 5).map((article, index) => (
+              {latestArticles.length > 0 ? (
+                latestArticles.slice(0, 5).map((article, index) => (
                 <article
                   key={article.slug}
                   className="article-row border-b border-line p-5 last:border-b-0 sm:p-6"
@@ -57,7 +58,21 @@ function LatestArticlesSection() {
                     </div>
                   </div>
                 </article>
-              ))}
+                ))
+              ) : (
+                <div className="p-6 sm:p-8">
+                  <p className="font-display text-xl font-semibold text-ink-950">
+                    Articles coming soon
+                  </p>
+                  <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+                    IJDH is open for submissions. Published articles will be listed here after
+                    peer review and production.
+                  </p>
+                  <ActionLink to="/journals/ijdh" variant="primary" size="sm" className="mt-5">
+                    Open IJDH
+                  </ActionLink>
+                </div>
+              )}
             </div>
           </div>
 

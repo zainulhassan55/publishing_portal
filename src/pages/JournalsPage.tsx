@@ -12,8 +12,8 @@ function JournalsPage() {
     <>
       <PageHero
         eyebrow="Journals"
-        title="Select the right open-access journal for your research."
-        description="Browse DMPedia titles across computing, engineering, business, One Health, sustainability, and forensic science—each with transparent peer review and APC-free publishing."
+        title="Browse the DMPedia open-access journal portfolio."
+        description="Start with the International Journal of Digital Health (IJDH) — peer-reviewed, continuous open access publishing for connected care and trustworthy clinical technologies."
       />
 
       <section className="bg-paper py-14 sm:py-16">
@@ -21,17 +21,7 @@ function JournalsPage() {
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div>
               <div className="mb-6">
-                <FilterBar
-                  items={[
-                    'All disciplines',
-                    'Computing',
-                    'Engineering',
-                    'Business',
-                    'One Health',
-                    'Sustainability',
-                    'Forensics',
-                  ]}
-                />
+                <FilterBar items={['All journals', 'Digital Health', 'Open Access']} />
               </div>
 
               <div className="grid gap-4">

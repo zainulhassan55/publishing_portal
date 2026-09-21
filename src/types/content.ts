@@ -57,9 +57,30 @@ export type ValueItem = {
   summary: string
 }
 
+export type ContentBlock = {
+  title: string
+  paragraphs?: string[]
+  bullets?: string[]
+  subsections?: {
+    title: string
+    paragraphs?: string[]
+    bullets?: string[]
+  }[]
+}
+
+export type JournalPage = {
+  id: string
+  label: string
+  title: string
+  summary: string
+  blocks: ContentBlock[]
+}
+
 export type JournalDetail = {
   slug: string
   title: string
+  shortTitle?: string
+  tagline?: string
   issn: string
   eIssn: string
   area: string
@@ -69,10 +90,13 @@ export type JournalDetail = {
   editor: string
   reviewType: string
   license: string
+  publisher?: string
+  ownership?: string
   metrics: { label: string; value: string }[]
   board: string[]
   topics: string[]
   quickLinks: string[]
+  pages?: JournalPage[]
 }
 
 export type IssueArchive = {

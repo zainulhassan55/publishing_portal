@@ -12,6 +12,7 @@ import type {
   ServiceItem,
   ValueItem,
 } from '../types/content'
+import { ijdhDetail, ijdhJournal } from './journals/ijdh'
 
 export const brand = {
   name: 'Digital Manuscriptpedia',
@@ -47,17 +48,17 @@ export const heroHighlights = [
 ]
 
 export const heroMetrics: HeroMetric[] = [
-  { value: '6', label: 'Active journals' },
-  { value: 'APC-free', label: 'Open access model' },
-  { value: '2', label: 'Proceedings series' },
-  { value: 'Global', label: 'Author community' },
+  { value: '1', label: 'Active journal' },
+  { value: 'APC waived', label: 'Until Sep 2026' },
+  { value: 'CC BY 4.0', label: 'Open access license' },
+  { value: 'Single-blind', label: 'Peer review' },
 ]
 
 export const publisherServices: ServiceItem[] = [
   {
     title: 'Publishing',
     summary:
-      'Peer-reviewed journals, books, and conference proceedings across computing, engineering, health, business, sustainability, and forensic science.',
+      'Peer-reviewed journals, books, and conference proceedings across digital health and related scholarly fields.',
   },
   {
     title: 'Peer Review Support',
@@ -119,150 +120,9 @@ export const aboutValues: ValueItem[] = [
   },
 ]
 
-export const featuredJournals: Journal[] = [
-  {
-    slug: 'race',
-    title: 'Revolutionary Advances in Computing and Electronics',
-    shortTitle: 'RACE',
-    issn: 'ISSN forthcoming',
-    area: 'Computing & Electronics',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    editor: 'Editorial Board',
-    reviewType: 'Single-blind peer review',
-    summary:
-      'Original research on AI, cybersecurity, embedded systems, IoT, robotics, quantum computing, communication networks, and sustainable engineering.',
-  },
-  {
-    slug: 'jses',
-    title: 'Journal of Smart Engineering Systems',
-    shortTitle: 'JSES',
-    issn: 'ISSN forthcoming',
-    area: 'Smart Engineering',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    reviewType: 'Single-blind peer review',
-    summary:
-      'Bridges fundamental advances and practical applications across civil, mechanical, energy, and materials engineering with AI-driven and IoT-enabled systems.',
-  },
-  {
-    slug: 'jbcsi',
-    title: 'Journal of Business Cultures and Strategic Innovation',
-    shortTitle: 'JBCSI',
-    issn: 'ISSN forthcoming',
-    area: 'Business & Strategy',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    reviewType: 'Double-blind peer review',
-    summary:
-      'Peer-reviewed research on ESG strategies, digital transformation, cross-cultural leadership, organizational resilience, and sustainable business models.',
-  },
-  {
-    slug: 'joha',
-    title: 'Journal of One Health Advances',
-    shortTitle: 'JOHA',
-    issn: 'ISSN forthcoming',
-    area: 'One Health',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    reviewType: 'Single-blind peer review',
-    summary:
-      'Interdisciplinary work connecting human, animal, and environmental health—including zoonoses, antimicrobial stewardship, and precision livestock farming.',
-  },
-  {
-    slug: 'jssgt',
-    title: 'Journal of Sustainable Systems and Green Tech',
-    shortTitle: 'JSSGT',
-    issn: 'ISSN forthcoming',
-    area: 'Sustainability',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    reviewType: 'Single-blind peer review',
-    summary:
-      'Research on renewable energy, circular economy, climate-resilient infrastructure, sustainable materials, and SDG-aligned policy frameworks.',
-  },
-  {
-    slug: 'facts',
-    title: 'Journal of Forensic Analysis, Crime, Technology & Science',
-    shortTitle: 'FACTS',
-    issn: 'ISSN forthcoming',
-    area: 'Forensic Science',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    reviewType: 'Double-blind peer review',
-    summary:
-      'Covers forensic biology, digital forensics, crime scene investigation, cybercrime, legal medicine, and emerging forensic technologies.',
-  },
-]
+export const featuredJournals: Journal[] = [ijdhJournal]
 
-export const latestArticles: Article[] = [
-  {
-    slug: 'edge-ai-framework-iot-industrial-monitoring',
-    title: 'An Edge-AI Framework for Real-Time Industrial IoT Monitoring',
-    journal: 'Revolutionary Advances in Computing and Electronics',
-    meta: 'Vol. 1 No. 2 • Sep 2026',
-    type: 'Research Article',
-    doi: '10.0000/race.2026.1201',
-    excerpt:
-      'Proposes a lightweight edge inference pipeline that reduces latency for multi-sensor industrial monitoring while preserving model accuracy under bandwidth constraints.',
-    authors: 'A. Rahman, L. Chen, M. Okonkwo',
-  },
-  {
-    slug: 'ai-driven-structural-health-monitoring-bridges',
-    title: 'AI-Driven Structural Health Monitoring for Urban Bridges',
-    journal: 'Journal of Smart Engineering Systems',
-    meta: 'Vol. 1 No. 1 • Aug 2026',
-    type: 'Research Article',
-    doi: '10.0000/jses.2026.1104',
-    excerpt:
-      'Demonstrates an IoT-enabled sensing and anomaly detection approach for continuous bridge monitoring with field validation across three metropolitan corridors.',
-    authors: 'S. Patel, N. Wong, D. Alvarez',
-  },
-  {
-    slug: 'esg-disclosure-organizational-resilience',
-    title: 'ESG Disclosure Quality and Organizational Resilience in Emerging Markets',
-    journal: 'Journal of Business Cultures and Strategic Innovation',
-    meta: 'Vol. 1 No. 1 • Aug 2026',
-    type: 'Research Article',
-    doi: '10.0000/jbcsi.2026.1108',
-    excerpt:
-      'Examines how transparent ESG reporting practices correlate with strategic resilience during technology and regulatory disruption.',
-    authors: 'E. Collins, F. Santos, J. Ibrahim',
-  },
-  {
-    slug: 'antimicrobial-stewardship-one-health-surveillance',
-    title: 'Integrated Antimicrobial Stewardship Through One Health Surveillance',
-    journal: 'Journal of One Health Advances',
-    meta: 'Vol. 1 No. 1 • Jul 2026',
-    type: 'Research Article',
-    doi: '10.0000/joha.2026.1102',
-    excerpt:
-      'Presents a cross-sector surveillance model linking veterinary, clinical, and environmental data for earlier antimicrobial resistance response.',
-    authors: 'R. Teo, H. Banerjee, C. Moreau',
-  },
-  {
-    slug: 'circular-economy-waste-valorization-cities',
-    title: 'Circular Economy Pathways for Urban Waste Valorization',
-    journal: 'Journal of Sustainable Systems and Green Tech',
-    meta: 'Vol. 1 No. 1 • Jul 2026',
-    type: 'Review Article',
-    doi: '10.0000/jssgt.2026.1105',
-    excerpt:
-      'Synthesizes techno-economic and life-cycle evidence for industrial symbiosis models that convert municipal waste streams into higher-value materials.',
-    authors: 'M. Hasan, K. Silva',
-  },
-  {
-    slug: 'digital-forensics-cloud-artifact-integrity',
-    title: 'Preserving Cloud Artifact Integrity in Digital Forensic Investigations',
-    journal: 'Journal of Forensic Analysis, Crime, Technology & Science',
-    meta: 'Vol. 1 No. 1 • Jun 2026',
-    type: 'Research Article',
-    doi: '10.0000/facts.2026.1103',
-    excerpt:
-      'Evaluates chain-of-custody and integrity verification methods for volatile cloud evidence in multi-tenant environments.',
-    authors: 'J. Cruz, A. Petrov, L. Mendoza',
-  },
-]
+export const latestArticles: Article[] = []
 
 export const policies: Policy[] = [
   {
@@ -432,367 +292,33 @@ export const editorialStandards = [
   'Prompt correction and retraction handling aligned with COPE guidance',
 ]
 
-export const journalDetails: JournalDetail[] = [
-  {
-    slug: 'race',
-    title: 'Revolutionary Advances in Computing and Electronics',
-    issn: 'ISSN forthcoming',
-    eIssn: 'E-ISSN forthcoming',
-    area: 'Computing & Electronics',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    editor: 'Editorial Board',
-    reviewType: 'Single-blind peer review',
-    license: 'CC BY 4.0',
-    scope:
-      'RACE publishes original, peer-reviewed research addressing foundational and cutting-edge developments in computing and electronics—including AI, cybersecurity, embedded systems, IoT, electronics design, robotics, quantum computing, communication networks, antenna and 6G systems, sustainable engineering, and interdisciplinary applications.',
-    metrics: [
-      { label: 'Access model', value: 'APC-free OA' },
-      { label: 'License', value: 'CC BY 4.0' },
-      { label: 'Review model', value: 'Single-blind' },
-    ],
-    board: [
-      'Editor-in-Chief: Appointed editorial leadership',
-      'Associate Editors: Computing systems and electronics',
-      'International advisory board across AI, networks, and embedded systems',
-    ],
-    topics: [
-      'Artificial intelligence and machine learning',
-      'Cybersecurity and secure systems',
-      'Embedded systems and IoT',
-      'Robotics and quantum computing',
-      'Communication networks and 6G',
-      'Sustainable and interdisciplinary engineering',
-    ],
-    quickLinks: ['Aims & Scope', 'Current Issue', 'Author Guidelines', 'Submit Manuscript'],
-  },
-  {
-    slug: 'jses',
-    title: 'Journal of Smart Engineering Systems',
-    issn: 'ISSN forthcoming',
-    eIssn: 'E-ISSN forthcoming',
-    area: 'Smart Engineering',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    editor: 'Editorial Board',
-    reviewType: 'Single-blind peer review',
-    license: 'CC BY 4.0',
-    scope:
-      'JSES provides a platform for peer-reviewed research bridging fundamental advances and practical applications across civil, mechanical, energy, and materials engineering, with emphasis on AI-driven infrastructure, IoT-enabled monitoring, renewable energy systems, smart materials, and ethical governance of engineered systems.',
-    metrics: [
-      { label: 'Access model', value: 'APC-free OA' },
-      { label: 'License', value: 'CC BY 4.0' },
-      { label: 'Review model', value: 'Single-blind' },
-    ],
-    board: [
-      'Editor-in-Chief: Appointed editorial leadership',
-      'Associate Editors: Civil, mechanical, and energy systems',
-      'Board members spanning smart infrastructure and materials',
-    ],
-    topics: [
-      'AI-driven infrastructure',
-      'IoT-enabled structural monitoring',
-      'Renewable energy systems',
-      'Smart materials',
-      'Human-centric automation',
-      'Ethical governance of engineered systems',
-    ],
-    quickLinks: ['Aims & Scope', 'Issue Archive', 'Policies', 'Submit Manuscript'],
-  },
-  {
-    slug: 'jbcsi',
-    title: 'Journal of Business Cultures and Strategic Innovation',
-    issn: 'ISSN forthcoming',
-    eIssn: 'E-ISSN forthcoming',
-    area: 'Business & Strategy',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    editor: 'Editorial Board',
-    reviewType: 'Double-blind peer review',
-    license: 'CC BY 4.0',
-    scope:
-      'JBCSI publishes theoretical and applied research on ESG strategies, behavioral economics, digital workplaces, cross-cultural leadership, sustainable business models, digital transformation, and organizational resilience.',
-    metrics: [
-      { label: 'Access model', value: 'Platinum OA' },
-      { label: 'License', value: 'CC BY 4.0' },
-      { label: 'Review model', value: 'Double-blind' },
-    ],
-    board: [
-      'Editor-in-Chief: Appointed editorial leadership',
-      'Associate Editors: Strategy, culture, and innovation',
-      'International board across management and organizational studies',
-    ],
-    topics: [
-      'ESG and sustainable business models',
-      'Cross-cultural leadership',
-      'Digital transformation',
-      'Organizational resilience',
-      'Behavioral economics',
-      'Strategic innovation',
-    ],
-    quickLinks: ['Aims & Scope', 'Current Issue', 'Author Guidelines', 'Submit Manuscript'],
-  },
-  {
-    slug: 'joha',
-    title: 'Journal of One Health Advances',
-    issn: 'ISSN forthcoming',
-    eIssn: 'E-ISSN forthcoming',
-    area: 'One Health',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    editor: 'Editorial Board',
-    reviewType: 'Single-blind peer review',
-    license: 'CC BY 4.0',
-    scope:
-      'JOHA advances One Health research spanning zoonotic disease prevention, antimicrobial stewardship, precision livestock farming, veterinary innovation, and environmental health—bridging human medicine, veterinary science, and ecosystem studies.',
-    metrics: [
-      { label: 'Access model', value: 'APC-free OA' },
-      { label: 'First decision', value: '~21 days avg.' },
-      { label: 'Review model', value: 'Interdisciplinary' },
-    ],
-    board: [
-      'Editor-in-Chief: Appointed editorial leadership',
-      'Dual-domain review across medical and veterinary expertise',
-      'Advisors in epidemiology, environmental health, and livestock systems',
-    ],
-    topics: [
-      'Zoonotic disease prevention',
-      'Antimicrobial stewardship',
-      'Precision livestock farming',
-      'Veterinary telemedicine and diagnostics',
-      'Environmental health and climate adaptation',
-      'Pandemic preparedness',
-    ],
-    quickLinks: ['Aims & Scope', 'Current Issue', 'Author Guidelines', 'Submit Manuscript'],
-  },
-  {
-    slug: 'jssgt',
-    title: 'Journal of Sustainable Systems and Green Tech',
-    issn: 'ISSN forthcoming',
-    eIssn: 'E-ISSN forthcoming',
-    area: 'Sustainability',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    editor: 'Editorial Board',
-    reviewType: 'Single-blind peer review',
-    license: 'CC BY 4.0',
-    scope:
-      'JSSGT publishes actionable sustainability research on renewable energy systems, circular economy, climate-resilient infrastructure, sustainable materials, and policy frameworks aligned with the Sustainable Development Goals.',
-    metrics: [
-      { label: 'Access model', value: 'APC-free OA' },
-      { label: 'License', value: 'CC BY 4.0' },
-      { label: 'Focus', value: 'Impact-ready research' },
-    ],
-    board: [
-      'Editor-in-Chief: Appointed editorial leadership',
-      'Associate Editors: Energy, materials, and policy',
-      'Board spanning sustainability science and green technology',
-    ],
-    topics: [
-      'Renewable energy and storage',
-      'Circular economy and waste valorization',
-      'Climate-resilient infrastructure',
-      'Sustainable materials',
-      'Carbon policy and just transition',
-      'Life-cycle and techno-economic analysis',
-    ],
-    quickLinks: ['Aims & Scope', 'Issue Archive', 'Policies', 'Submit Manuscript'],
-  },
-  {
-    slug: 'facts',
-    title: 'Journal of Forensic Analysis, Crime, Technology & Science',
-    issn: 'ISSN forthcoming',
-    eIssn: 'E-ISSN forthcoming',
-    area: 'Forensic Science',
-    access: 'Open Access',
-    frequency: 'Continuous',
-    editor: 'Editorial Board',
-    reviewType: 'Double-blind peer review',
-    license: 'CC BY 4.0',
-    scope:
-      'FACTS covers forensic biology, digital forensics, crime scene investigation, forensic chemistry, forensic medicine, criminalistics, cybercrime investigation, behavioral forensics, forensic anthropology, legal medicine, and emerging forensic technologies.',
-    metrics: [
-      { label: 'Access model', value: 'APC-free OA' },
-      { label: 'License', value: 'CC BY 4.0' },
-      { label: 'Review model', value: 'Double-blind' },
-    ],
-    board: [
-      'Editor-in-Chief: Appointed editorial leadership',
-      'Associate Editors: Digital forensics and forensic science',
-      'Board members across crime analysis, law, and laboratory science',
-    ],
-    topics: [
-      'Digital forensics and cybercrime',
-      'Crime scene investigation',
-      'Forensic biology and chemistry',
-      'Forensic medicine and anthropology',
-      'Evidence evaluation frameworks',
-      'Emerging forensic technologies',
-    ],
-    quickLinks: ['Aims & Scope', 'Current Issue', 'Author Guidelines', 'Submit Manuscript'],
-  },
-]
+export const journalDetails: JournalDetail[] = [ijdhDetail]
 
 export const issueArchives: IssueArchive[] = [
   {
-    journalSlug: 'race',
-    volume: 'Volume 1',
-    issue: 'Issue 2',
-    year: '2026',
-    highlight: 'Special cluster on edge AI, secure IoT, and next-generation networks.',
-  },
-  {
-    journalSlug: 'race',
+    journalSlug: 'ijdh',
     volume: 'Volume 1',
     issue: 'Issue 1',
     year: '2026',
-    highlight: 'Inaugural issue on computing systems and electronics innovation.',
-  },
-  {
-    journalSlug: 'jses',
-    volume: 'Volume 1',
-    issue: 'Issue 1',
-    year: '2026',
-    highlight: 'Smart infrastructure monitoring and sustainable engineering systems.',
-  },
-  {
-    journalSlug: 'jbcsi',
-    volume: 'Volume 1',
-    issue: 'Issue 1',
-    year: '2026',
-    highlight: 'ESG strategy, digital workplaces, and organizational resilience.',
-  },
-  {
-    journalSlug: 'joha',
-    volume: 'Volume 1',
-    issue: 'Issue 1',
-    year: '2026',
-    highlight: 'One Health surveillance and antimicrobial stewardship.',
-  },
-  {
-    journalSlug: 'jssgt',
-    volume: 'Volume 1',
-    issue: 'Issue 1',
-    year: '2026',
-    highlight: 'Circular economy and renewable energy systems.',
-  },
-  {
-    journalSlug: 'facts',
-    volume: 'Volume 1',
-    issue: 'Issue 1',
-    year: '2026',
-    highlight: 'Digital forensic integrity and crime-technology interfaces.',
+    highlight: 'Inaugural continuous publication year for digital health research.',
   },
 ]
 
-export const articleDetails: ArticleDetail[] = [
-  {
-    slug: 'edge-ai-framework-iot-industrial-monitoring',
-    title: 'An Edge-AI Framework for Real-Time Industrial IoT Monitoring',
-    authors: ['A. Rahman', 'L. Chen', 'M. Okonkwo'],
-    journal: 'Revolutionary Advances in Computing and Electronics',
-    doi: '10.0000/race.2026.1201',
-    published: 'September 2026',
-    volumeIssue: 'Vol. 1 No. 2',
-    type: 'Research Article',
-    abstract:
-      'Industrial monitoring increasingly depends on low-latency inference close to the sensor edge. This paper presents an Edge-AI framework that coordinates on-device models, selective cloud escalation, and bandwidth-aware telemetry. Experiments across multi-sensor factory deployments show reduced response time while maintaining classification performance under constrained network conditions.',
-    keywords: ['Edge AI', 'Industrial IoT', 'Real-time monitoring', 'Latency optimization'],
-  },
-  {
-    slug: 'ai-driven-structural-health-monitoring-bridges',
-    title: 'AI-Driven Structural Health Monitoring for Urban Bridges',
-    authors: ['S. Patel', 'N. Wong', 'D. Alvarez'],
-    journal: 'Journal of Smart Engineering Systems',
-    doi: '10.0000/jses.2026.1104',
-    published: 'August 2026',
-    volumeIssue: 'Vol. 1 No. 1',
-    type: 'Research Article',
-    abstract:
-      'This study develops an AI-assisted structural health monitoring approach for urban bridges using distributed IoT sensing and anomaly detection. Field validation across three metropolitan corridors demonstrates practical detection of early structural deviations and supports maintenance prioritization.',
-    keywords: ['Structural health monitoring', 'Smart infrastructure', 'IoT', 'Anomaly detection'],
-  },
-  {
-    slug: 'esg-disclosure-organizational-resilience',
-    title: 'ESG Disclosure Quality and Organizational Resilience in Emerging Markets',
-    authors: ['E. Collins', 'F. Santos', 'J. Ibrahim'],
-    journal: 'Journal of Business Cultures and Strategic Innovation',
-    doi: '10.0000/jbcsi.2026.1108',
-    published: 'August 2026',
-    volumeIssue: 'Vol. 1 No. 1',
-    type: 'Research Article',
-    abstract:
-      'Using multi-country firm evidence, this article analyzes the relationship between ESG disclosure quality and organizational resilience amid technological and regulatory disruption. Findings highlight governance transparency and cross-cultural leadership practices as key mediators of strategic adaptation.',
-    keywords: ['ESG', 'Organizational resilience', 'Disclosure quality', 'Emerging markets'],
-  },
-  {
-    slug: 'antimicrobial-stewardship-one-health-surveillance',
-    title: 'Integrated Antimicrobial Stewardship Through One Health Surveillance',
-    authors: ['R. Teo', 'H. Banerjee', 'C. Moreau'],
-    journal: 'Journal of One Health Advances',
-    doi: '10.0000/joha.2026.1102',
-    published: 'July 2026',
-    volumeIssue: 'Vol. 1 No. 1',
-    type: 'Research Article',
-    abstract:
-      'Antimicrobial resistance requires coordinated surveillance across human, animal, and environmental domains. This paper proposes an integrated One Health stewardship model and evaluates its feasibility for earlier detection and response in mixed clinical–veterinary settings.',
-    keywords: ['One Health', 'Antimicrobial resistance', 'Surveillance', 'Stewardship'],
-  },
-  {
-    slug: 'circular-economy-waste-valorization-cities',
-    title: 'Circular Economy Pathways for Urban Waste Valorization',
-    authors: ['M. Hasan', 'K. Silva'],
-    journal: 'Journal of Sustainable Systems and Green Tech',
-    doi: '10.0000/jssgt.2026.1105',
-    published: 'July 2026',
-    volumeIssue: 'Vol. 1 No. 1',
-    type: 'Review Article',
-    abstract:
-      'This review synthesizes techno-economic and life-cycle evidence for urban waste valorization pathways. It compares industrial symbiosis models and identifies policy conditions that improve environmental and social outcomes in city-scale circular systems.',
-    keywords: ['Circular economy', 'Waste valorization', 'Life-cycle assessment', 'Urban sustainability'],
-  },
-  {
-    slug: 'digital-forensics-cloud-artifact-integrity',
-    title: 'Preserving Cloud Artifact Integrity in Digital Forensic Investigations',
-    authors: ['J. Cruz', 'A. Petrov', 'L. Mendoza'],
-    journal: 'Journal of Forensic Analysis, Crime, Technology & Science',
-    doi: '10.0000/facts.2026.1103',
-    published: 'June 2026',
-    volumeIssue: 'Vol. 1 No. 1',
-    type: 'Research Article',
-    abstract:
-      'Cloud environments challenge traditional forensic acquisition because evidence can be volatile, distributed, and multi-tenant. This article evaluates integrity verification and chain-of-custody methods for cloud artifacts and proposes practical controls for investigative reliability.',
-    keywords: ['Digital forensics', 'Cloud evidence', 'Chain of custody', 'Integrity verification'],
-  },
-]
+export const articleDetails: ArticleDetail[] = []
 
 export const cfpItems: InfoCard[] = [
   {
-    title: 'Large Language Models for Intelligent Healthcare',
+    title: 'Connected Care and Trustworthy Clinical AI',
     summary:
-      'Invites original research on LLMs for clinical decision support, biomedical text mining, and trustworthy AI in healthcare settings.',
-    meta: 'Deadline: 31 Dec 2026 · JOHA / Computing track',
+      'Invites original research for IJDH on telemedicine, clinical decision support, health data interoperability, and trustworthy digital health systems.',
+    meta: 'Deadline: 31 Dec 2026 · IJDH',
     badge: 'Open',
   },
   {
-    title: 'Smart Infrastructure and Sustainable Cities',
+    title: 'Wearables, Remote Monitoring, and Virtual Care',
     summary:
-      'Welcomes interdisciplinary papers on AI-driven infrastructure, climate resilience, and green urban systems.',
-    meta: 'Deadline: 20 Jan 2027 · JSES / JSSGT',
-    badge: 'Open',
-  },
-  {
-    title: 'Digital Transformation and Organizational Resilience',
-    summary:
-      'Seeks contributions on ESG strategy, cross-cultural leadership, and innovation under technological disruption.',
-    meta: 'Deadline: 15 Feb 2027 · JBCSI',
-    badge: 'Open',
-  },
-  {
-    title: 'Advances in Digital Forensics and Cybercrime Investigation',
-    summary:
-      'Calls for research on cloud forensics, evidence integrity, cybercrime analytics, and emerging forensic technologies.',
-    meta: 'Deadline: 28 Feb 2027 · FACTS',
+      'Welcomes submissions on wearable sensing, remote patient monitoring, virtual care delivery, and clinical validation studies.',
+    meta: 'Deadline: 28 Feb 2027 · IJDH',
     badge: 'Open',
   },
 ]
@@ -836,35 +362,21 @@ export const proceedings: InfoCard[] = [
     meta: 'Mode: Online / Hybrid / Physical',
     badge: 'Series',
   },
-  {
-    title: 'International Conference on Digital Learning Systems 2027',
-    summary:
-      'Partner proceedings volume for peer-reviewed conference papers on educational systems, AI, and interactive platforms.',
-    meta: 'Kuala Lumpur • Mar 2027',
-    badge: 'Open CFP',
-  },
 ]
 
 export const specialIssues: InfoCard[] = [
   {
-    title: 'Large Language Models for Intelligent Healthcare',
+    title: 'Connected Care and Trustworthy Clinical AI',
     summary:
-      'Explores LLM methods for bioinformatics, clinical decision support, and trustworthy intelligent healthcare systems.',
+      'Explores clinical decision support, medical AI, interoperability, and trustworthy digital health for IJDH.',
     meta: 'Submission deadline: 31 Dec 2026',
     badge: 'Open',
   },
   {
-    title: 'Smart Infrastructure and Sustainable Cities',
+    title: 'Wearables, Remote Monitoring, and Virtual Care',
     summary:
-      'Links engineering systems, civic planning, renewable energy, and climate-resilient urban design.',
-    meta: 'Submission deadline: 20 Jan 2027',
-    badge: 'Open',
-  },
-  {
-    title: 'Digital Transformation and Organizational Resilience',
-    summary:
-      'Focuses on ESG strategy, cultural leadership, and innovation under technological disruption.',
-    meta: 'Submission deadline: 15 Feb 2027',
+      'Focuses on wearable sensing, remote monitoring, virtual care pathways, and real-world clinical validation.',
+    meta: 'Submission deadline: 28 Feb 2027',
     badge: 'Open',
   },
 ]
@@ -925,24 +437,24 @@ export const indexingItems: InfoCard[] = [
 
 export const newsItems: InfoCard[] = [
   {
-    title: 'DMPedia public publishing portal refreshed for journal discovery',
+    title: 'IJDH now live on the DMPedia publishing portal',
     summary:
-      'The new portal presents journals, articles, policies, and proceedings with clearer navigation and stronger academic presentation.',
+      'International Journal of Digital Health is available with full about, author instructions, APC, ethics, and editorial process pages.',
     meta: 'Sep 2026',
     badge: 'Announcement',
   },
   {
-    title: 'Open call: LLMs for Intelligent Healthcare',
+    title: 'APC waived for IJDH until September 2026',
     summary:
-      'A thematic call invites research on trustworthy AI methods for clinical and biomedical applications.',
+      'Authors can publish open access in IJDH with no article processing charge during the introductory waiver period.',
     meta: 'Sep 2026',
-    badge: 'Call for Papers',
+    badge: 'Update',
   },
   {
-    title: 'Conference series DMP-LNCSE and DMP-LNMR open for partner events',
+    title: 'Open call: Connected Care and Trustworthy Clinical AI',
     summary:
-      'Organizers can publish peer-reviewed proceedings with ISBN assignment and optional DOI support.',
-    meta: 'Aug 2026',
-    badge: 'Update',
+      'IJDH invites submissions on clinical decision support, interoperability, and trustworthy digital health systems.',
+    meta: 'Sep 2026',
+    badge: 'Call for Papers',
   },
 ]

@@ -21,7 +21,7 @@ function FeaturedJournalsSection() {
           <SectionHeading
             eyebrow="Journals"
             title="Active open-access journals"
-            description="Browse DMPedia titles by subject area, peer-review model, and APC-free open access."
+            description="Browse the current DMPedia portfolio, starting with IJDH."
           />
           <ActionLink to="/journals" variant="primary" size="sm">
             View all journals
