@@ -1,0 +1,94 @@
+import { Link } from 'react-router-dom'
+import ActionLink from './ActionLink'
+
+const toneBySlug: Record<string, string> = {
+  ijdh: 'portfolio-tone-mint',
+  ijdm: 'portfolio-tone-sky',
+  ijds: 'portfolio-tone-sage',
+  ijei: 'portfolio-tone-sand',
+  ijic: 'portfolio-tone-slate',
+  ijis: 'portfolio-tone-seafoam',
+  ijmc: 'portfolio-tone-azure',
+  ijmr: 'portfolio-tone-olive',
+  ijqt: 'portfolio-tone-cyan',
+  ijse: 'portfolio-tone-emerald',
+  isri: 'portfolio-tone-amber',
+  lnisi: 'portfolio-tone-steel',
+}
+
+type PortfolioCardProps = {
+  slug: string
+  shortTitle: string
+  title: string
+  summary: string
+  area: string
+  access: string
+  frequency: string
+  reviewType?: string
+  to: string
+  actionLabel: string
+}
+
+function PortfolioCard({
+  slug,
+  shortTitle,
+  title,
+  summary,
+  area,
+  access,
+  frequency,
+  reviewType,
+  to,
+  actionLabel,
+}: PortfolioCardProps) {
+  const toneClass = toneBySlug[slug] ?? 'portfolio-tone-mint'
+
+  return (
+    <article className="portfolio-card group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-[0_10px_28px_rgba(7,19,31,0.05)] transition hover:-translate-y-1 hover:border-ink-700/20 hover:shadow-[0_18px_40px_rgba(7,19,31,0.1)]">
+      <div className={`portfolio-card-cover relative flex min-h-[10.5rem] flex-col justify-between px-5 pt-5 pb-5 ${toneClass}`}>
+        <div className="flex items-start justify-between gap-3">
+          <span className="rounded-md border border-ink-950/10 bg-white/55 px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] text-ink-950 uppercase">
+            {shortTitle}
+          </span>
+          <span className="rounded-md border border-ink-950/10 bg-white/45 px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-ink-800 uppercase">
+            {access}
+          </span>
+        </div>
+
+        <div>
+          <p className="text-[11px] font-semibold tracking-[0.12em] text-ink-800/70 uppercase">
+            {area}
+          </p>
+          <h3 className="mt-2 font-display text-[1.25rem] leading-snug font-semibold tracking-tight text-ink-950">
+            <Link to={to} className="transition hover:opacity-80">
+              {title}
+            </Link>
+          </h3>
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col px-5 pt-4 pb-5">
+        <p className="flex-1 text-sm leading-7 text-slate-600 text-justify">{summary}</p>
+
+        <div className="mt-4 grid grid-cols-2 gap-2 border-t border-line pt-4 text-xs text-slate-500">
+          <div>
+            <p className="font-semibold tracking-[0.06em] text-slate-400 uppercase">Frequency</p>
+            <p className="mt-1 font-medium text-ink-950">{frequency}</p>
+          </div>
+          <div>
+            <p className="font-semibold tracking-[0.06em] text-slate-400 uppercase">Review</p>
+            <p className="mt-1 font-medium text-ink-950">{reviewType ?? 'Peer review'}</p>
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <ActionLink to={to} variant="secondary" size="sm" className="w-full justify-center">
+            {actionLabel}
+          </ActionLink>
+        </div>
+      </div>
+    </article>
+  )
+}
+
+export default PortfolioCard

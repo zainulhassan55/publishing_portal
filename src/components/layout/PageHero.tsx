@@ -37,7 +37,7 @@ function PageHero({ eyebrow, title, description, aside }: PageHeroProps) {
               {title}
             </h1>
             <div className="section-rule mt-5 max-w-28" />
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 text-justify sm:text-lg sm:leading-8">
               {description}
             </p>
           </div>

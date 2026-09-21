@@ -1,10 +1,10 @@
 import { Navigate, useOutletContext, useParams } from 'react-router-dom'
 import Container from '../components/layout/Container'
 import ActionLink from '../components/shared/ActionLink'
-import type { ContentBlock, JournalDetail } from '../types/content'
+import type { BookSeriesDetail, ContentBlock } from '../types/content'
 
-type JournalOutletContext = {
-  journal: JournalDetail
+type BookSeriesOutletContext = {
+  series: BookSeriesDetail
 }
 
 function blockId(title: string) {
@@ -64,13 +64,13 @@ function ContentBlockView({ block }: { block: ContentBlock }) {
   )
 }
 
-function JournalPageDetailPage() {
+function BookSeriesPageDetailPage() {
   const { pageId } = useParams()
-  const { journal } = useOutletContext<JournalOutletContext>()
-  const page = journal.pages?.find((item) => item.id === pageId)
+  const { series } = useOutletContext<BookSeriesOutletContext>()
+  const page = series.pages?.find((item) => item.id === pageId)
 
   if (!page) {
-    return <Navigate to={`/journals/${journal.slug}`} replace />
+    return <Navigate to={`/books/${series.slug}`} replace />
   }
 
   return (
@@ -111,18 +111,18 @@ function JournalPageDetailPage() {
           <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-line bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-display text-xl font-semibold text-ink-950">
-                Continue with {journal.shortTitle ?? 'this journal'}
+                Continue with {series.shortTitle ?? 'this series'}
               </p>
               <p className="mt-1 text-sm text-slate-600">
-                Return to overview or start a manuscript submission.
+                Return to overview or contact the editorial office about a proposal.
               </p>
             </div>
             <div className="flex flex-col gap-2.5 sm:flex-row">
-              <ActionLink to={`/journals/${journal.slug}`} variant="secondary" size="sm">
-                Journal overview
+              <ActionLink to={`/books/${series.slug}`} variant="secondary" size="sm">
+                Series overview
               </ActionLink>
-              <ActionLink to="/login" variant="primary" size="sm">
-                Submit manuscript
+              <ActionLink to="/contact" variant="primary" size="sm">
+                Submit proposal
               </ActionLink>
             </div>
           </div>
@@ -132,4 +132,4 @@ function JournalPageDetailPage() {
   )
 }
 
-export default JournalPageDetailPage
+export default BookSeriesPageDetailPage

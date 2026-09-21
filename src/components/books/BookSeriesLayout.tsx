@@ -1,18 +1,19 @@
 import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom'
-import JournalSubnav from './JournalSubnav'
+import BookSeriesSubnav from './BookSeriesSubnav'
 import Container from '../layout/Container'
 import ActionLink from '../shared/ActionLink'
-import { journalDetails } from '../../data/siteContent'
+import { bookSeriesDetails } from '../../data/siteContent'
 
-function JournalMasthead() {
+function BookSeriesMasthead() {
   const { slug } = useParams()
-  const journal = journalDetails.find((item) => item.slug === slug)
+  const series = bookSeriesDetails.find((item) => item.slug === slug)
 
-  if (!journal) {
+  if (!series) {
     return null
   }
 
-  const pages = journal.pages ?? []
+  const pages = series.pages ?? []
+  const callPage = pages.find((page) => page.id === 'call-for-books')
 
   return (
     <>
@@ -38,40 +39,42 @@ function JournalMasthead() {
         <Container className="relative py-14 sm:py-16 lg:py-20">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-semibold tracking-[0.1em] text-white uppercase">
-              {journal.shortTitle ?? 'Journal'}
+              {series.shortTitle ?? 'Series'}
             </span>
             <span className="rounded-md border border-white/15 px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-slate-200 uppercase">
-              {journal.access}
+              {series.access}
             </span>
             <span className="rounded-md border border-white/15 px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-slate-200 uppercase">
-              {journal.area}
+              {series.area}
             </span>
           </div>
 
           <h1 className="mt-5 max-w-4xl font-display text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-[3rem]">
-            {journal.title}
+            {series.title}
           </h1>
           <div className="section-rule mt-5 max-w-28" />
           <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300 text-justify sm:text-lg sm:leading-8">
-            {journal.tagline ?? journal.scope}
+            {series.tagline ?? series.scope}
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <ActionLink to="/login" variant="light">
-              Submit manuscript
+            <ActionLink to="/contact" variant="light">
+              Submit proposal
             </ActionLink>
-            <ActionLink to={`/journals/${journal.slug}/issues`} variant="ghost">
-              Browse issues
-            </ActionLink>
+            {callPage ? (
+              <ActionLink to={`/books/${series.slug}/${callPage.id}`} variant="ghost">
+                {callPage.label}
+              </ActionLink>
+            ) : null}
             {pages[0] ? (
-              <ActionLink to={`/journals/${journal.slug}/${pages[0].id}`} variant="ghost">
+              <ActionLink to={`/books/${series.slug}/${pages[0].id}`} variant="ghost">
                 {pages[0].label}
               </ActionLink>
             ) : null}
           </div>
 
           <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {journal.metrics.map((metric) => (
+            {series.metrics.map((metric) => (
               <div
                 key={metric.label}
                 className="rounded-xl border border-white/12 bg-white/[0.05] px-4 py-4 backdrop-blur-sm"
@@ -89,28 +92,28 @@ function JournalMasthead() {
       <section className="border-b border-line bg-white">
         <Container className="flex flex-wrap items-center gap-x-6 gap-y-2 py-3 text-sm text-slate-600">
           <span>
-            <span className="font-semibold text-ink-950">{journal.issn}</span>
+            <span className="font-semibold text-ink-950">{series.issn}</span>
           </span>
           <span className="hidden text-line sm:inline">|</span>
           <span>
-            <span className="font-semibold text-ink-950">{journal.eIssn}</span>
+            <span className="font-semibold text-ink-950">{series.eIssn}</span>
           </span>
-          {journal.publisher ? (
+          {series.publisher ? (
             <>
               <span className="hidden text-line sm:inline">|</span>
               <span>
                 Publisher:{' '}
-                <span className="font-semibold text-ink-950">{journal.publisher}</span>
+                <span className="font-semibold text-ink-950">{series.publisher}</span>
               </span>
             </>
           ) : null}
           <span className="hidden text-line sm:inline">|</span>
           <span>
-            Review: <span className="font-semibold text-ink-950">{journal.reviewType}</span>
+            Review: <span className="font-semibold text-ink-950">{series.reviewType}</span>
           </span>
           <span className="hidden text-line sm:inline">|</span>
           <span>
-            License: <span className="font-semibold text-ink-950">{journal.license}</span>
+            Format: <span className="font-semibold text-ink-950">{series.frequency}</span>
           </span>
         </Container>
       </section>
@@ -119,45 +122,41 @@ function JournalMasthead() {
 }
 
 function getActiveTab(pathname: string, slug: string, pageIds: string[]) {
-  if (pathname.endsWith('/issues')) {
-    return 'issues'
-  }
-
   const matchedPage = pageIds.find((id) => pathname.endsWith(`/${id}`))
   if (matchedPage) {
     return matchedPage
   }
 
-  if (pathname.endsWith(`/journals/${slug}`) || pathname.endsWith(`/journals/${slug}/`)) {
+  if (pathname.endsWith(`/books/${slug}`) || pathname.endsWith(`/books/${slug}/`)) {
     return 'overview'
   }
 
   return 'overview'
 }
 
-function JournalLayout() {
+function BookSeriesLayout() {
   const { slug } = useParams()
   const location = useLocation()
-  const journal = journalDetails.find((item) => item.slug === slug)
+  const series = bookSeriesDetails.find((item) => item.slug === slug)
 
-  if (!journal) {
-    return <Navigate to="/journals" replace />
+  if (!series) {
+    return <Navigate to="/books" replace />
   }
 
-  const pages = journal.pages ?? []
+  const pages = series.pages ?? []
   const active = getActiveTab(
     location.pathname,
-    journal.slug,
+    series.slug,
     pages.map((page) => page.id),
   )
 
   return (
     <>
-      <JournalMasthead />
-      <JournalSubnav journalSlug={journal.slug} pages={pages} active={active} />
-      <Outlet context={{ journal }} />
+      <BookSeriesMasthead />
+      <BookSeriesSubnav seriesSlug={series.slug} pages={pages} active={active} />
+      <Outlet context={{ series }} />
     </>
   )
 }
 
-export default JournalLayout
+export default BookSeriesLayout

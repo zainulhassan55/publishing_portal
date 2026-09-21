@@ -1,9 +1,12 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import BookSeriesLayout from './components/books/BookSeriesLayout'
 import JournalLayout from './components/journals/JournalLayout'
 import SiteLayout from './components/layout/SiteLayout'
 import AboutPage from './pages/AboutPage'
 import ArticleDetailPage from './pages/ArticleDetailPage'
 import ArticlesPage from './pages/ArticlesPage'
+import BookSeriesDetailPage from './pages/BookSeriesDetailPage'
+import BookSeriesPageDetailPage from './pages/BookSeriesPageDetailPage'
 import BooksPage from './pages/BooksPage'
 import CfpPage from './pages/CfpPage'
 import ContactPage from './pages/ContactPage'
@@ -36,7 +39,13 @@ function App() {
         </Route>
         <Route path="/articles" element={<ArticlesPage />} />
         <Route path="/articles/:slug" element={<ArticleDetailPage />} />
-        <Route path="/books" element={<BooksPage />} />
+        <Route path="/books">
+          <Route index element={<BooksPage />} />
+          <Route path=":slug" element={<BookSeriesLayout />}>
+            <Route index element={<BookSeriesDetailPage />} />
+            <Route path=":pageId" element={<BookSeriesPageDetailPage />} />
+          </Route>
+        </Route>
         <Route path="/proceedings" element={<ProceedingsPage />} />
         <Route path="/cfp" element={<CfpPage />} />
         <Route path="/special-issues" element={<SpecialIssuesPage />} />

@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom'
 import Container from '../components/layout/Container'
 import PageHero from '../components/layout/PageHero'
-import ActionLink from '../components/shared/ActionLink'
-import FeatureCard from '../components/shared/FeatureCard'
-import FilterBar from '../components/shared/FilterBar'
-import SidebarPanel from '../components/shared/SidebarPanel'
+import PortfolioCard from '../components/shared/PortfolioCard'
 import { featuredJournals } from '../data/siteContent'
 
 function JournalsPage() {
@@ -13,61 +10,47 @@ function JournalsPage() {
       <PageHero
         eyebrow="Journals"
         title="Browse the DMPedia open-access journal portfolio."
-        description="Start with the International Journal of Digital Health (IJDH) — peer-reviewed, continuous open access publishing for connected care and trustworthy clinical technologies."
+        description="Peer-reviewed continuous open-access journals across digital health, management, computing, electronics, and related scholarly fields."
       />
 
-      <section className="bg-paper py-14 sm:py-16">
+      <section className="prose-justify bg-paper py-14 sm:py-16">
         <Container>
-          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="mb-6">
-                <FilterBar items={['All journals', 'Digital Health', 'Open Access']} />
-              </div>
-
-              <div className="grid gap-4">
-                {featuredJournals.map((journal) => (
-                  <FeatureCard
-                    key={journal.slug}
-                    title={journal.title}
-                    description={journal.summary}
-                    meta={`${journal.shortTitle ?? ''} · ${journal.access}`}
-                    badge={journal.area}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <span className="text-sm text-slate-500">
-                        {journal.reviewType} · {journal.frequency}
-                      </span>
-                      <ActionLink to={`/journals/${journal.slug}`} variant="secondary" size="sm">
-                        View journal
-                      </ActionLink>
-                    </div>
-                  </FeatureCard>
-                ))}
-              </div>
+              <p className="meta text-accent-700">Active portfolio</p>
+              <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink-950 sm:text-3xl">
+                {featuredJournals.length} open-access journals
+              </h2>
             </div>
-
-            <div className="space-y-4">
-              <SidebarPanel title="Publishing model">
-                <p>APC-free open access across active journals</p>
-                <p>CC BY 4.0 licensing for published articles</p>
-                <p>Single-blind or double-blind peer review by title</p>
-                <p>DOI-ready article presentation and issue archives</p>
-              </SidebarPanel>
-              <SidebarPanel title="Quick paths">
-                <Link to="/guidelines" className="block font-semibold text-ink-950 hover:underline">
-                  Author guidelines
-                </Link>
-                <Link to="/cfp" className="block font-semibold text-ink-950 hover:underline">
-                  Open calls for papers
-                </Link>
-                <Link to="/indexing" className="block font-semibold text-ink-950 hover:underline">
-                  Indexing and DOI
-                </Link>
-                <Link to="/login" className="block font-semibold text-ink-950 hover:underline">
-                  Submit manuscript
-                </Link>
-              </SidebarPanel>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-ink-950">
+              <Link to="/cfp" className="hover:text-accent-700">
+                Calls for papers
+              </Link>
+              <Link to="/guidelines" className="hover:text-accent-700">
+                Author guidelines
+              </Link>
+              <Link to="/login" className="hover:text-accent-700">
+                Submit manuscript
+              </Link>
             </div>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {featuredJournals.map((journal) => (
+              <PortfolioCard
+                key={journal.slug}
+                slug={journal.slug}
+                shortTitle={journal.shortTitle ?? journal.slug.toUpperCase()}
+                title={journal.title}
+                summary={journal.summary}
+                area={journal.area}
+                access={journal.access}
+                frequency={journal.frequency}
+                reviewType={journal.reviewType}
+                to={`/journals/${journal.slug}`}
+                actionLabel="View journal"
+              />
+            ))}
           </div>
         </Container>
       </section>

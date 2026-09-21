@@ -125,3 +125,37 @@ export type ContactChannel = {
   value: string
   note: string
 }
+
+export type BookSeries = {
+  slug: string
+  title: string
+  shortTitle?: string
+  issn: string
+  area: string
+  access: string
+  frequency: string
+  summary: string
+  reviewType?: string
+}
+
+export type BookSeriesDetail = {
+  slug: string
+  title: string
+  shortTitle?: string
+  tagline?: string
+  issn: string
+  eIssn: string
+  area: string
+  access: string
+  frequency: string
+  scope: string
+  editor: string
+  reviewType: string
+  license: string
+  publisher?: string
+  metrics: { label: string; value: string }[]
+  board: string[]
+  topics: string[]
+  quickLinks: string[]
+  pages?: JournalPage[]
+}

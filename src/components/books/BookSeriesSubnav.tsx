@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom'
 import Container from '../layout/Container'
 import type { JournalPage } from '../../types/content'
 
-type JournalSubnavProps = {
-  journalSlug: string
+type BookSeriesSubnavProps = {
+  seriesSlug: string
   pages: JournalPage[]
-  active: 'overview' | 'issues' | string
+  active: 'overview' | string
 }
 
 function tabClass(isActive: boolean) {
@@ -17,31 +17,25 @@ function tabClass(isActive: boolean) {
     .join(' ')
 }
 
-function JournalSubnav({ journalSlug, pages, active }: JournalSubnavProps) {
+function BookSeriesSubnav({ seriesSlug, pages, active }: BookSeriesSubnavProps) {
   return (
     <section className="series-subnav sticky z-30 border-b border-line bg-white/95 backdrop-blur-xl">
       <Container className="flex items-stretch gap-0 overflow-x-auto">
-        <Link to={`/journals/${journalSlug}`} className={tabClass(active === 'overview')}>
+        <Link to={`/books/${seriesSlug}`} className={tabClass(active === 'overview')}>
           Overview
         </Link>
         {pages.map((page) => (
           <Link
             key={page.id}
-            to={`/journals/${journalSlug}/${page.id}`}
+            to={`/books/${seriesSlug}/${page.id}`}
             className={tabClass(active === page.id)}
           >
             {page.label}
           </Link>
         ))}
-        <Link
-          to={`/journals/${journalSlug}/issues`}
-          className={tabClass(active === 'issues')}
-        >
-          Issues
-        </Link>
       </Container>
     </section>
   )
 }
 
-export default JournalSubnav
+export default BookSeriesSubnav

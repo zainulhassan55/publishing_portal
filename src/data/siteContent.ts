@@ -1,6 +1,8 @@
 import type {
   Article,
   ArticleDetail,
+  BookSeries,
+  BookSeriesDetail,
   ContactChannel,
   HeroMetric,
   InfoCard,
@@ -12,6 +14,8 @@ import type {
   ServiceItem,
   ValueItem,
 } from '../types/content'
+import { isriDetail, isriSeries } from './books/isri'
+import { lnisiDetail, lnisiSeries } from './books/lnisi'
 import { ijdhDetail, ijdhJournal } from './journals/ijdh'
 import { ijdmDetail, ijdmJournal } from './journals/ijdm'
 import { ijdsDetail, ijdsJournal } from './journals/ijds'
@@ -35,7 +39,7 @@ export const brand = {
 export const navigationItems: NavItem[] = [
   { label: 'Journals', path: '/journals' },
   { label: 'Articles', path: '/articles' },
-  { label: 'Books', path: '/books' },
+  { label: 'Book Series', path: '/books' },
   { label: 'Proceedings', path: '/proceedings' },
   { label: 'About', path: '/about' },
 ]
@@ -473,29 +477,9 @@ export const cfpItems: InfoCard[] = [
   },
 ]
 
-export const books: InfoCard[] = [
-  {
-    title: 'Handbook of Digital Scholarship Systems',
-    summary:
-      'A reference volume on platform design, metadata workflows, peer-review operations, and digital dissemination for academic publishers.',
-    meta: 'ISBN 978-1-0000-2026-4',
-    badge: 'Forthcoming',
-  },
-  {
-    title: 'Research Methods for Interdisciplinary Innovation',
-    summary:
-      'Practical guidance for mixed-methods research across computing, engineering, health, and social sciences.',
-    meta: 'ISBN 978-1-0000-2026-8',
-    badge: '2026 Release',
-  },
-  {
-    title: 'Open Knowledge and Ethical Publishing Practice',
-    summary:
-      'Explores COPE-aligned ethics, open licensing, author rights, and responsible dissemination in modern scholarly communication.',
-    meta: 'ISBN 978-1-0000-2027-1',
-    badge: 'Monograph',
-  },
-]
+export const featuredBookSeries: BookSeries[] = [isriSeries, lnisiSeries]
+
+export const bookSeriesDetails: BookSeriesDetail[] = [isriDetail, lnisiDetail]
 
 export const proceedings: InfoCard[] = [
   {
@@ -643,16 +627,16 @@ export const indexingItems: InfoCard[] = [
 
 export const newsItems: InfoCard[] = [
   {
-    title: 'IJSE now live on the DMPedia publishing portal',
+    title: 'LNISI book series now live on the DMPedia publishing portal',
     summary:
-      'International Journal of Smart Electronics is available with full about, author instructions, APC, ethics, and editorial process pages.',
+      'Lecture Notes in Interdisciplinary Science and Innovation is available with full about and call-for-books pages for open-access lecture notes and edited volumes.',
     meta: 'Sep 2026',
     badge: 'Announcement',
   },
   {
-    title: 'IJQT now live on the DMPedia publishing portal',
+    title: 'ISRI book series now live on the DMPedia publishing portal',
     summary:
-      'International Journal of Quantum Technologies is available with full about, author instructions, APC, ethics, and editorial process pages.',
+      'International Series in Research and Innovation is available with full about and call-for-books pages for open-access monographs and edited volumes.',
     meta: 'Sep 2026',
     badge: 'Announcement',
   },

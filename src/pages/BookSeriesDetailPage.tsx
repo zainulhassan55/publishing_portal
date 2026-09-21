@@ -1,15 +1,15 @@
 import { Link, useOutletContext } from 'react-router-dom'
 import Container from '../components/layout/Container'
 import ActionLink from '../components/shared/ActionLink'
-import type { JournalDetail } from '../types/content'
+import type { BookSeriesDetail } from '../types/content'
 
-type JournalOutletContext = {
-  journal: JournalDetail
+type BookSeriesOutletContext = {
+  series: BookSeriesDetail
 }
 
-function JournalDetailPage() {
-  const { journal } = useOutletContext<JournalOutletContext>()
-  const pages = journal.pages ?? []
+function BookSeriesDetailPage() {
+  const { series } = useOutletContext<BookSeriesOutletContext>()
+  const pages = series.pages ?? []
 
   return (
     <>
@@ -19,46 +19,41 @@ function JournalDetailPage() {
             <article className="rounded-2xl border border-line bg-white p-7 shadow-[0_12px_36px_rgba(7,19,31,0.04)] sm:p-9">
               <p className="meta text-accent-700">Aims & scope</p>
               <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink-950">
-                Research focus
+                Series focus
               </h2>
               <div className="section-rule mt-5 max-w-20" />
-              <p className="mt-6 text-base leading-8 text-slate-700">{journal.scope}</p>
-              {journal.ownership ? (
-                <p className="mt-5 rounded-xl border border-line bg-paper-soft px-4 py-3 text-sm leading-7 text-slate-600">
-                  {journal.ownership}
-                </p>
-              ) : null}
+              <p className="mt-6 text-base leading-8 text-slate-700">{series.scope}</p>
             </article>
 
             <aside className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
               <div className="rounded-2xl border border-line bg-ink-950 p-6 text-white">
-                <p className="meta text-accent-300">For authors</p>
-                <h3 className="mt-3 font-display text-2xl font-semibold">Ready to submit?</h3>
+                <p className="meta text-accent-300">For authors & editors</p>
+                <h3 className="mt-3 font-display text-2xl font-semibold">Propose a volume</h3>
                 <p className="mt-3 text-sm leading-7 text-slate-300">
-                  Review author instructions, ethics, and APC details before opening a new
-                  submission.
+                  Review the call for books and series scope before sending a proposal to the
+                  editorial office.
                 </p>
                 <div className="mt-6 flex flex-col gap-2.5">
-                  <ActionLink to="/login" variant="light" size="sm" className="w-full">
-                    Submit manuscript
+                  <ActionLink to="/contact" variant="light" size="sm" className="w-full">
+                    Contact editorial office
                   </ActionLink>
-                  {pages.find((page) => page.id === 'author-instructions') ? (
+                  {pages.find((page) => page.id === 'call-for-books') ? (
                     <ActionLink
-                      to={`/journals/${journal.slug}/author-instructions`}
+                      to={`/books/${series.slug}/call-for-books`}
                       variant="ghost"
                       size="sm"
                       className="w-full"
                     >
-                      Author instructions
+                      Call for books
                     </ActionLink>
                   ) : null}
                 </div>
               </div>
 
               <div className="rounded-2xl border border-line bg-white p-6">
-                <p className="meta text-accent-700">Editorial leadership</p>
+                <p className="meta text-accent-700">Editorial oversight</p>
                 <div className="mt-4 space-y-3">
-                  {journal.board.map((member) => (
+                  {series.board.map((member) => (
                     <p key={member} className="text-sm leading-7 text-slate-600">
                       {member}
                     </p>
@@ -76,7 +71,7 @@ function JournalDetailPage() {
               </h2>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {journal.topics.map((topic, index) => (
+              {series.topics.map((topic, index) => (
                 <div
                   key={topic}
                   className="rounded-xl border border-line bg-white p-4 transition hover:border-accent-600 hover:shadow-[0_12px_28px_rgba(7,19,31,0.06)]"
@@ -93,20 +88,20 @@ function JournalDetailPage() {
           {pages.length > 0 ? (
             <div>
               <div className="mb-6">
-                <p className="meta text-accent-700">Journal documentation</p>
+                <p className="meta text-accent-700">Series documentation</p>
                 <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink-950">
-                  Policies & guidance
+                  About & proposals
                 </h2>
                 <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-                  Complete journal pages for authors, editors, and readers — covering about,
-                  instructions, charges, ethics, and editorial workflow.
+                  Full series pages covering scope, book types, open access, ethics, and how to
+                  submit a proposal.
                 </p>
               </div>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2">
                 {pages.map((page, index) => (
                   <Link
                     key={page.id}
-                    to={`/journals/${journal.slug}/${page.id}`}
+                    to={`/books/${series.slug}/${page.id}`}
                     className="group relative overflow-hidden rounded-2xl border border-line bg-white p-6 transition hover:-translate-y-1 hover:border-ink-700 hover:shadow-[0_18px_40px_rgba(7,19,31,0.08)]"
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -118,12 +113,9 @@ function JournalDetailPage() {
                       </span>
                     </div>
                     <h3 className="mt-4 font-display text-xl font-semibold text-ink-950">
-                      {page.label}
+                      {page.title}
                     </h3>
                     <p className="mt-3 text-sm leading-7 text-slate-600">{page.summary}</p>
-                    <p className="mt-5 text-sm font-semibold text-accent-700 transition group-hover:text-ink-950">
-                      Read full page →
-                    </p>
                   </Link>
                 ))}
               </div>
@@ -131,30 +123,8 @@ function JournalDetailPage() {
           ) : null}
         </Container>
       </section>
-
-      <section className="border-t border-line bg-ink-950 py-12 text-white">
-        <Container className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="meta text-accent-300">{journal.shortTitle ?? 'Journal'}</p>
-            <h2 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">
-              Publish with {journal.shortTitle ?? journal.title}
-            </h2>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-slate-300">
-              {journal.frequency} · {journal.license} · {journal.reviewType}
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <ActionLink to="/login" variant="light">
-              Submit manuscript
-            </ActionLink>
-            <ActionLink to={`/journals/${journal.slug}/issues`} variant="ghost">
-              View issues
-            </ActionLink>
-          </div>
-        </Container>
-      </section>
     </>
   )
 }
 
-export default JournalDetailPage
+export default BookSeriesDetailPage

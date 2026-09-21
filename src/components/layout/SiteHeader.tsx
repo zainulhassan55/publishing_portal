@@ -21,31 +21,46 @@ function SiteHeader() {
     return () => media.removeEventListener('change', syncMenu)
   }, [])
 
-  const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `relative py-1 text-[15px] font-semibold transition ${
-      isActive
-        ? 'nav-link-active'
-        : 'text-slate-600 hover:text-ink-950'
-    }`
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
+  const primaryLinkClass = ({ isActive }: { isActive: boolean }) =>
+    [
+      'site-nav-link',
+      isActive ? 'site-nav-link-active' : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/80 bg-paper-soft/90 backdrop-blur-xl">
+    <header className="site-header sticky top-0 z-40 border-b border-line/80 bg-paper-soft/95 backdrop-blur-xl">
       <div className="border-b border-white/10 bg-ink-950">
-        <Container className="flex items-center justify-between gap-4 py-2">
-          <p className="text-[11px] font-medium tracking-[0.14em] text-slate-300 uppercase">
+        <Container className="flex h-9 items-center justify-between gap-4">
+          <p className="truncate text-[11px] font-medium tracking-[0.12em] text-slate-300 uppercase">
             DMPedia · Peer-reviewed · APC-free open access
           </p>
-          <nav className="hidden items-center gap-4 text-[12px] font-semibold text-slate-300 md:flex">
-            <NavLink
-              to="/cfp"
-              className={({ isActive }) => (isActive ? 'text-white' : 'hover:text-white')}
-            >
-              Call for Papers
-            </NavLink>
-            <span className="text-slate-600">|</span>
+          <nav className="hidden items-center gap-5 text-[12px] font-medium text-slate-300 md:flex">
+            {secondaryNavigationItems.slice(0, 4).map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  isActive ? 'text-white' : 'transition hover:text-white'
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+            <span className="h-3 w-px bg-slate-600" aria-hidden="true" />
             <NavLink
               to="/contact"
-              className={({ isActive }) => (isActive ? 'text-white' : 'hover:text-white')}
+              className={({ isActive }) =>
+                isActive ? 'text-white' : 'transition hover:text-white'
+              }
             >
               Contact
             </NavLink>
@@ -53,36 +68,43 @@ function SiteHeader() {
         </Container>
       </div>
 
-      <Container className="py-3.5">
-        <div className="flex items-center justify-between gap-5">
-          <NavLink to="/" className="group flex min-w-0 items-center gap-3">
+      <Container>
+        <div className="flex h-[4.25rem] items-center gap-4 lg:gap-6">
+          <NavLink to="/" className="group flex min-w-0 shrink-0 items-center gap-3" end>
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink-950 font-display text-sm font-semibold tracking-wide text-white shadow-[0_8px_20px_rgba(7,19,31,0.18)] transition group-hover:bg-ink-800">
               {brand.shortName.slice(0, 2)}
             </span>
             <span className="min-w-0">
-              <span className="block truncate font-display text-[1.2rem] leading-tight font-semibold tracking-tight text-ink-950 sm:text-[1.35rem]">
+              <span className="block truncate font-display text-[1.15rem] leading-tight font-semibold tracking-tight text-ink-950 sm:text-[1.3rem]">
                 {brand.name}
               </span>
-              <span className="mt-0.5 hidden text-[11px] tracking-[0.1em] text-slate-500 uppercase sm:block">
+              <span className="mt-0.5 hidden text-[10px] tracking-[0.12em] text-slate-500 uppercase xl:block">
                 {brand.tagline}
               </span>
             </span>
           </NavLink>
 
-          <nav className="hidden items-center gap-6 lg:flex">
+          <nav
+            aria-label="Primary"
+            className="ml-auto hidden h-full items-stretch lg:flex"
+          >
             {navigationItems.map((item) => (
-              <NavLink key={item.path} to={item.path} className={linkClass}>
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={primaryLinkClass}
+              >
                 {item.label}
               </NavLink>
             ))}
           </nav>
 
-          <div className="hidden items-center gap-2.5 lg:flex">
+          <div className="hidden shrink-0 items-center gap-2 lg:flex">
             <ActionLink to="/login" variant="secondary" size="sm">
               Login
             </ActionLink>
             <ActionLink to="/login" variant="primary" size="sm">
-              Submit Manuscript
+              Submit
             </ActionLink>
           </div>
 
@@ -90,7 +112,7 @@ function SiteHeader() {
             type="button"
             aria-expanded={isOpen}
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
-            className="btn btn-secondary btn-icon btn-menu"
+            className="btn btn-secondary btn-icon btn-menu ml-auto lg:hidden"
             onClick={() => setIsOpen((value) => !value)}
           >
             <span className="sr-only">{isOpen ? 'Close' : 'Menu'}</span>
@@ -113,48 +135,58 @@ function SiteHeader() {
             </span>
           </button>
         </div>
+      </Container>
 
-        {isOpen ? (
-          <div className="mobile-nav-panel mt-4 surface p-5">
-            <nav className="flex flex-col gap-3">
+      {isOpen ? (
+        <div className="border-t border-line bg-white lg:hidden">
+          <Container className="py-4">
+            <nav aria-label="Mobile primary" className="flex flex-col">
               {navigationItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  className={linkClass}
+                  className={({ isActive }) =>
+                    [
+                      'border-b border-line px-1 py-3.5 text-[15px] font-semibold transition',
+                      isActive ? 'text-accent-700' : 'text-ink-950',
+                    ].join(' ')
+                  }
                   onClick={() => setIsOpen(false)}
                 >
                   {item.label}
                 </NavLink>
               ))}
             </nav>
-            <div className="mt-4 border-t border-line pt-4">
-              <nav className="flex flex-col gap-3 text-sm text-slate-600">
-                {secondaryNavigationItems.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    className={({ isActive }) =>
-                      isActive ? 'font-semibold text-ink-950' : 'hover:text-ink-950'
-                    }
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.label}
-                  </NavLink>
-                ))}
-              </nav>
-            </div>
-            <div className="mt-5 flex flex-col gap-2.5">
-              <ActionLink to="/login" variant="secondary">
+            <nav aria-label="Mobile secondary" className="mt-4 grid gap-1">
+              {secondaryNavigationItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    [
+                      'rounded-lg px-2 py-2 text-sm font-medium transition',
+                      isActive
+                        ? 'bg-accent-50 text-accent-700'
+                        : 'text-slate-600 hover:bg-paper hover:text-ink-950',
+                    ].join(' ')
+                  }
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+            <div className="mt-5 grid grid-cols-2 gap-2.5">
+              <ActionLink to="/login" variant="secondary" className="w-full justify-center">
                 Login
               </ActionLink>
-              <ActionLink to="/login" variant="primary">
-                Submit Manuscript
+              <ActionLink to="/login" variant="primary" className="w-full justify-center">
+                Submit
               </ActionLink>
             </div>
-          </div>
-        ) : null}
-      </Container>
+          </Container>
+        </div>
+      ) : null}
     </header>
   )
 }

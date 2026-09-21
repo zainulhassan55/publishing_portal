@@ -13,7 +13,7 @@ function JournalArchivePage() {
   const issues = issueArchives.filter((item) => item.journalSlug === journal.slug)
 
   return (
-    <section className="bg-paper py-14 sm:py-16">
+    <section className="prose-justify bg-paper py-14 sm:py-16">
       <Container>
         <div className="mb-8 max-w-3xl">
           <p className="meta text-accent-700">Issue archive</p>
