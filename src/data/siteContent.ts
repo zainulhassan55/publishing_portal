@@ -13,6 +13,15 @@ import type {
   ValueItem,
 } from '../types/content'
 import { ijdhDetail, ijdhJournal } from './journals/ijdh'
+import { ijdmDetail, ijdmJournal } from './journals/ijdm'
+import { ijdsDetail, ijdsJournal } from './journals/ijds'
+import { ijeiDetail, ijeiJournal } from './journals/ijei'
+import { ijicDetail, ijicJournal } from './journals/ijic'
+import { ijisDetail, ijisJournal } from './journals/ijis'
+import { ijmcDetail, ijmcJournal } from './journals/ijmc'
+import { ijmrDetail, ijmrJournal } from './journals/ijmr'
+import { ijqtDetail, ijqtJournal } from './journals/ijqt'
+import { ijseDetail, ijseJournal } from './journals/ijse'
 
 export const brand = {
   name: 'Digital Manuscriptpedia',
@@ -48,7 +57,7 @@ export const heroHighlights = [
 ]
 
 export const heroMetrics: HeroMetric[] = [
-  { value: '1', label: 'Active journal' },
+  { value: '10', label: 'Active journals' },
   { value: 'APC waived', label: 'Until Sep 2026' },
   { value: 'CC BY 4.0', label: 'Open access license' },
   { value: 'Single-blind', label: 'Peer review' },
@@ -58,7 +67,7 @@ export const publisherServices: ServiceItem[] = [
   {
     title: 'Publishing',
     summary:
-      'Peer-reviewed journals, books, and conference proceedings across digital health and related scholarly fields.',
+      'Peer-reviewed journals, books, and conference proceedings across digital fields, entrepreneurship, innovation, and related scholarly areas.',
   },
   {
     title: 'Peer Review Support',
@@ -120,7 +129,18 @@ export const aboutValues: ValueItem[] = [
   },
 ]
 
-export const featuredJournals: Journal[] = [ijdhJournal]
+export const featuredJournals: Journal[] = [
+  ijdhJournal,
+  ijdmJournal,
+  ijdsJournal,
+  ijeiJournal,
+  ijicJournal,
+  ijisJournal,
+  ijmcJournal,
+  ijmrJournal,
+  ijqtJournal,
+  ijseJournal,
+]
 
 export const latestArticles: Article[] = []
 
@@ -292,7 +312,18 @@ export const editorialStandards = [
   'Prompt correction and retraction handling aligned with COPE guidance',
 ]
 
-export const journalDetails: JournalDetail[] = [ijdhDetail]
+export const journalDetails: JournalDetail[] = [
+  ijdhDetail,
+  ijdmDetail,
+  ijdsDetail,
+  ijeiDetail,
+  ijicDetail,
+  ijisDetail,
+  ijmcDetail,
+  ijmrDetail,
+  ijqtDetail,
+  ijseDetail,
+]
 
 export const issueArchives: IssueArchive[] = [
   {
@@ -301,6 +332,69 @@ export const issueArchives: IssueArchive[] = [
     issue: 'Issue 1',
     year: '2026',
     highlight: 'Inaugural continuous publication year for digital health research.',
+  },
+  {
+    journalSlug: 'ijdm',
+    volume: 'Volume 1',
+    issue: 'Issue 1',
+    year: '2026',
+    highlight: 'Inaugural continuous publication year for digital management research.',
+  },
+  {
+    journalSlug: 'ijds',
+    volume: 'Volume 1',
+    issue: 'Issue 1',
+    year: '2026',
+    highlight: 'Inaugural continuous publication year for digital society research.',
+  },
+  {
+    journalSlug: 'ijei',
+    volume: 'Volume 1',
+    issue: 'Issue 1',
+    year: '2026',
+    highlight: 'Inaugural continuous publication year for entrepreneurship and innovation research.',
+  },
+  {
+    journalSlug: 'ijic',
+    volume: 'Volume 1',
+    issue: 'Issue 1',
+    year: '2026',
+    highlight: 'Inaugural continuous publication year for intelligent computing research.',
+  },
+  {
+    journalSlug: 'ijis',
+    volume: 'Volume 1',
+    issue: 'Issue 1',
+    year: '2026',
+    highlight: 'Inaugural continuous publication year for interdisciplinary science research.',
+  },
+  {
+    journalSlug: 'ijmc',
+    volume: 'Volume 1',
+    issue: 'Issue 1',
+    year: '2026',
+    highlight: 'Inaugural continuous publication year for mathematical computing research.',
+  },
+  {
+    journalSlug: 'ijmr',
+    volume: 'Volume 1',
+    issue: 'Issue 1',
+    year: '2026',
+    highlight: 'Inaugural continuous publication year for multidisciplinary research.',
+  },
+  {
+    journalSlug: 'ijqt',
+    volume: 'Volume 1',
+    issue: 'Issue 1',
+    year: '2026',
+    highlight: 'Inaugural continuous publication year for quantum technologies research.',
+  },
+  {
+    journalSlug: 'ijse',
+    volume: 'Volume 1',
+    issue: 'Issue 1',
+    year: '2026',
+    highlight: 'Inaugural continuous publication year for smart electronics research.',
   },
 ]
 
@@ -315,10 +409,66 @@ export const cfpItems: InfoCard[] = [
     badge: 'Open',
   },
   {
-    title: 'Wearables, Remote Monitoring, and Virtual Care',
+    title: 'Digital Strategy and Platform Ecosystems',
     summary:
-      'Welcomes submissions on wearable sensing, remote patient monitoring, virtual care delivery, and clinical validation studies.',
-    meta: 'Deadline: 28 Feb 2027 · IJDH',
+      'Invites original research for IJDM on digital transformation, platform-based business models, data-driven decision making, and accountable digital management.',
+    meta: 'Deadline: 31 Dec 2026 · IJDM',
+    badge: 'Open',
+  },
+  {
+    title: 'Digital Citizenship and Platform Society',
+    summary:
+      'Invites original research for IJDS on digital citizenship, civic technologies, digital inequality, algorithmic governance, and equitable digital public life.',
+    meta: 'Deadline: 31 Dec 2026 · IJDS',
+    badge: 'Open',
+  },
+  {
+    title: 'Entrepreneurial Ecosystems and Innovation Management',
+    summary:
+      'Invites original research for IJEI on new venture creation, innovation management, digital entrepreneurship, and sustainable venturing.',
+    meta: 'Deadline: 31 Dec 2026 · IJEI',
+    badge: 'Open',
+  },
+  {
+    title: 'Trustworthy and Resource-Aware Intelligent Computing',
+    summary:
+      'Invites original research for IJIC on hybrid intelligent systems, interpretable models, edge inference, and autonomous decision-making.',
+    meta: 'Deadline: 31 Dec 2026 · IJIC',
+    badge: 'Open',
+  },
+  {
+    title: 'Knowledge Integration and Convergent Science',
+    summary:
+      'Invites original research for IJIS on interdisciplinary methods, team science, cross-domain data, and convergent scientific practice.',
+    meta: 'Deadline: 31 Dec 2026 · IJIS',
+    badge: 'Open',
+  },
+  {
+    title: 'Structure-Preserving and High-Performance Mathematical Computing',
+    summary:
+      'Invites original research for IJMC on numerical analysis, symbolic computation, verified methods, and mathematically grounded algorithms.',
+    meta: 'Deadline: 31 Dec 2026 · IJMC',
+    badge: 'Open',
+  },
+  {
+    title: 'Integrative Multidisciplinary Problem-Driven Research',
+    summary:
+      'Invites original research for IJMR on cross-field methods, evidence integration, cross-sector collaboration, and problem-driven multidisciplinary studies.',
+    meta: 'Deadline: 31 Dec 2026 · IJMR',
+    badge: 'Open',
+  },
+  {
+    title: 'Scalable Quantum Computing, Communication, and Sensing',
+    summary:
+      'Invites original research for IJQT on quantum architectures, error correction, quantum networks, sensing, and quantum-safe systems.',
+    meta: 'Deadline: 31 Dec 2026 · IJQT',
+    badge: 'Open',
+  },
+  {
+    title: 'Intelligent Connected and Energy-Aware Electronics',
+    summary:
+      'Invites original research for IJSE on smart sensors, edge-AI hardware, low-power circuits, IoT devices, and hardware security.',
+    meta: 'Deadline: 31 Dec 2026 · IJSE',
     badge: 'Open',
   },
 ]
@@ -373,10 +523,66 @@ export const specialIssues: InfoCard[] = [
     badge: 'Open',
   },
   {
-    title: 'Wearables, Remote Monitoring, and Virtual Care',
+    title: 'Digital Strategy and Platform Ecosystems',
     summary:
-      'Focuses on wearable sensing, remote monitoring, virtual care pathways, and real-world clinical validation.',
-    meta: 'Submission deadline: 28 Feb 2027',
+      'Explores digital transformation, platform ecosystems, enterprise systems, and accountable digital management for IJDM.',
+    meta: 'Submission deadline: 31 Dec 2026',
+    badge: 'Open',
+  },
+  {
+    title: 'Digital Citizenship and Platform Society',
+    summary:
+      'Explores digital citizenship, civic technologies, digital inequality, and algorithmic governance for IJDS.',
+    meta: 'Submission deadline: 31 Dec 2026',
+    badge: 'Open',
+  },
+  {
+    title: 'Entrepreneurial Ecosystems and Innovation Management',
+    summary:
+      'Explores new venture creation, innovation management, digital entrepreneurship, and entrepreneurial ecosystems for IJEI.',
+    meta: 'Submission deadline: 31 Dec 2026',
+    badge: 'Open',
+  },
+  {
+    title: 'Trustworthy and Resource-Aware Intelligent Computing',
+    summary:
+      'Explores hybrid intelligent systems, interpretable models, resource-aware inference, and autonomous systems for IJIC.',
+    meta: 'Submission deadline: 31 Dec 2026',
+    badge: 'Open',
+  },
+  {
+    title: 'Knowledge Integration and Convergent Science',
+    summary:
+      'Explores interdisciplinary methods, team science, cross-domain synthesis, and convergent research practices for IJIS.',
+    meta: 'Submission deadline: 31 Dec 2026',
+    badge: 'Open',
+  },
+  {
+    title: 'Structure-Preserving and High-Performance Mathematical Computing',
+    summary:
+      'Explores numerical analysis, symbolic computation, high-performance solvers, and structure-preserving models for IJMC.',
+    meta: 'Submission deadline: 31 Dec 2026',
+    badge: 'Open',
+  },
+  {
+    title: 'Integrative Multidisciplinary Problem-Driven Research',
+    summary:
+      'Explores cross-field methods, evidence integration, and problem-driven multidisciplinary studies for IJMR.',
+    meta: 'Submission deadline: 31 Dec 2026',
+    badge: 'Open',
+  },
+  {
+    title: 'Scalable Quantum Computing, Communication, and Sensing',
+    summary:
+      'Explores quantum architectures, error correction, quantum networks, sensing, and hybrid quantum-classical systems for IJQT.',
+    meta: 'Submission deadline: 31 Dec 2026',
+    badge: 'Open',
+  },
+  {
+    title: 'Intelligent Connected and Energy-Aware Electronics',
+    summary:
+      'Explores smart sensors, edge-AI hardware, low-power electronics, IoT nodes, and trusted hardware for IJSE.',
+    meta: 'Submission deadline: 31 Dec 2026',
     badge: 'Open',
   },
 ]
@@ -437,24 +643,24 @@ export const indexingItems: InfoCard[] = [
 
 export const newsItems: InfoCard[] = [
   {
-    title: 'IJDH now live on the DMPedia publishing portal',
+    title: 'IJSE now live on the DMPedia publishing portal',
     summary:
-      'International Journal of Digital Health is available with full about, author instructions, APC, ethics, and editorial process pages.',
+      'International Journal of Smart Electronics is available with full about, author instructions, APC, ethics, and editorial process pages.',
     meta: 'Sep 2026',
     badge: 'Announcement',
   },
   {
-    title: 'APC waived for IJDH until September 2026',
+    title: 'IJQT now live on the DMPedia publishing portal',
     summary:
-      'Authors can publish open access in IJDH with no article processing charge during the introductory waiver period.',
+      'International Journal of Quantum Technologies is available with full about, author instructions, APC, ethics, and editorial process pages.',
     meta: 'Sep 2026',
-    badge: 'Update',
+    badge: 'Announcement',
   },
   {
-    title: 'Open call: Connected Care and Trustworthy Clinical AI',
+    title: 'APC waived across active journals until September 2026',
     summary:
-      'IJDH invites submissions on clinical decision support, interoperability, and trustworthy digital health systems.',
+      'Authors can publish open access with no article processing charge during the introductory waiver period.',
     meta: 'Sep 2026',
-    badge: 'Call for Papers',
+    badge: 'Update',
   },
 ]
