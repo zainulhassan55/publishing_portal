@@ -41,10 +41,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background:
-    radial-gradient(ellipse 80% 50% at 100% -10%, rgba(20, 150, 140, 0.07), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 0% 20%, rgba(16, 34, 53, 0.05), transparent 50%),
-    var(--color-paper);
+  background: #f4f6f8;
 }
 
 #root {
@@ -134,6 +131,108 @@ textarea {
 
 .animate-drift {
   animation: drift 18s ease-in-out infinite;
+}
+
+.home-hero {
+  background:
+    radial-gradient(120% 80% at 0% 50%, rgba(244, 246, 248, 0.96) 0%, rgba(244, 246, 248, 0.72) 42%, rgba(244, 246, 248, 0) 72%),
+    #eef2f5;
+}
+
+.home-hero-image {
+  transform-origin: 62% 45%;
+  will-change: transform;
+}
+
+.home-hero-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      105deg,
+      rgba(244, 246, 248, 0.97) 0%,
+      rgba(244, 246, 248, 0.9) 34%,
+      rgba(244, 246, 248, 0.42) 58%,
+      rgba(244, 246, 248, 0.08) 78%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(244, 246, 248, 0.55) 0%,
+      transparent 28%,
+      transparent 72%,
+      rgba(244, 246, 248, 0.28) 100%
+    );
+}
+
+.home-hero-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  mix-blend-mode: multiply;
+}
+
+.home-hero-copy {
+  position: relative;
+}
+
+.home-hero-copy::before {
+  content: '';
+  position: absolute;
+  left: -1.15rem;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, #0f8178 0%, rgba(15, 129, 120, 0.15) 100%);
+}
+
+@media (min-width: 640px) {
+  .home-hero-copy::before {
+    left: -1.5rem;
+  }
+}
+
+.home-hero-rule {
+  display: inline-block;
+  width: 2.75rem;
+  height: 1.5px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #0f8178 0%, rgba(15, 129, 120, 0.2) 100%);
+}
+
+.home-hero-cta {
+  min-width: 10.5rem;
+}
+
+.home-hero-marker {
+  width: 1.75rem;
+  height: 2px;
+  border: 0;
+  padding: 0;
+  border-radius: 1px;
+  background: rgba(7, 19, 31, 0.18);
+  cursor: pointer;
+  transition:
+    width 0.35s ease,
+    background-color 0.35s ease;
+}
+
+.home-hero-marker:hover {
+  background: rgba(7, 19, 31, 0.4);
+}
+
+.home-hero-marker.is-active {
+  width: 2.75rem;
+  background: #07131f;
+}
+
+.home-hero-marker:focus-visible {
+  outline: 2px solid #07131f;
+  outline-offset: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -349,6 +448,65 @@ textarea {
 
 .portfolio-tone-steel {
   background: linear-gradient(145deg, #eaeff5 0%, #dce4ee 55%, #ced8e6 100%);
+}
+
+.journal-carousel-slide {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .journal-carousel-slide {
+    width: calc((100% - 16px) / 2);
+  }
+}
+
+@media (min-width: 1024px) {
+  .journal-carousel-slide {
+    width: calc((100% - 32px) / 3);
+  }
+}
+
+.journal-carousel-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  border: 1px solid #c9d3dd;
+  background: rgba(255, 255, 255, 0.96);
+  color: #07131f;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(7, 19, 31, 0.08);
+  backdrop-filter: blur(8px);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.journal-carousel-nav:hover:not(:disabled) {
+  background: #07131f;
+  border-color: #07131f;
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(7, 19, 31, 0.18);
+}
+
+.journal-carousel-nav:active:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(7, 19, 31, 0.14);
+}
+
+.journal-carousel-nav:disabled {
+  cursor: not-allowed;
+  opacity: 0.28;
+  box-shadow: none;
+}
+
+.journal-carousel-nav:focus-visible {
+  outline: 2px solid #07131f;
+  outline-offset: 3px;
 }
 
 .badge {

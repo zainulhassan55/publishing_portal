@@ -1,81 +1,193 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { featuredJournals } from '../../data/siteContent'
+import { journalCoverBySlug } from '../../data/journalCovers'
+import { featuredJournals, heroMetrics } from '../../data/siteContent'
 import Container from '../layout/Container'
 import ActionLink from '../shared/ActionLink'
 import SectionHeading from '../shared/SectionHeading'
 
-const coverStyles = [
-  'from-[#07131f] via-[#16384f] to-[#0f8178]',
-  'from-[#0c1c2c] via-[#1a4560] to-[#1f6f78]',
-  'from-[#102235] via-[#0d4a55] to-[#14968c]',
-  'from-[#0a1826] via-[#25445f] to-[#0a6b63]',
-  'from-[#122338] via-[#1b4a5c] to-[#2a7d74]',
-  'from-[#0d1a28] via-[#183149] to-[#12706a]',
-]
+const toneBySlug: Record<string, string> = {
+  ijdh: 'portfolio-tone-mint',
+  ijdm: 'portfolio-tone-sky',
+  ijds: 'portfolio-tone-sage',
+  ijei: 'portfolio-tone-sand',
+  ijic: 'portfolio-tone-slate',
+  ijis: 'portfolio-tone-seafoam',
+  ijmc: 'portfolio-tone-azure',
+  ijmr: 'portfolio-tone-olive',
+  ijqt: 'portfolio-tone-cyan',
+  ijse: 'portfolio-tone-emerald',
+}
+
+const GAP_PX = 16
 
 function FeaturedJournalsSection() {
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  const [canPrev, setCanPrev] = useState(false)
+  const [canNext, setCanNext] = useState(true)
+
+  const updateArrows = () => {
+    const node = scrollerRef.current
+    if (!node) return
+
+    const maxScroll = node.scrollWidth - node.clientWidth
+    setCanPrev(node.scrollLeft > 8)
+    setCanNext(node.scrollLeft < maxScroll - 8)
+  }
+
+  useEffect(() => {
+    const node = scrollerRef.current
+    if (!node) return
+
+    updateArrows()
+    node.addEventListener('scroll', updateArrows, { passive: true })
+    window.addEventListener('resize', updateArrows)
+
+    return () => {
+      node.removeEventListener('scroll', updateArrows)
+      window.removeEventListener('resize', updateArrows)
+    }
+  }, [])
+
+  const scrollByCards = (direction: -1 | 1) => {
+    const node = scrollerRef.current
+    if (!node) return
+
+    // Move by one full "page" of 3 cards on desktop, 1 card on smaller screens
+    const visible = window.matchMedia('(min-width: 1024px)').matches
+      ? 3
+      : window.matchMedia('(min-width: 640px)').matches
+        ? 2
+        : 1
+    const card = node.querySelector<HTMLElement>('[data-journal-slide]')
+    const step = card ? (card.offsetWidth + GAP_PX) * visible : node.clientWidth
+    node.scrollBy({ left: direction * step, behavior: 'smooth' })
+  }
+
   return (
-    <section className="relative py-16 sm:py-20">
+    <section className="border-b border-line bg-white py-16 sm:py-20">
       <Container>
         <div className="flex flex-col gap-5 border-b border-line pb-8 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeading
             eyebrow="Journals"
-            title="Active open-access journals"
-            description="Browse the current DMPedia portfolio, starting with IJDH."
+            title="Browse journal covers"
+            description="Use the arrows to move through the portfolio. Open the Journals tab for full details."
           />
           <ActionLink to="/journals" variant="primary" size="sm">
             View all journals
           </ActionLink>
         </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {featuredJournals.map((journal, index) => (
-            <article
-              key={journal.slug}
-              className="group card overflow-hidden p-0"
-              style={{ animationDelay: `${index * 60}ms` }}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {heroMetrics.map((metric) => (
+            <div
+              key={metric.label}
+              className="rounded-2xl border border-line bg-[#f7f9fb] px-5 py-4"
             >
-              <Link to={`/journals/${journal.slug}`} className="block">
-                <div
-                  className={`relative flex min-h-[11rem] items-end overflow-hidden bg-gradient-to-br p-5 text-white ${coverStyles[index % coverStyles.length]}`}
-                >
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-0 opacity-30 transition duration-500 group-hover:opacity-45"
-                    style={{
-                      backgroundImage:
-                        'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25), transparent 35%), linear-gradient(135deg, transparent 40%, rgba(0,0,0,0.25))',
-                    }}
-                  />
-                  <div className="absolute top-4 right-4 rounded-md border border-white/25 bg-black/20 px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-white uppercase backdrop-blur-sm">
-                    {journal.access}
-                  </div>
-                  <div className="relative">
-                    <p className="meta text-accent-200">{journal.area}</p>
-                    <p className="mt-2 max-w-sm font-display text-xl leading-snug font-semibold">
-                      {journal.title}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-
-              <div className="flex flex-1 flex-col p-5 sm:p-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="badge">{journal.shortTitle ?? journal.area}</span>
-                  <span className="badge">{journal.frequency}</span>
-                </div>
-                <p className="mt-4 flex-1 text-sm leading-7 text-slate-600">{journal.summary}</p>
-                <div className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-4">
-                  <p className="text-xs font-medium text-slate-500">
-                    {journal.reviewType ?? 'Peer-reviewed'} · APC-free
-                  </p>
-                  <ActionLink to={`/journals/${journal.slug}`} variant="secondary" size="sm">
-                    View journal
-                  </ActionLink>
-                </div>
-              </div>
-            </article>
+              <p className="font-display text-2xl font-semibold text-ink-950">{metric.value}</p>
+              <p className="mt-1 text-sm text-slate-500">{metric.label}</p>
+            </div>
           ))}
+        </div>
+
+        <div className="relative mt-10">
+          <button
+            type="button"
+            aria-label="Previous journals"
+            disabled={!canPrev}
+            onClick={() => scrollByCards(-1)}
+            className="journal-carousel-nav absolute top-1/2 left-0 z-10 -translate-x-1/2 -translate-y-1/2 sm:-translate-x-[40%]"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4">
+              <path
+                d="M14.5 5.5 8 12l6.5 6.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            aria-label="Next journals"
+            disabled={!canNext}
+            onClick={() => scrollByCards(1)}
+            className="journal-carousel-nav absolute top-1/2 right-0 z-10 translate-x-1/2 -translate-y-1/2 sm:translate-x-[40%]"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4">
+              <path
+                d="M9.5 5.5 16 12l-6.5 6.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          <div
+            ref={scrollerRef}
+            className="journal-carousel flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {featuredJournals.map((journal) => {
+              const cover = journalCoverBySlug[journal.slug]
+              const tone = toneBySlug[journal.slug] ?? 'portfolio-tone-mint'
+
+              return (
+                <article
+                  key={journal.slug}
+                  data-journal-slide
+                  className="journal-carousel-slide shrink-0 snap-start"
+                >
+                  <Link
+                    to={`/journals/${journal.slug}`}
+                    className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-[0_10px_28px_rgba(7,19,31,0.05)] transition hover:-translate-y-1 hover:border-ink-700/20 hover:shadow-[0_18px_40px_rgba(7,19,31,0.1)]"
+                  >
+                    <div className={`flex h-[6.75rem] flex-col justify-between px-4 py-3 ${tone}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-semibold tracking-[0.12em] text-ink-800 uppercase">
+                          {journal.shortTitle ?? journal.slug.toUpperCase()}
+                        </span>
+                        <span className="rounded-md border border-ink-950/10 bg-white/70 px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-ink-800 uppercase">
+                          {journal.access}
+                        </span>
+                      </div>
+                      <p className="line-clamp-2 min-h-[2.6rem] font-display text-[1.02rem] leading-snug font-semibold text-ink-950">
+                        {journal.title}
+                      </p>
+                    </div>
+
+                    <div className="relative h-[11.5rem] shrink-0 overflow-hidden border-y border-line">
+                      {cover ? (
+                        <img
+                          src={cover}
+                          alt=""
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                        />
+                      ) : (
+                        <div className={`h-full w-full ${tone}`} />
+                      )}
+                    </div>
+
+                    <div className={`h-2 shrink-0 ${tone}`} aria-hidden="true" />
+
+                    <div className="flex h-[4.25rem] flex-col justify-center px-4 py-3">
+                      <p className="truncate text-[11px] font-semibold tracking-[0.1em] text-slate-500 uppercase">
+                        {journal.area}
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-accent-700 transition group-hover:text-ink-950">
+                        Open journal →
+                      </p>
+                    </div>
+                  </Link>
+                </article>
+              )
+            })}
+          </div>
         </div>
       </Container>
     </section>

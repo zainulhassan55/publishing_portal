@@ -42,7 +42,6 @@ function BooksPage() {
                 slug={series.slug}
                 shortTitle={series.shortTitle ?? series.slug.toUpperCase()}
                 title={series.title}
-                summary={series.summary}
                 area={series.area}
                 access={series.access}
                 frequency={series.frequency}

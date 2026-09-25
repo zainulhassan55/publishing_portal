@@ -5,7 +5,7 @@ import SectionHeading from '../shared/SectionHeading'
 
 function PublisherServicesSection() {
   return (
-    <section className="border-y border-line bg-paper py-16 sm:py-20">
+    <section className="border-y border-line bg-white py-16 sm:py-20">
       <Container>
         <div className="max-w-3xl">
           <SectionHeading
@@ -17,8 +17,11 @@ function PublisherServicesSection() {
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {publisherServices.map((service, index) => (
-            <article key={service.title} className="service-tile">
-              <p className="font-display text-2xl font-semibold text-accent-600">
+            <article
+              key={service.title}
+              className="rounded-2xl border border-line bg-[#f7f9fb] p-6 transition hover:border-slate-300 hover:bg-white"
+            >
+              <p className="font-display text-2xl font-semibold text-slate-400">
                 {String(index + 1).padStart(2, '0')}
               </p>
               <h3 className="mt-3 font-display text-lg font-semibold text-ink-950">
