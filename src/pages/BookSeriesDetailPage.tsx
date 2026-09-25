@@ -13,16 +13,16 @@ function BookSeriesDetailPage() {
 
   return (
     <>
-      <section className="prose-justify py-14 sm:py-16">
-        <Container className="space-y-12">
-          <div className="grid gap-8 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
-            <article className="rounded-2xl border border-line bg-white p-7 shadow-[0_12px_36px_rgba(7,19,31,0.04)] sm:p-9">
+      <section className="section-y prose-justify">
+        <Container className="space-y-8">
+          <div className="grid gap-5 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
+            <article className="rounded-xl border border-line bg-white p-5 shadow-[0_8px_22px_rgba(7,19,31,0.04)] sm:p-7">
               <p className="meta text-accent-700">Aims & scope</p>
-              <h2 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink-950">
+              <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink-950 sm:text-[1.85rem]">
                 Series focus
               </h2>
-              <div className="section-rule mt-5 max-w-20" />
-              <p className="mt-6 text-base leading-8 text-slate-700">{series.scope}</p>
+              <div className="section-rule mt-4 max-w-20" />
+              <p className="mt-4 text-sm leading-7 text-slate-700 sm:text-base sm:leading-8">{series.scope}</p>
             </article>
 
             <aside className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">

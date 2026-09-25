@@ -17,7 +17,7 @@ function SectionHeading({
     <div className="max-w-2xl">
       <p className={`meta ${isLight ? 'text-accent-200' : 'text-accent-700'}`}>{eyebrow}</p>
       <h2
-        className={`mt-3 font-display text-3xl font-semibold tracking-tight sm:text-[2.35rem] ${
+        className={`mt-2 font-display text-[1.85rem] font-semibold tracking-tight sm:text-[2.1rem] ${
           isLight ? 'text-white' : 'text-ink-950'
         }`}
       >
@@ -25,7 +25,7 @@ function SectionHeading({
       </h2>
       {description ? (
         <p
-          className={`mt-4 text-base leading-7 sm:leading-8 ${
+          className={`mt-2.5 max-w-xl text-sm leading-6 sm:text-[0.95rem] sm:leading-7 ${
             isLight ? 'text-slate-200' : 'text-slate-600'
           }`}
         >

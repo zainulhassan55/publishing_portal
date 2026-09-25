@@ -12,20 +12,20 @@ function ArticlesPage() {
       <PageHero
         eyebrow="Articles"
         title="Peer-reviewed articles from the DMPedia portfolio."
-        description="Published IJDH articles will appear here with journal placement, DOI metadata, and full article records."
+        description="Published articles appear here with journal placement, DOI metadata, and full article records."
       />
 
-      <section className="bg-paper py-14 sm:py-16">
+      <section className="section-y bg-paper">
         <Container>
-          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
-              <div className="mb-6">
+              <div className="mb-5">
                 <FilterBar
                   items={['Most recent', 'Open access', 'By journal', 'By year', 'By topic']}
                 />
               </div>
 
-              <div className="grid gap-4">
+              <div className="grid gap-3">
                 {latestArticles.length > 0 ? (
                   latestArticles.map((article) => (
                     <FeatureCard
@@ -47,23 +47,37 @@ function ArticlesPage() {
                     </FeatureCard>
                   ))
                 ) : (
-                  <div className="rounded-2xl border border-line bg-white p-8">
-                    <p className="font-display text-2xl font-semibold text-ink-950">
-                      No articles published yet
-                    </p>
-                    <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-                      Once IJDH articles complete peer review and production, they will be listed
-                      in this archive.
-                    </p>
-                    <ActionLink to="/journals/ijdh" variant="primary" size="sm" className="mt-5">
-                      Visit IJDH
-                    </ActionLink>
+                  <div className="grid gap-0 overflow-hidden rounded-xl border border-line bg-white sm:grid-cols-2">
+                    <div className="border-b border-line p-5 sm:border-r sm:border-b-0 sm:p-6">
+                      <p className="meta text-accent-700">Archive status</p>
+                      <h2 className="mt-2 font-display text-xl font-semibold text-ink-950">
+                        No articles published yet
+                      </h2>
+                      <p className="mt-2 text-sm leading-6 text-slate-600">
+                        Articles will appear here after peer review and production, with journal
+                        placement and DOI records.
+                      </p>
+                      <ActionLink to="/journals" variant="primary" size="sm" className="mt-4">
+                        Browse journals
+                      </ActionLink>
+                    </div>
+                    <div className="p-5 sm:p-6">
+                      <p className="meta text-slate-500">While you wait</p>
+                      <ul className="mt-3 space-y-2.5 text-sm text-slate-600">
+                        <li>Review author guidelines before submission</li>
+                        <li>Check open calls for papers</li>
+                        <li>Confirm journal scope and APC waiver details</li>
+                      </ul>
+                      <ActionLink to="/guidelines" variant="secondary" size="sm" className="mt-4">
+                        Author guidelines
+                      </ActionLink>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <SidebarPanel title="Reader focus">
                 <p>Clear titles, abstracts, and DOI presentation</p>
                 <p>Visible journal and issue placement</p>

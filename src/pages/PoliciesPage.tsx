@@ -14,7 +14,7 @@ function PoliciesPage() {
         description="Ethics, peer review, open access licensing, and archiving standards are published openly to support trust and indexing readiness."
       />
 
-      <section className="bg-paper py-14 sm:py-16">
+      <section className="section-y bg-paper">
         <Container>
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="grid gap-4 md:grid-cols-2">

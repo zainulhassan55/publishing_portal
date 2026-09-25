@@ -361,11 +361,10 @@ textarea {
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--color-line);
-  border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.92);
-  padding: 1.35rem;
-  box-shadow: 0 10px 30px rgba(7, 19, 31, 0.04);
-  backdrop-filter: blur(6px);
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  padding: 1.1rem 1.15rem;
+  box-shadow: 0 8px 22px rgba(7, 19, 31, 0.04);
   transition:
     border-color 0.22s ease,
     background-color 0.22s ease,
@@ -382,10 +381,10 @@ textarea {
 
 .card-quiet {
   border: 1px solid var(--color-line);
-  border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.92);
-  padding: 1.35rem;
-  box-shadow: 0 10px 30px rgba(7, 19, 31, 0.04);
+  border-radius: var(--radius-lg);
+  background: #ffffff;
+  padding: 1.1rem 1.15rem;
+  box-shadow: 0 8px 22px rgba(7, 19, 31, 0.04);
 }
 
 .card-cover {
@@ -529,6 +528,49 @@ textarea {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #64748b;
+}
+
+.section-y {
+  padding-block: 2.75rem;
+}
+
+@media (min-width: 640px) {
+  .section-y {
+    padding-block: 3.5rem;
+  }
+}
+
+.metric-strip {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: #f7f9fb;
+  overflow: hidden;
+}
+
+.metric-strip > * {
+  padding: 0.95rem 1.1rem;
+  border-top: 1px solid var(--color-line);
+}
+
+.metric-strip > *:first-child {
+  border-top: 0;
+}
+
+@media (min-width: 640px) {
+  .metric-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .metric-strip > * {
+    border-top: 0;
+    border-left: 1px solid var(--color-line);
+  }
+
+  .metric-strip > *:first-child {
+    border-left: 0;
+  }
 }
 
 .field {

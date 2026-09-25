@@ -56,24 +56,24 @@ function HomeHero() {
         <div className="home-hero-grain" aria-hidden="true" />
       </div>
 
-      <Container className="relative flex min-h-[78vh] items-end py-16 sm:items-center sm:py-24 lg:min-h-[86vh] lg:py-28">
+      <Container className="relative flex min-h-[68vh] items-end py-14 sm:min-h-[72vh] sm:items-center sm:py-20 lg:min-h-[76vh] lg:py-24">
         <div className="home-hero-copy max-w-2xl">
           <p className="animate-fade-up text-[11px] font-semibold tracking-[0.22em] text-ink-800/55 uppercase">
             {brand.tagline}
           </p>
 
-          <h1 className="animate-fade-up-delay-1 mt-5 font-display text-[2.85rem] leading-[0.92] font-semibold tracking-tight text-ink-950 sm:text-6xl lg:text-[4.35rem]">
+          <h1 className="animate-fade-up-delay-1 mt-4 font-display text-[2.65rem] leading-[0.92] font-semibold tracking-tight text-ink-950 sm:text-5xl lg:text-[4rem]">
             {brand.name}
           </h1>
 
-          <div className="animate-fade-up-delay-2 mt-7 flex items-center gap-4">
+          <div className="animate-fade-up-delay-2 mt-6 flex items-center gap-4">
             <span className="home-hero-rule" aria-hidden="true" />
-            <p className="max-w-md text-[1.05rem] leading-relaxed text-ink-900/80 sm:text-lg sm:leading-8">
+            <p className="max-w-md text-[1.02rem] leading-relaxed text-ink-900/80 sm:text-lg sm:leading-8">
               Peer-reviewed journals, books, and proceedings for global scholarship.
             </p>
           </div>
 
-          <div className="animate-fade-up-delay-3 mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="animate-fade-up-delay-3 mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <ActionLink to="/journals" variant="primary" className="home-hero-cta">
               Browse Journals
             </ActionLink>
@@ -83,7 +83,7 @@ function HomeHero() {
           </div>
 
           <div
-            className="animate-fade-up-delay-3 mt-12 flex items-center gap-3"
+            className="animate-fade-up-delay-3 mt-10 flex items-center gap-3"
             aria-label="Hero image slides"
           >
             {heroSlides.map((slide, index) => (

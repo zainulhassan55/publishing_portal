@@ -13,12 +13,12 @@ function JournalsPage() {
         description="Peer-reviewed continuous open-access journals across digital health, management, computing, electronics, and related scholarly fields."
       />
 
-      <section className="prose-justify bg-paper py-14 sm:py-16">
+      <section className="section-y prose-justify bg-paper">
         <Container>
-          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="meta text-accent-700">Active portfolio</p>
-              <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink-950 sm:text-3xl">
+              <h2 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-ink-950 sm:text-[1.85rem]">
                 {featuredJournals.length} open-access journals
               </h2>
             </div>
@@ -35,7 +35,7 @@ function JournalsPage() {
             </div>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {featuredJournals.map((journal) => (
               <PortfolioCard
                 key={journal.slug}

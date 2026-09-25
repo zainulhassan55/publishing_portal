@@ -53,7 +53,6 @@ function FeaturedJournalsSection() {
     const node = scrollerRef.current
     if (!node) return
 
-    // Move by one full "page" of 3 cards on desktop, 1 card on smaller screens
     const visible = window.matchMedia('(min-width: 1024px)').matches
       ? 3
       : window.matchMedia('(min-width: 640px)').matches
@@ -65,32 +64,31 @@ function FeaturedJournalsSection() {
   }
 
   return (
-    <section className="border-b border-line bg-white py-16 sm:py-20">
+    <section className="section-y border-b border-line bg-white">
       <Container>
-        <div className="flex flex-col gap-5 border-b border-line pb-8 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
           <SectionHeading
             eyebrow="Journals"
             title="Browse journal covers"
-            description="Use the arrows to move through the portfolio. Open the Journals tab for full details."
+            description="Move through the portfolio with the arrows. Open the Journals tab for full details."
           />
           <ActionLink to="/journals" variant="primary" size="sm">
             View all journals
           </ActionLink>
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="metric-strip mt-6">
           {heroMetrics.map((metric) => (
-            <div
-              key={metric.label}
-              className="rounded-2xl border border-line bg-[#f7f9fb] px-5 py-4"
-            >
-              <p className="font-display text-2xl font-semibold text-ink-950">{metric.value}</p>
+            <div key={metric.label}>
+              <p className="font-display text-xl font-semibold text-ink-950 sm:text-2xl">
+                {metric.value}
+              </p>
               <p className="mt-1 text-sm text-slate-500">{metric.label}</p>
             </div>
           ))}
         </div>
 
-        <div className="relative mt-10">
+        <div className="relative mt-7">
           <button
             type="button"
             aria-label="Previous journals"
@@ -131,7 +129,7 @@ function FeaturedJournalsSection() {
 
           <div
             ref={scrollerRef}
-            className="journal-carousel flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="journal-carousel flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {featuredJournals.map((journal) => {
               const cover = journalCoverBySlug[journal.slug]
@@ -145,9 +143,9 @@ function FeaturedJournalsSection() {
                 >
                   <Link
                     to={`/journals/${journal.slug}`}
-                    className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-[0_10px_28px_rgba(7,19,31,0.05)] transition hover:-translate-y-1 hover:border-ink-700/20 hover:shadow-[0_18px_40px_rgba(7,19,31,0.1)]"
+                    className="group flex h-full flex-col overflow-hidden rounded-xl border border-line bg-white shadow-[0_8px_22px_rgba(7,19,31,0.04)] transition hover:-translate-y-0.5 hover:border-ink-700/20 hover:shadow-[0_14px_30px_rgba(7,19,31,0.08)]"
                   >
-                    <div className={`flex h-[6.75rem] flex-col justify-between px-4 py-3 ${tone}`}>
+                    <div className={`flex h-[5.75rem] flex-col justify-between px-3.5 py-2.5 ${tone}`}>
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-[11px] font-semibold tracking-[0.12em] text-ink-800 uppercase">
                           {journal.shortTitle ?? journal.slug.toUpperCase()}
@@ -156,12 +154,12 @@ function FeaturedJournalsSection() {
                           {journal.access}
                         </span>
                       </div>
-                      <p className="line-clamp-2 min-h-[2.6rem] font-display text-[1.02rem] leading-snug font-semibold text-ink-950">
+                      <p className="line-clamp-2 min-h-[2.4rem] font-display text-[0.98rem] leading-snug font-semibold text-ink-950">
                         {journal.title}
                       </p>
                     </div>
 
-                    <div className="relative h-[11.5rem] shrink-0 overflow-hidden border-y border-line">
+                    <div className="relative h-[9.75rem] shrink-0 overflow-hidden border-y border-line">
                       {cover ? (
                         <img
                           src={cover}
@@ -173,9 +171,9 @@ function FeaturedJournalsSection() {
                       )}
                     </div>
 
-                    <div className={`h-2 shrink-0 ${tone}`} aria-hidden="true" />
+                    <div className={`h-1.5 shrink-0 ${tone}`} aria-hidden="true" />
 
-                    <div className="flex h-[4.25rem] flex-col justify-center px-4 py-3">
+                    <div className="flex h-[3.75rem] flex-col justify-center px-3.5 py-2.5">
                       <p className="truncate text-[11px] font-semibold tracking-[0.1em] text-slate-500 uppercase">
                         {journal.area}
                       </p>

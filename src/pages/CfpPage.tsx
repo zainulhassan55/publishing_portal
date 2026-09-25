@@ -14,7 +14,7 @@ function CfpPage() {
         description="Review current opportunities, deadlines, and submission pathways for prospective authors."
       />
 
-      <section className="bg-paper py-14 sm:py-16">
+      <section className="section-y bg-paper">
         <Container>
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="grid gap-4">

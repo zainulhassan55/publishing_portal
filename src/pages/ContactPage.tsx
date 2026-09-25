@@ -13,7 +13,7 @@ function ContactPage() {
         description="Reach the editorial office for journal inquiries, author support, proceedings partnerships, and general publishing questions."
       />
 
-      <section className="bg-paper py-14 sm:py-16">
+      <section className="section-y bg-paper">
         <Container>
           <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="space-y-4">

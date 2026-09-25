@@ -18,7 +18,7 @@ function PolicyDetailPage() {
     <>
       <PageHero eyebrow="Policy detail" title={policy.title} description={policy.summary} />
 
-      <section className="bg-paper py-14 sm:py-16">
+      <section className="section-y bg-paper">
         <Container>
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="space-y-6">

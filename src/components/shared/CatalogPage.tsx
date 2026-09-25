@@ -35,17 +35,17 @@ function CatalogPage({
     <>
       <PageHero eyebrow={eyebrow} title={title} description={description} />
 
-      <section className="bg-paper py-14 sm:py-16">
+      <section className="section-y bg-paper">
         <Container>
-          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
               {filters ? (
-                <div className="mb-6">
+                <div className="mb-5">
                   <FilterBar items={filters} />
                 </div>
               ) : null}
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 {items.map((item) => (
                   <FeatureCard
                     key={item.title}
@@ -60,7 +60,7 @@ function CatalogPage({
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <SidebarPanel title={sidebarTitle}>
                 {sidebarPoints.map((point) => (
                   <p key={point}>{point}</p>

@@ -35,7 +35,7 @@ function JournalMasthead() {
           }}
         />
 
-        <Container className="relative py-14 sm:py-16 lg:py-20">
+        <Container className="relative py-10 sm:py-12 lg:py-14">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-[11px] font-semibold tracking-[0.1em] text-white uppercase">
               {journal.shortTitle ?? 'Journal'}
@@ -48,15 +48,15 @@ function JournalMasthead() {
             </span>
           </div>
 
-          <h1 className="mt-5 max-w-4xl font-display text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-[3rem]">
+          <h1 className="mt-4 max-w-4xl font-display text-[1.85rem] leading-tight font-semibold tracking-tight sm:text-3xl lg:text-[2.65rem]">
             {journal.title}
           </h1>
-          <div className="section-rule mt-5 max-w-28" />
-          <p className="mt-5 max-w-3xl text-base leading-7 text-slate-300 text-justify sm:text-lg sm:leading-8">
+          <div className="section-rule mt-4 max-w-24" />
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-300 text-justify sm:text-base sm:leading-7">
             {journal.tagline ?? journal.scope}
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <ActionLink to="/login" variant="light">
               Submit manuscript
             </ActionLink>
@@ -70,13 +70,13 @@ function JournalMasthead() {
             ) : null}
           </div>
 
-          <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {journal.metrics.map((metric) => (
               <div
                 key={metric.label}
-                className="rounded-xl border border-white/12 bg-white/[0.05] px-4 py-4 backdrop-blur-sm"
+                className="rounded-lg border border-white/12 bg-white/[0.05] px-4 py-3.5 backdrop-blur-sm"
               >
-                <p className="font-display text-xl font-semibold text-white sm:text-2xl">
+                <p className="font-display text-lg font-semibold text-white sm:text-xl">
                   {metric.value}
                 </p>
                 <p className="mt-1 text-sm text-slate-400">{metric.label}</p>

@@ -47,24 +47,24 @@ function PortfolioCard({
   const coverImage = journalCoverBySlug[slug] ?? bookCoverBySlug[slug]
 
   return (
-    <article className="portfolio-card group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-[0_10px_28px_rgba(7,19,31,0.05)] transition hover:-translate-y-1 hover:border-ink-700/20 hover:shadow-[0_18px_40px_rgba(7,19,31,0.1)]">
-      <div className={`relative px-5 py-4 ${toneClass}`}>
+    <article className="portfolio-card group flex h-full flex-col overflow-hidden rounded-xl border border-line bg-white shadow-[0_8px_22px_rgba(7,19,31,0.04)] transition hover:-translate-y-0.5 hover:border-ink-700/20 hover:shadow-[0_14px_30px_rgba(7,19,31,0.08)]">
+      <div className={`relative px-4 py-3.5 ${toneClass}`}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold tracking-[0.12em] text-ink-800/70 uppercase">
               {area}
             </p>
-            <h3 className="mt-1.5 font-display text-[1.15rem] leading-snug font-semibold tracking-tight text-ink-950">
+            <h3 className="mt-1 font-display text-[1.05rem] leading-snug font-semibold tracking-tight text-ink-950">
               <Link to={to} className="transition hover:opacity-80">
                 {title}
               </Link>
             </h3>
           </div>
-          <span className="shrink-0 rounded-md border border-ink-950/10 bg-white/70 px-2.5 py-1 text-[10px] font-semibold tracking-[0.08em] text-ink-800 uppercase">
+          <span className="shrink-0 rounded-md border border-ink-950/10 bg-white/70 px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-ink-800 uppercase">
             {access}
           </span>
         </div>
-        <div className="mt-3 flex items-center justify-between gap-3 text-[11px] text-ink-800/65">
+        <div className="mt-2.5 flex items-center justify-between gap-3 text-[11px] text-ink-800/65">
           <span className="font-semibold tracking-[0.1em] uppercase">{shortTitle}</span>
           <span>ISSN Sample</span>
         </div>
@@ -75,21 +75,21 @@ function PortfolioCard({
           <img
             src={coverImage}
             alt=""
-            className="aspect-[4/3] h-auto w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+            className="aspect-[16/10] h-auto w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         </Link>
       ) : (
-        <div className={`relative min-h-[10.5rem] border-y border-line ${toneClass}`} />
+        <div className={`relative aspect-[16/10] border-y border-line ${toneClass}`} />
       )}
 
-      <div className={`h-2 ${toneClass}`} aria-hidden="true" />
+      <div className={`h-1.5 ${toneClass}`} aria-hidden="true" />
 
-      <div className="flex flex-1 flex-col px-5 pt-4 pb-5">
+      <div className="flex flex-1 flex-col px-4 pt-3.5 pb-4">
         {summary ? (
-          <p className="mb-4 flex-1 text-sm leading-7 text-slate-600 text-justify">{summary}</p>
+          <p className="mb-3 line-clamp-2 text-sm leading-6 text-slate-600">{summary}</p>
         ) : null}
 
-        <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
+        <div className="mt-auto grid grid-cols-2 gap-2 text-xs text-slate-500">
           <div>
             <p className="font-semibold tracking-[0.06em] text-slate-400 uppercase">Frequency</p>
             <p className="mt-1 font-medium text-ink-950">{frequency}</p>
@@ -100,7 +100,7 @@ function PortfolioCard({
           </div>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-4">
           <ActionLink to={to} variant="secondary" size="sm" className="w-full justify-center">
             {actionLabel}
           </ActionLink>

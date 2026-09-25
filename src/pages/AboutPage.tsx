@@ -22,7 +22,7 @@ function AboutPage() {
         description="A global academic publisher and knowledge platform empowering researchers, educators, and professionals to collaborate, share knowledge, and drive impactful research."
       />
 
-      <section className="bg-paper py-14 sm:py-16">
+      <section className="section-y bg-paper">
         <Container>
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="space-y-6">

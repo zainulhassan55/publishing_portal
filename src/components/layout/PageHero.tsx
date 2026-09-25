@@ -29,15 +29,15 @@ function PageHero({ eyebrow, title, description, aside }: PageHeroProps) {
         }}
       />
 
-      <Container className="relative py-14 sm:py-16 lg:py-20">
-        <div className={`grid gap-8 ${aside ? 'lg:grid-cols-[1.15fr_0.85fr] lg:items-end' : ''}`}>
+      <Container className="relative py-10 sm:py-12 lg:py-14">
+        <div className={`grid gap-6 ${aside ? 'lg:grid-cols-[1.15fr_0.85fr] lg:items-end' : ''}`}>
           <div className="animate-fade-up">
             <p className="meta text-accent-300">{eyebrow}</p>
-            <h1 className="mt-4 max-w-3xl font-display text-3xl leading-tight font-semibold tracking-tight sm:text-4xl lg:text-[2.85rem]">
+            <h1 className="mt-3 max-w-3xl font-display text-[1.85rem] leading-tight font-semibold tracking-tight sm:text-3xl lg:text-[2.45rem]">
               {title}
             </h1>
-            <div className="section-rule mt-5 max-w-28" />
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 text-justify sm:text-lg sm:leading-8">
+            <div className="section-rule mt-4 max-w-24" />
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 text-justify sm:text-base sm:leading-7">
               {description}
             </p>
           </div>

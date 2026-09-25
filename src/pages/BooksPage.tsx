@@ -13,12 +13,12 @@ function BooksPage() {
         description="Peer-reviewed open-access series for monographs, lecture notes, and edited volumes across research, innovation, and interdisciplinary science."
       />
 
-      <section className="prose-justify bg-paper py-14 sm:py-16">
+      <section className="section-y prose-justify bg-paper">
         <Container>
-          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="meta text-accent-700">Active series</p>
-              <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink-950 sm:text-3xl">
+              <h2 className="mt-1.5 font-display text-2xl font-semibold tracking-tight text-ink-950 sm:text-[1.85rem]">
                 {featuredBookSeries.length} open-access book series
               </h2>
             </div>
@@ -35,7 +35,7 @@ function BooksPage() {
             </div>
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {featuredBookSeries.map((series) => (
               <PortfolioCard
                 key={series.slug}
