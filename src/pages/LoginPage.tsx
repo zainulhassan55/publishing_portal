@@ -49,7 +49,7 @@ function LoginPage() {
               </h1>
               <p className="mt-5 text-base leading-8 text-slate-300">
                 Sign in as an author, reviewer, or editor. Authentication will connect to the
-                Manuscript Management System (MMS) when that platform is linked.
+                Manuscript Management System (MMS) when that platform is hosted and linked.
               </p>
             </div>
 
@@ -83,87 +83,82 @@ function LoginPage() {
 
             <form onSubmit={handleSubmit} className="surface p-6 sm:p-8">
               <div className="space-y-5">
-                <label className="flex flex-col gap-2 text-sm font-semibold text-ink-950">
-                  Email address
+                <div>
+                  <label htmlFor="email" className="meta text-slate-500">
+                    Email
+                  </label>
                   <input
+                    id="email"
                     type="email"
                     required
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    placeholder="name@university.edu"
-                    className="field"
-                    autoComplete="email"
+                    className="field mt-2"
+                    placeholder="author@university.edu"
                   />
-                </label>
+                </div>
 
-                <label className="flex flex-col gap-2 text-sm font-semibold text-ink-950">
-                  Password
+                <div>
+                  <label htmlFor="password" className="meta text-slate-500">
+                    Password
+                  </label>
                   <input
+                    id="password"
                     type="password"
                     required
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Enter your password"
-                    className="field"
-                    autoComplete="current-password"
+                    className="field mt-2"
+                    placeholder="••••••••"
                   />
-                </label>
+                </div>
 
-                <label className="flex flex-col gap-2 text-sm font-semibold text-ink-950">
-                  Sign in as
+                <div>
+                  <label htmlFor="role" className="meta text-slate-500">
+                    Role
+                  </label>
                   <select
-                    className="field"
+                    id="role"
                     value={role}
                     onChange={(event) => setRole(event.target.value)}
+                    className="field mt-2"
                   >
                     <option value="author">Author</option>
                     <option value="reviewer">Reviewer</option>
                     <option value="editor">Editor</option>
-                    <option value="guest-editor">Guest Editor</option>
+                    <option value="admin">Admin</option>
                   </select>
+                </div>
+
+                <label className="flex items-center gap-3 text-sm text-slate-600">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.target.checked)}
+                    className="h-4 w-4 rounded border-line"
+                  />
+                  Keep me signed in on this device
                 </label>
 
-                <div className="flex items-center justify-between gap-4">
-                  <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-                    <input
-                      type="checkbox"
-                      checked={remember}
-                      onChange={(event) => setRemember(event.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300"
-                    />
-                    Remember me
-                  </label>
-                  <button type="button" className="text-sm font-semibold text-ink-950 hover:underline">
-                    Forgot password?
-                  </button>
-                </div>
-              </div>
+                {submitted ? (
+                  <div className="rounded-xl border border-accent-200 bg-accent-50 px-4 py-3 text-sm leading-6 text-ink-900">
+                    Login UI is ready. Authentication will connect to the Manuscript Management
+                    System (MMS) when that platform is hosted and linked.
+                  </div>
+                ) : null}
 
-              <button type="submit" className="btn btn-primary mt-7 w-full">
-                Sign in
-              </button>
-
-              {submitted ? (
-                <p className="mt-4 rounded-2xl border border-accent-200 bg-accent-50 px-4 py-3 text-sm leading-6 text-accent-700">
-                  Login UI is ready. Authentication will connect to the Manuscript Management
-                  System in the next development phase.
-                </p>
-              ) : null}
-
-              <div className="mt-6 border-t border-line pt-6 text-center text-sm text-slate-600">
-                New author?{' '}
-                <Link to="/guidelines" className="font-semibold text-ink-950 hover:underline">
-                  Review author guidelines
-                </Link>
+                <button type="submit" className="btn btn-primary w-full justify-center">
+                  Sign in
+                </button>
               </div>
             </form>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <ActionLink to="/" variant="secondary" className="w-full">
-                Back to portal
-              </ActionLink>
-              <ActionLink to="/journals" variant="primary" className="w-full">
-                Browse journals
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
+              <Link to="/" className="font-semibold text-ink-950 hover:text-accent-700">
+                ← Back to portal
+              </Link>
+              <ActionLink to="/guidelines" variant="secondary" size="sm">
+                Author guidelines
               </ActionLink>
             </div>
           </div>
