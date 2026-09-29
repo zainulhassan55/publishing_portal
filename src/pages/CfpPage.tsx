@@ -26,7 +26,7 @@ function CfpPage() {
                   meta={item.meta}
                   badge={item.badge}
                 >
-                  <ActionLink to="/login" variant="secondary" size="sm">
+                  <ActionLink to="/journals" variant="secondary" size="sm">
                     Prepare submission
                   </ActionLink>
                 </FeatureCard>

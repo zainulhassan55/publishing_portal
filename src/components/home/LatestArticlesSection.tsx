@@ -70,7 +70,7 @@ function LatestArticlesSection() {
                     Peer-reviewed articles will be listed here with journal placement and DOI
                     records after production.
                   </p>
-                  <ActionLink to="/login" variant="secondary" size="sm" className="mt-4">
+                  <ActionLink to="/journals" variant="secondary" size="sm" className="mt-4">
                     Submit manuscript
                   </ActionLink>
                 </div>

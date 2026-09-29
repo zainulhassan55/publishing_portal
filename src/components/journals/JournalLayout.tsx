@@ -3,6 +3,7 @@ import JournalSubnav from './JournalSubnav'
 import Container from '../layout/Container'
 import ActionLink from '../shared/ActionLink'
 import { journalDetails } from '../../data/siteContent'
+import { ojsJournalRegisterUrl, ojsSubmitUrl } from '../../lib/ojs'
 
 function JournalMasthead() {
   const { slug } = useParams()
@@ -57,8 +58,11 @@ function JournalMasthead() {
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <ActionLink to="/login" variant="light">
+            <ActionLink href={ojsSubmitUrl(journal.slug)} variant="light">
               Submit manuscript
+            </ActionLink>
+            <ActionLink href={ojsJournalRegisterUrl(journal.slug)} variant="ghost">
+              Register
             </ActionLink>
             <ActionLink to={`/journals/${journal.slug}/issues`} variant="ghost">
               Browse issues

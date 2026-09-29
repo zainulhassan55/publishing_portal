@@ -1,6 +1,7 @@
 import { Link, useOutletContext } from 'react-router-dom'
 import Container from '../components/layout/Container'
 import ActionLink from '../components/shared/ActionLink'
+import { ojsJournalRegisterUrl, ojsSubmitUrl } from '../lib/ojs'
 import type { JournalDetail } from '../types/content'
 
 type JournalOutletContext = {
@@ -39,8 +40,16 @@ function JournalDetailPage() {
                   submission.
                 </p>
                 <div className="mt-6 flex flex-col gap-2.5">
-                  <ActionLink to="/login" variant="light" size="sm" className="w-full">
+                  <ActionLink href={ojsSubmitUrl(journal.slug)} variant="light" size="sm" className="w-full">
                     Submit manuscript
+                  </ActionLink>
+                  <ActionLink
+                    href={ojsJournalRegisterUrl(journal.slug)}
+                    variant="ghost"
+                    size="sm"
+                    className="w-full"
+                  >
+                    Register as author or reviewer
                   </ActionLink>
                   {pages.find((page) => page.id === 'author-instructions') ? (
                     <ActionLink
@@ -144,7 +153,7 @@ function JournalDetailPage() {
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <ActionLink to="/login" variant="light">
+            <ActionLink href={ojsSubmitUrl(journal.slug)} variant="light">
               Submit manuscript
             </ActionLink>
             <ActionLink to={`/journals/${journal.slug}/issues`} variant="ghost">

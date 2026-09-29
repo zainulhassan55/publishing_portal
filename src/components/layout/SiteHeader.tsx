@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { brand, navigationItems, secondaryNavigationItems } from '../../data/siteContent'
+import { ojsLoginUrl } from '../../lib/ojs'
 import ActionLink from '../shared/ActionLink'
 import Container from './Container'
 
@@ -100,10 +101,10 @@ function SiteHeader() {
           </nav>
 
           <div className="hidden shrink-0 items-center gap-2 lg:flex">
-            <ActionLink to="/login" variant="secondary" size="sm">
+            <ActionLink href={ojsLoginUrl} variant="secondary" size="sm">
               Login
             </ActionLink>
-            <ActionLink to="/login" variant="primary" size="sm">
+            <ActionLink to="/journals" variant="primary" size="sm">
               Submit
             </ActionLink>
           </div>
@@ -177,10 +178,10 @@ function SiteHeader() {
               ))}
             </nav>
             <div className="mt-5 grid grid-cols-2 gap-2.5">
-              <ActionLink to="/login" variant="secondary" className="w-full justify-center">
+              <ActionLink href={ojsLoginUrl} variant="secondary" className="w-full justify-center">
                 Login
               </ActionLink>
-              <ActionLink to="/login" variant="primary" className="w-full justify-center">
+              <ActionLink to="/journals" variant="primary" className="w-full justify-center">
                 Submit
               </ActionLink>
             </div>

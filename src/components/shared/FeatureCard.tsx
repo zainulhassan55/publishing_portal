@@ -26,7 +26,7 @@ function FeatureCard({
       <h3 className="mt-3 font-display text-[1.1rem] leading-snug font-semibold text-ink-950">
         {title}
       </h3>
-      <p className="mt-2 flex-1 text-sm leading-6 text-slate-600 text-justify">{description}</p>
+      <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">{description}</p>
 
       {children ? (
         <div className="mt-4 border-t border-line pt-3 text-sm text-slate-600">{children}</div>

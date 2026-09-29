@@ -1,6 +1,7 @@
 import { Navigate, useOutletContext, useParams } from 'react-router-dom'
 import Container from '../components/layout/Container'
 import ActionLink from '../components/shared/ActionLink'
+import { ojsSubmitUrl } from '../lib/ojs'
 import type { ContentBlock, JournalDetail } from '../types/content'
 
 type JournalOutletContext = {
@@ -121,7 +122,7 @@ function JournalPageDetailPage() {
               <ActionLink to={`/journals/${journal.slug}`} variant="secondary" size="sm">
                 Journal overview
               </ActionLink>
-              <ActionLink to="/login" variant="primary" size="sm">
+              <ActionLink href={ojsSubmitUrl(journal.slug)} variant="primary" size="sm">
                 Submit manuscript
               </ActionLink>
             </div>

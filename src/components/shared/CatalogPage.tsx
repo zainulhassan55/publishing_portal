@@ -37,30 +37,28 @@ function CatalogPage({
 
       <section className="section-y bg-paper">
         <Container>
-          <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div>
-              {filters ? (
-                <div className="mb-5">
-                  <FilterBar items={filters} />
-                </div>
-              ) : null}
+          {filters ? (
+            <div className="mb-5">
+              <FilterBar items={filters} />
+            </div>
+          ) : null}
 
-              <div className="grid gap-3 md:grid-cols-2">
-                {items.map((item) => (
-                  <FeatureCard
-                    key={item.title}
-                    title={item.title}
-                    description={item.summary}
-                    meta={item.meta}
-                    badge={item.badge}
-                  >
-                    {action}
-                  </FeatureCard>
-                ))}
-              </div>
+          <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="grid auto-rows-fr items-stretch gap-4 md:grid-cols-2">
+              {items.map((item) => (
+                <FeatureCard
+                  key={item.title}
+                  title={item.title}
+                  description={item.summary}
+                  meta={item.meta}
+                  badge={item.badge}
+                >
+                  {action}
+                </FeatureCard>
+              ))}
             </div>
 
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3 [&>aside]:flex-1">
               <SidebarPanel title={sidebarTitle}>
                 {sidebarPoints.map((point) => (
                   <p key={point}>{point}</p>

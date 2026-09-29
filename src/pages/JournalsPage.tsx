@@ -3,6 +3,7 @@ import Container from '../components/layout/Container'
 import PageHero from '../components/layout/PageHero'
 import PortfolioCard from '../components/shared/PortfolioCard'
 import { featuredJournals } from '../data/siteContent'
+import { ojsRegisterUrl } from '../lib/ojs'
 
 function JournalsPage() {
   return (
@@ -29,9 +30,9 @@ function JournalsPage() {
               <Link to="/guidelines" className="hover:text-accent-700">
                 Author guidelines
               </Link>
-              <Link to="/login" className="hover:text-accent-700">
-                Submit manuscript
-              </Link>
+              <a href={ojsRegisterUrl} className="hover:text-accent-700">
+                Register account
+              </a>
             </div>
           </div>
 

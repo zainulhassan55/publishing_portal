@@ -88,7 +88,7 @@ function ArticlesPage() {
                 <p>Check journal scope and open calls</p>
                 <p>Contact the editorial office for inquiries</p>
               </SidebarPanel>
-              <ActionLink to="/login" variant="primary" className="w-full">
+              <ActionLink to="/journals" variant="primary" className="w-full">
                 Submit manuscript
               </ActionLink>
             </div>

@@ -17,7 +17,6 @@ import JournalArchivePage from './pages/JournalArchivePage'
 import JournalDetailPage from './pages/JournalDetailPage'
 import JournalPageDetailPage from './pages/JournalPageDetailPage'
 import JournalsPage from './pages/JournalsPage'
-import LoginPage from './pages/LoginPage'
 import NewsPage from './pages/NewsPage'
 import PolicyDetailPage from './pages/PolicyDetailPage'
 import PoliciesPage from './pages/PoliciesPage'
@@ -27,7 +26,6 @@ import SpecialIssuesPage from './pages/SpecialIssuesPage'
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
       <Route element={<SiteLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/about" element={<AboutPage />} />
