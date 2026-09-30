@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
   <rect width="48" height="48" rx="12" fill="#0B1F2A"/>
-  <path d="M12 34V14h6.2c3.7 0 6 1.9 6 4.9 0 1.9-1 3.3-2.7 4.1 2.2.7 3.5 2.4 3.5 5 0 3.4-2.6 5-6.6 5H12zm4.1-11.4h2.1c1.8 0 2.8-.8 2.8-2.2s-1-2.1-2.7-2.1h-2.2v4.3zm0 8.3h2.5c2 0 3.1-.9 3.1-2.4s-1.1-2.3-3.1-2.3h-2.5v4.7z" fill="#E8F1F4"/>
-  <path d="M29.2 34l5.2-20h4.1l5.2 20h-4.2l-.9-3.8h-4.4L33.3 34h-4.1zm5.5-7.2h3.1l-1.5-6.3-1.6 6.3z" fill="#2A9B8F"/>
+  <text x="24" y="31.5" text-anchor="middle" font-family="Figtree, Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="-0.5">
+    <tspan fill="#E8F1F4">N</tspan><tspan fill="#2A9B8F">G</tspan>
+  </text>
 </svg>

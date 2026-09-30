@@ -6,7 +6,7 @@ function NewsPage() {
     <CatalogPage
       eyebrow="News & Events"
       title="Portal updates, open calls, and conference series announcements."
-      description="Follow publishing launches, thematic calls for papers, and DMP-LNCSE / DMP-LNMR partnership news."
+      description="Follow publishing launches, thematic calls for papers, and NGIQ-LNCSE / NGIQ-LNMR partnership news."
       items={newsItems}
       filters={['All', 'Announcement', 'Call for Papers', 'Update']}
       sidebarTitle="Stay informed"

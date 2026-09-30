@@ -1,4 +1,4 @@
-const ojsBase = String(import.meta.env.VITE_OJS_URL ?? 'http://localhost:8000').replace(/\/$/, '')
+const ojsBase = String(import.meta.env.VITE_OJS_URL || 'http://localhost:8000').replace(/\/$/, '')
 
 const ojsPath = (context: string, path = '') => `${ojsBase}/index.php/${context}${path}`
 

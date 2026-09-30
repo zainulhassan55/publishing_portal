@@ -46,7 +46,7 @@ function AboutPage() {
               </h2>
               <div className="section-rule mt-4 max-w-20" />
               <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-[0.95rem]">
-                {brand.name} ({brand.shortName}), {brand.unitLabel.toLowerCase()}, publishes
+                {brand.name} publishes
                 high-quality journals, books, and conference proceedings across diverse
                 disciplines. Our editorial team works closely with authors and institutions to
                 ensure rigorous peer review, ethical publishing practices, and wide dissemination

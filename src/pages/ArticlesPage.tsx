@@ -11,7 +11,7 @@ function ArticlesPage() {
     <>
       <PageHero
         eyebrow="Articles"
-        title="Peer-reviewed articles from the DMPedia portfolio."
+        title="Peer-reviewed articles from the NextGenIQ Press portfolio."
         description="Published articles appear here with journal placement, DOI metadata, and full article records."
       />
 

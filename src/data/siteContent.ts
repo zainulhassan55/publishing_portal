@@ -28,9 +28,8 @@ import { ijqtDetail, ijqtJournal } from './journals/ijqt'
 import { ijseDetail, ijseJournal } from './journals/ijse'
 
 export const brand = {
-  name: 'Digital Manuscriptpedia',
-  shortName: 'DMPedia',
-  unitLabel: 'A unit of Digital Manuscriptpedia',
+  name: 'NextGenIQ Press',
+  monogram: 'NG',
   tagline: 'Independent Academic Publishing',
   summary:
     'An independent academic publisher dedicated to advancing research and scholarship across diverse disciplines. We publish high-quality journals, books, and conference proceedings, providing a trusted platform for authors and institutions worldwide.',
@@ -64,7 +63,7 @@ export const heroMetrics: HeroMetric[] = [
   { value: '10', label: 'Active journals' },
   { value: 'APC waived', label: 'Until Sep 2026' },
   { value: 'CC BY 4.0', label: 'Open access license' },
-  { value: 'Single-blind', label: 'Peer review' },
+  { value: 'Double-blind', label: 'Peer review' },
 ]
 
 export const publisherServices: ServiceItem[] = [
@@ -157,7 +156,7 @@ export const policies: Policy[] = [
     sections: [
       {
         title: 'COPE core practices',
-        body: 'DMPedia follows the core practices of the Committee on Publication Ethics (COPE) across all journals. Editors, authors, and reviewers are expected to adhere to these standards. Cases of suspected misconduct are handled in accordance with COPE flowcharts and procedures.',
+        body: 'NextGenIQ Press follows the core practices of the Committee on Publication Ethics (COPE) across all journals. Editors, authors, and reviewers are expected to adhere to these standards. Cases of suspected misconduct are handled in accordance with COPE flowcharts and procedures.',
       },
       {
         title: 'Editorial independence',
@@ -181,7 +180,7 @@ export const policies: Policy[] = [
     sections: [
       {
         title: 'Review model',
-        body: 'All research content undergoes documented peer review prior to acceptance. Journals use single-blind or double-blind review as stated in each title’s author guidelines.',
+        body: 'All research content undergoes documented peer review prior to acceptance. All journals use double-blind review: reviewers and authors do not know each other’s identities.',
       },
       {
         title: 'Reviewer responsibilities',
@@ -205,11 +204,11 @@ export const policies: Policy[] = [
     sections: [
       {
         title: 'Open access commitment',
-        body: 'DMPedia journals are free and open access. Articles are permanently available without subscription barriers, supporting global knowledge exchange.',
+        body: 'NextGenIQ Press journals are free and open access. Articles are permanently available without subscription barriers, supporting global knowledge exchange.',
       },
       {
         title: 'APC-free publishing',
-        body: 'Authors are not required to pay article processing charges for current DMPedia journals. Removing publication fees lowers barriers for researchers worldwide.',
+        body: 'Authors are not required to pay article processing charges for current NextGenIQ Press journals. Removing publication fees lowers barriers for researchers worldwide.',
       },
       {
         title: 'Licensing',
@@ -229,7 +228,7 @@ export const policies: Policy[] = [
     sections: [
       {
         title: 'Persistent identifiers',
-        body: 'DMPedia assigns DOIs to published articles and maintains stable URLs for discoverability, citation tracking, and long-term access.',
+        body: 'NextGenIQ Press assigns DOIs to published articles and maintains stable URLs for discoverability, citation tracking, and long-term access.',
       },
       {
         title: 'Digital preservation',
@@ -250,7 +249,7 @@ export const policies: Policy[] = [
 export const aboutPillars = [
   {
     title: 'Who we are',
-    body: 'DMPedia is a global academic publisher and knowledge platform that empowers researchers, educators, and professionals to collaborate, share knowledge, and drive impactful research and innovation.',
+    body: 'NextGenIQ Press is a global academic publisher and knowledge platform that empowers researchers, educators, and professionals to collaborate, share knowledge, and drive impactful research and innovation.',
   },
   {
     title: 'Our mission',
@@ -265,18 +264,18 @@ export const aboutPillars = [
 export const contactChannels: ContactChannel[] = [
   {
     label: 'Editorial Office',
-    value: 'contact@digitalmanuscriptpedia.com',
+    value: 'contact@nextgeniqpress.com',
     note: 'For journal scope questions, editorial processes, and publication-related inquiries.',
   },
   {
     label: 'General Inquiries',
-    value: 'digitalmanuscriptpedia@gmail.com',
+    value: 'contact@nextgeniqpress.com',
     note: 'For general publisher questions, author support, and partnership introductions.',
   },
   {
     label: 'Proceedings & Conferences',
-    value: 'contact@digitalmanuscriptpedia.com',
-    note: 'For DMP-LNCSE, DMP-LNMR, and conference proceedings collaboration.',
+    value: 'contact@nextgeniqpress.com',
+    note: 'For NGIQ-LNCSE, NGIQ-LNMR, and conference proceedings collaboration.',
   },
 ]
 
@@ -284,7 +283,7 @@ export const footerGroups = [
   {
     title: 'Explore',
     links: [
-      { label: 'About DMPedia', path: '/about' },
+      { label: 'About NextGenIQ Press', path: '/about' },
       { label: 'Journals', path: '/journals' },
       { label: 'Latest Articles', path: '/articles' },
       { label: 'Special Issues', path: '/special-issues' },
@@ -483,14 +482,14 @@ export const bookSeriesDetails: BookSeriesDetail[] = [isriDetail, lnisiDetail]
 
 export const proceedings: InfoCard[] = [
   {
-    title: 'DMP-LNCSE — Lecture Notes in Computer Science & Engineering',
+    title: 'NGIQ-LNCSE — Lecture Notes in Computer Science & Engineering',
     summary:
       'Peer-reviewed conference proceedings series for AI, software engineering, networks, cybersecurity, data science, electronics, and emerging computing technologies. ISBN assignment with optional DOI support.',
     meta: 'Mode: Online / Hybrid / Physical',
     badge: 'Series',
   },
   {
-    title: 'DMP-LNMR — Lecture Notes in Multidisciplinary Research',
+    title: 'NGIQ-LNMR — Lecture Notes in Multidisciplinary Research',
     summary:
       'Peer-reviewed proceedings home for management, education, social sciences, humanities, applied sciences, and cross-disciplinary studies.',
     meta: 'Mode: Online / Hybrid / Physical',
@@ -593,7 +592,7 @@ export const guidelines: InfoCard[] = [
   {
     title: 'Conference Proceedings Guidelines',
     summary:
-      'Formatting, ISBN workflow, optional DOI registration, and quality standards for DMP-LNCSE and DMP-LNMR volumes.',
+      'Formatting, ISBN workflow, optional DOI registration, and quality standards for NGIQ-LNCSE and NGIQ-LNMR volumes.',
     badge: 'Series',
   },
 ]
@@ -627,14 +626,14 @@ export const indexingItems: InfoCard[] = [
 
 export const newsItems: InfoCard[] = [
   {
-    title: 'LNISI book series now live on the DMPedia publishing portal',
+    title: 'LNISI book series now live on the NextGenIQ Press portal',
     summary:
       'Lecture Notes in Interdisciplinary Science and Innovation is available with full about and call-for-books pages for open-access lecture notes and edited volumes.',
     meta: 'Sep 2026',
     badge: 'Announcement',
   },
   {
-    title: 'ISRI book series now live on the DMPedia publishing portal',
+    title: 'ISRI book series now live on the NextGenIQ Press portal',
     summary:
       'International Series in Research and Innovation is available with full about and call-for-books pages for open-access monographs and edited volumes.',
     meta: 'Sep 2026',

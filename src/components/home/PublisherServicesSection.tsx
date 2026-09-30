@@ -15,7 +15,7 @@ function PublisherServicesSection() {
           />
           <div className="flex flex-wrap gap-2">
             <ActionLink to="/about" variant="primary" size="sm">
-              About DMPedia
+              About NextGenIQ Press
             </ActionLink>
             <ActionLink to="/contact" variant="secondary" size="sm">
               Contact

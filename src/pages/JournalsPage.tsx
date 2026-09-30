@@ -10,7 +10,7 @@ function JournalsPage() {
     <>
       <PageHero
         eyebrow="Journals"
-        title="Browse the DMPedia open-access journal portfolio."
+        title="Browse the NextGenIQ Press open-access journal portfolio."
         description="Peer-reviewed continuous open-access journals across digital health, management, computing, electronics, and related scholarly fields."
       />
 

@@ -39,6 +39,8 @@ jobs:
 
       - name: Build React app
         run: npm run build
+        env:
+          VITE_OJS_URL: ${{ vars.VITE_OJS_URL }}
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5

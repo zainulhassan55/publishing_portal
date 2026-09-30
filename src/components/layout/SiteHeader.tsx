@@ -42,7 +42,7 @@ function SiteHeader() {
       <div className="border-b border-white/10 bg-ink-950">
         <Container className="flex h-9 items-center justify-between gap-4">
           <p className="truncate text-[11px] font-medium tracking-[0.12em] text-slate-300 uppercase">
-            DMPedia · Peer-reviewed · APC-free open access
+            {brand.name} · Peer-reviewed · APC-free open access
           </p>
           <nav className="hidden items-center gap-5 text-[12px] font-medium text-slate-300 md:flex">
             {secondaryNavigationItems.slice(0, 4).map((item) => (
@@ -73,7 +73,7 @@ function SiteHeader() {
         <div className="flex h-[4.25rem] items-center gap-4 lg:gap-6">
           <NavLink to="/" className="group flex min-w-0 shrink-0 items-center gap-3" end>
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-ink-950 font-display text-sm font-semibold tracking-wide text-white shadow-[0_8px_20px_rgba(7,19,31,0.18)] transition group-hover:bg-ink-800">
-              {brand.shortName.slice(0, 2)}
+              {brand.monogram}
             </span>
             <span className="min-w-0">
               <span className="block truncate font-display text-[1.15rem] leading-tight font-semibold tracking-tight text-ink-950 sm:text-[1.3rem]">

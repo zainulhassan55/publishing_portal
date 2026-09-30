@@ -19,10 +19,10 @@ function SiteFooter() {
         <div>
           <div className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white font-display text-sm font-semibold text-ink-950">
-              {brand.shortName.slice(0, 2)}
+              {brand.monogram}
             </span>
             <div>
-              <p className="meta text-accent-300">{brand.shortName}</p>
+              <p className="meta text-accent-300">{brand.tagline}</p>
               <h2 className="font-display text-xl font-semibold tracking-tight text-white">
                 {brand.name}
               </h2>
@@ -61,7 +61,7 @@ function SiteFooter() {
 
       <div className="relative border-t border-white/10">
         <Container className="flex flex-col gap-2 py-4 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Digital Manuscriptpedia. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} NextGenIQ Press. All rights reserved.</p>
           <p>Independent academic publishing · APC-free open access</p>
         </Container>
       </div>

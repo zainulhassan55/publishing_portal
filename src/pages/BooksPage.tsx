@@ -9,7 +9,7 @@ function BooksPage() {
     <>
       <PageHero
         eyebrow="Book Series"
-        title="Browse the DMPedia open-access book series portfolio."
+        title="Browse the NextGenIQ Press open-access book series portfolio."
         description="Peer-reviewed open-access series for monographs, lecture notes, and edited volumes across research, innovation, and interdisciplinary science."
       />
 

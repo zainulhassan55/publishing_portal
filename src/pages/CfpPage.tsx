@@ -10,7 +10,7 @@ function CfpPage() {
     <>
       <PageHero
         eyebrow="Call for Papers"
-        title="Open thematic calls across DMPedia journals and special issues."
+        title="Open thematic calls across NextGenIQ Press journals and special issues."
         description="Review current opportunities, deadlines, and submission pathways for prospective authors."
       />
 

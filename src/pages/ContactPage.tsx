@@ -9,7 +9,7 @@ function ContactPage() {
     <>
       <PageHero
         eyebrow="Contact"
-        title="Get in touch with Digital Manuscriptpedia"
+        title="Get in touch with NextGenIQ Press"
         description="Reach the editorial office for journal inquiries, author support, proceedings partnerships, and general publishing questions."
       />
 
@@ -27,10 +27,7 @@ function ContactPage() {
                 </div>
               ))}
               <SidebarPanel title="Publisher">
-                <p>
-                  {brand.name} ({brand.shortName})
-                </p>
-                <p>{brand.unitLabel}</p>
+                <p>{brand.name}</p>
                 <p>Independent academic publishing for journals, books, and proceedings</p>
               </SidebarPanel>
             </div>

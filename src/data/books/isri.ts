@@ -8,7 +8,7 @@ export const isriSeries: BookSeries = {
   area: 'Research & Innovation',
   access: 'Open Access',
   frequency: 'Irregular',
-  reviewType: 'Single-blind peer review',
+  reviewType: 'Double-blind peer review',
   summary:
     'Peer-reviewed international book series on research systems, innovation management, knowledge transfer, and the translation of discovery into practice.',
 }
@@ -24,16 +24,16 @@ export const isriDetail: BookSeriesDetail = {
   area: 'Research & Innovation',
   access: 'Open Access',
   frequency: 'Irregular volumes',
-  publisher: 'Sample',
+  publisher: 'NextGenIQ Press',
   editor: 'Series Editorial Office',
-  reviewType: 'Single-blind peer review',
-  license: 'Open access (Sample digital library)',
+  reviewType: 'Double-blind peer review',
+  license: 'Open access (NextGenIQ Press digital library)',
   scope:
     'The International Series in Research and Innovation (ISRI) is a peer-reviewed international book series that aims to provide a high-quality platform for authored books, edited volumes, and research monographs on how research is organized, how innovation is generated, and how both are translated across sectors and regions. The series focuses on emerging theories, methods, evidence, and applications that address the evolving challenges of research systems, innovation management, and international knowledge exchange. ISRI welcomes theoretical work, empirical studies, comparative volumes, industrial and policy case collections, surveys, and practice handbooks.',
   metrics: [
     { label: 'Access model', value: 'Full open access' },
     { label: 'Publication fees', value: 'None' },
-    { label: 'Review model', value: 'Single-blind' },
+    { label: 'Review model', value: 'Double-blind' },
     { label: 'Frequency', value: 'Irregular' },
   ],
   board: [
@@ -115,31 +115,31 @@ export const isriDetail: BookSeriesDetail = {
         {
           title: 'Open Access Policy',
           paragraphs: [
-            'All books published under ISRI are made available online through the Sample digital library. Content is accessible without subscription fees, allowing free reading and academic use. Authors retain the right to share and distribute their published chapters for scholarly purposes. Open access is intended to increase the visibility and citation potential of the work.',
+            'All books published under ISRI are made available online through the NextGenIQ Press digital library. Content is accessible without subscription fees, allowing free reading and academic use. Authors retain the right to share and distribute their published chapters for scholarly purposes. Open access is intended to increase the visibility and citation potential of the work.',
           ],
         },
         {
           title: 'Copyright Notice',
           paragraphs: [
-            'Authors retain copyright to their work and grant Sample a non-exclusive license to publish the content in the ISRI series. Chapters may be reused for academic purposes with proper citation. Any commercial reproduction or distribution requires written permission from the publisher.',
+            'Authors retain copyright to their work and grant NextGenIQ Press a non-exclusive license to publish the content in the ISRI series. Chapters may be reused for academic purposes with proper citation. Any commercial reproduction or distribution requires written permission from the publisher.',
           ],
         },
         {
           title: 'Peer Review and Editorial Oversight',
           paragraphs: [
-            'ISRI uses editorial screening followed by peer review of book proposals and, where appropriate, of individual chapters. Volume editors are responsible for scientific coherence; the series editor or editorial office confirms that the volume meets series standards before production. Review is single-blind unless a conference or guest-editor workflow is agreed in writing. Final acceptance rests with the series editorial office.',
+            'ISRI uses editorial screening followed by peer review of book proposals and, where appropriate, of individual chapters. Volume editors are responsible for scientific coherence; the series editor or editorial office confirms that the volume meets series standards before production. Review is double-blind unless a conference or guest-editor workflow is agreed in writing. Final acceptance rests with the series editorial office.',
           ],
         },
         {
           title: 'Ethics and Originality',
           paragraphs: [
-            'ISRI requires original work that is not under consideration elsewhere without permission. Plagiarism, redundant publication, and undisclosed conflicts of interest are not accepted. Human-subject, animal, or sensitive-data chapters must include the relevant ethics statements. Suspected misconduct is handled following COPE-aligned practice. Contact for ethics queries: ethics@sample.org.',
+            'ISRI requires original work that is not under consideration elsewhere without permission. Plagiarism, redundant publication, and undisclosed conflicts of interest are not accepted. Human-subject, animal, or sensitive-data chapters must include the relevant ethics statements. Suspected misconduct is handled following COPE-aligned practice. Contact for ethics queries: contact@nextgeniqpress.com.',
           ],
         },
         {
           title: 'Indexing, DOI, and Preservation',
           paragraphs: [
-            'Completed volumes are prepared with standard bibliographic metadata and are submitted for evaluation to major indexing services where eligible, including Scopus and Web of Science. Each published book and, where applicable, each chapter receives persistent identifiers (DOI) once the official imprint is confirmed. Long-term access is maintained through the Sample digital library. ISSN and series identifiers are currently listed as Sample.',
+            'Completed volumes are prepared with standard bibliographic metadata and are submitted for evaluation to major indexing services where eligible, including Scopus and Web of Science. Each published book and, where applicable, each chapter receives persistent identifiers (DOI) once the official imprint is confirmed. Long-term access is maintained through the NextGenIQ Press digital library. ISSN and series identifiers are currently listed as Sample.',
           ],
         },
         {
@@ -151,7 +151,7 @@ export const isriDetail: BookSeriesDetail = {
         {
           title: 'History of the Series',
           paragraphs: [
-            'ISRI was established to provide a dedicated international venue for book-length work on research and innovation. The series aims to keep editorial standards consistent, review processes transparent, and published volumes available in the long term. Collaborations with institutions and research networks will be added as the series develops. Publisher and imprint details are listed as Sample until the official information is confirmed.',
+            'ISRI was established to provide a dedicated international venue for book-length work on research and innovation. The series aims to keep editorial standards consistent, review processes transparent, and published volumes available in the long term. Collaborations with institutions and research networks will be added as the series develops. Imprint details will be updated once the official information is confirmed.',
           ],
         },
         {
@@ -161,22 +161,22 @@ export const isriDetail: BookSeriesDetail = {
             'Frequency: irregular',
             'Format: Online and Open Access',
             'Subject and Language of Publication: Series-specific subjects, English (other languages by agreement)',
-            'Publisher Detail: Sample',
+            'Publisher Detail: NextGenIQ Press',
             'Series ISSN: Sample · eISSN: Sample · Series code: ISRI',
           ],
         },
         {
           title: 'Privacy Statement',
           paragraphs: [
-            'Sample collects personal data such as names, affiliations, email addresses, and ORCID iDs solely for publication and indexing purposes. This information is not shared with third parties, except for indexing services that require metadata. Data submitted during the publication process is handled confidentially and used only for editorial and academic communication.',
+            'NextGenIQ Press collects personal data such as names, affiliations, email addresses, and ORCID iDs solely for publication and indexing purposes. This information is not shared with third parties, except for indexing services that require metadata. Data submitted during the publication process is handled confidentially and used only for editorial and academic communication.',
           ],
         },
         {
           title: 'Contact',
           paragraphs: [
-            'Editorial Office: Sample',
-            'Email: ebooks@sample.org',
-            'Support: support@sample.org',
+            'Editorial Office: contact@nextgeniqpress.com',
+            'Email: contact@nextgeniqpress.com',
+            'Support: contact@nextgeniqpress.com',
           ],
         },
       ],
@@ -236,13 +236,13 @@ export const isriDetail: BookSeriesDetail = {
         {
           title: 'Author Compensation',
           paragraphs: [
-            'Authors receive complimentary digital copies of the published book for personal use. Additional copies may be requested for promotional or academic purposes. Sample offers a transparent royalty structure and aims to compensate contributors fairly. Final royalty terms will be confirmed when official publisher details are provided.',
+            'Authors receive complimentary digital copies of the published book for personal use. Additional copies may be requested for promotional or academic purposes. NextGenIQ Press offers a transparent royalty structure and aims to compensate contributors fairly. Final royalty terms will be confirmed when official publisher details are provided.',
           ],
         },
         {
           title: 'Indexing and Abstracting',
           paragraphs: [
-            'All Sample books in this series are prepared for evaluation by major indexing databases such as Scopus and Web of Science (WoS). Authors and editors should follow the relevant indexing guidelines when preparing manuscripts to improve the likelihood of inclusion.',
+            'All NextGenIQ Press books in this series are prepared for evaluation by major indexing databases such as Scopus and Web of Science (WoS). Authors and editors should follow the relevant indexing guidelines when preparing manuscripts to improve the likelihood of inclusion.',
           ],
         },
         {
@@ -254,7 +254,7 @@ export const isriDetail: BookSeriesDetail = {
         {
           title: 'Originality and Permissions',
           paragraphs: [
-            'Sample does not accept material that has been previously published elsewhere without formal permission. Authors must ensure that all content, including text, figures, tables, and images, is original or used with proper authorization. Conference chapters may be expanded only when they include substantial new content and cite the earlier version.',
+            'NextGenIQ Press does not accept material that has been previously published elsewhere without formal permission. Authors must ensure that all content, including text, figures, tables, and images, is original or used with proper authorization. Conference chapters may be expanded only when they include substantial new content and cite the earlier version.',
           ],
         },
         {
@@ -268,10 +268,10 @@ export const isriDetail: BookSeriesDetail = {
         {
           title: 'Important Notes About Book Content',
           paragraphs: [
-            'Sample focuses on scholarly books that align with undergraduate and postgraduate teaching and research needs. Books should have a clear and specific theme within a broader subject area. Each chapter must connect logically with the book’s central topic, contributing to a cohesive structure rather than a loose collection of unrelated chapters.',
+            'NextGenIQ Press focuses on scholarly books that align with undergraduate and postgraduate teaching and research needs. Books should have a clear and specific theme within a broader subject area. Each chapter must connect logically with the book’s central topic, contributing to a cohesive structure rather than a loose collection of unrelated chapters.',
             'Books are encouraged to have international relevance and appeal. For edited volumes, contributions from multiple countries enhance the publication’s global reach. If your book is focused on a specific region or country, please clarify that in your proposal.',
             'Chapters should be peer-reviewed or carefully vetted by editors to ensure originality, depth, and clarity. The content should be suitable for upper-level students, researchers, faculty, and industry professionals. If chapters undergo peer review, this should be noted in the preface.',
-            'Before confirming chapter selections for edited books, authors must share a proposed table of contents with Sample for approval. This ensures proper structure, quality control, and smooth editorial coordination.',
+            'Before confirming chapter selections for edited books, authors must share a proposed table of contents with NextGenIQ Press for approval. This ensures proper structure, quality control, and smooth editorial coordination.',
           ],
         },
         {
@@ -283,10 +283,10 @@ export const isriDetail: BookSeriesDetail = {
         {
           title: 'How to Submit',
           paragraphs: [
-            'To submit your book idea, complete the Sample Book Proposal Form (to be provided) and send it to the editorial office. You may also contact the publishing manager for questions about proposal submission, book development, or editorial guidance.',
-            'Editorial Office: Sample',
-            'Email: ebooks@sample.org',
-            'Questions: support@sample.org',
+            'To submit your book idea, complete the NextGenIQ Press Book Proposal Form (to be provided) and send it to the editorial office. You may also contact the publishing manager for questions about proposal submission, book development, or editorial guidance.',
+            'Editorial Office: contact@nextgeniqpress.com',
+            'Email: contact@nextgeniqpress.com',
+            'Questions: contact@nextgeniqpress.com',
           ],
         },
       ],

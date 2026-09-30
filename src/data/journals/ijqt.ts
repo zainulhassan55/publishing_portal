@@ -9,7 +9,7 @@ export const ijqtJournal: Journal = {
   access: 'Open Access',
   frequency: 'Continuous',
   editor: 'Editorial Board',
-  reviewType: 'Single-blind peer review',
+  reviewType: 'Double-blind peer review',
   summary:
     'Peer-reviewed research on quantum computing, communication, sensing, error correction, hybrid quantum-classical systems, and quantum-safe architectures.',
 }
@@ -24,17 +24,17 @@ export const ijqtDetail: JournalDetail = {
   area: 'Quantum Technologies',
   access: 'Open Access',
   frequency: 'Continuous publication',
-  publisher: 'Sample',
-  ownership: 'The journal is owned by Sample.',
+  publisher: 'NextGenIQ Press',
+  ownership: 'The journal is owned by NextGenIQ Press.',
   editor: 'Editorial Board',
-  reviewType: 'Single-blind peer review',
+  reviewType: 'Double-blind peer review',
   license: 'CC BY 4.0',
   scope:
     'The International Journal of Quantum Technologies (IJQT) is a peer-reviewed international journal that aims to provide a high-quality platform for the dissemination of innovative research in quantum technologies. The journal focuses on emerging theories, devices, algorithms, and applications that address the evolving challenges of quantum computing, communication, and sensing. IJQT welcomes theoretical results, experimental demonstrations, system architectures, benchmarks, surveys, and translational case studies.',
   metrics: [
     { label: 'Access model', value: 'Full open access' },
     { label: 'License', value: 'CC BY 4.0' },
-    { label: 'Review model', value: 'Single-blind' },
+    { label: 'Review model', value: 'Double-blind' },
     { label: 'APC status', value: 'Waived until Sep 2026' },
   ],
   board: [
@@ -103,7 +103,7 @@ export const ijqtDetail: JournalDetail = {
         },
         {
           title: 'Ownership',
-          paragraphs: ['The journal is owned by Sample.'],
+          paragraphs: ['The journal is owned by NextGenIQ Press.'],
         },
         {
           title: 'Author Fees',
@@ -132,7 +132,7 @@ export const ijqtDetail: JournalDetail = {
         {
           title: 'Peer Review',
           paragraphs: [
-            'The journal adheres to rigorous peer review and undergoes single-blind peer review. For more details, please refer to Editorial Process and Peer Review Policy.',
+            'The journal adheres to rigorous peer review and undergoes double-blind peer review. For more details, please refer to Editorial Process and Peer Review Policy.',
           ],
         },
         {
@@ -169,8 +169,8 @@ export const ijqtDetail: JournalDetail = {
           title: 'Contact',
           paragraphs: [
             'Please visit Editorial Office for details about different queries.',
-            'Publication ethics contact: ethics@sample.org',
-            'Editorial Office contact: office@sample.org',
+            'Publication ethics contact: contact@nextgeniqpress.com',
+            'Editorial Office contact: contact@nextgeniqpress.com',
           ],
         },
       ],
@@ -404,13 +404,13 @@ export const ijqtDetail: JournalDetail = {
           title: '1. Authorship and Contributorship',
           paragraphs: [
             'Authorship is based on the ICMJE criteria, requiring substantial contributions to conception, design, data acquisition, analysis, or interpretation; drafting or critically revising the manuscript; final approval of the version to be published; and agreement to be accountable for all aspects of the work.',
-            'Gift, guest, or ghost authorship is strictly prohibited. Changes to authorship post-submission require written justification and consent from all co-authors, submitted to the Editorial Office at office@sample.org. Disputes over authorship will be resolved transparently, following COPE guidelines.',
+            'Gift, guest, or ghost authorship is strictly prohibited. Changes to authorship post-submission require written justification and consent from all co-authors, submitted to the Editorial Office at contact@nextgeniqpress.com. Disputes over authorship will be resolved transparently, following COPE guidelines.',
           ],
         },
         {
           title: '2. Complaints and Appeals',
           paragraphs: [
-            'Complaints regarding editorial processes, publication ethics, or journal operations should be submitted in writing to ethics@sample.org. The Editorial Board will investigate promptly, typically within 30 days, ensuring confidentiality and fairness.',
+            'Complaints regarding editorial processes, publication ethics, or journal operations should be submitted in writing to contact@nextgeniqpress.com. The Editorial Board will investigate promptly, typically within 30 days, ensuring confidentiality and fairness.',
             'Authors may appeal editorial decisions by submitting a detailed rationale to the Editor-in-Chief within 30 days of the decision. Appeals are reviewed by an independent editorial panel, and outcomes are communicated typically within 14 days.',
           ],
         },
@@ -455,7 +455,7 @@ export const ijqtDetail: JournalDetail = {
         {
           title: '8. Post-Publication Discussions and Corrections',
           paragraphs: [
-            'Authors must promptly notify office@sample.org of errors or inaccuracies. Minor errors may be addressed via errata; significant errors may warrant a corrigendum.',
+            'Authors must promptly notify contact@nextgeniqpress.com of errors or inaccuracies. Minor errors may be addressed via errata; significant errors may warrant a corrigendum.',
             'Articles may be retracted due to major errors, ethical breaches, or research misconduct, following COPE guidelines. Retracted articles remain accessible with a prominent “RETRACTED” watermark and a linked retraction notice.',
             'Complete removal of published content occurs only in exceptional circumstances such as court or government order, privacy/legal threats, unlawful publication, or ongoing public risk.',
           ],
@@ -492,7 +492,7 @@ export const ijqtDetail: JournalDetail = {
           title: '13. Process for Identification and Handling of Research Misconduct Allegations',
           paragraphs: [
             'Allegations are received confidentially, assessed for credibility, and investigated formally where warranted. Confirmed misconduct may lead to correction, expression of concern, retraction, institutional notification, and submission restrictions. Authors may appeal within 30 days.',
-            'For questions, concerns, or reports regarding publication ethics, please contact the Editorial Office at ethics@sample.org.',
+            'For questions, concerns, or reports regarding publication ethics, please contact the Editorial Office at contact@nextgeniqpress.com.',
           ],
         },
       ],
@@ -502,12 +502,12 @@ export const ijqtDetail: JournalDetail = {
       label: 'Editorial Process',
       title: 'Editorial Process',
       summary:
-        'Single-blind peer review workflow from initial checks through production and open access publication.',
+        'Double-blind peer review workflow from initial checks through production and open access publication.',
       blocks: [
         {
           title: 'Overview',
           paragraphs: [
-            'The International Journal of Quantum Technologies (IJQT) implements a rigorous peer review process. In most cases, this is a single-blind assessment involving at least two independent reviewers, followed by a final acceptance or rejection decision by the Editor-in-Chief. The Editor-in-Chief holds ultimate responsibility for the academic quality of the publication process, including approving or rejecting recommendations from the Academic Editor or Associate Editor. The journal’s publication ethics and malpractice policies follow the Committee on Publication Ethics (COPE) Best Practice Guidelines and are supplemented by Sample’s Instructions for Authors.',
+            'The International Journal of Quantum Technologies (IJQT) implements a rigorous peer review process. In most cases, this is a double-blind assessment involving at least two independent reviewers, followed by a final acceptance or rejection decision by the Editor-in-Chief. The Editor-in-Chief holds ultimate responsibility for the academic quality of the publication process, including approving or rejecting recommendations from the Academic Editor or Associate Editor. The journal’s publication ethics and malpractice policies follow the Committee on Publication Ethics (COPE) Best Practice Guidelines and are supplemented by the journal’s Instructions for Authors.',
           ],
         },
         {
@@ -525,7 +525,7 @@ export const ijqtDetail: JournalDetail = {
         {
           title: 'Assignment to Academic Editor',
           paragraphs: [
-            'The Academic Editor evaluates the academic merit of the manuscript and selects at least two independent reviewers with relevant expertise. All reviews follow a single-blind model. The Academic Editor may recommend direct rejection to the Editor-in-Chief or request revisions from the authors before or during review.',
+            'The Academic Editor evaluates the academic merit of the manuscript and selects at least two independent reviewers with relevant expertise. All reviews follow a double-blind model. The Academic Editor may recommend direct rejection to the Editor-in-Chief or request revisions from the authors before or during review.',
           ],
         },
         {
