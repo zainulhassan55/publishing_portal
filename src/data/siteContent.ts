@@ -61,7 +61,7 @@ export const heroHighlights = [
 
 export const heroMetrics: HeroMetric[] = [
   { value: '10', label: 'Active journals' },
-  { value: 'APC waived', label: 'Until Sep 2026' },
+  { value: 'No fee', label: 'For manuscript submission' },
   { value: 'CC BY 4.0', label: 'Open access license' },
   { value: 'Double-blind', label: 'Peer review' },
 ]
@@ -200,15 +200,15 @@ export const policies: Policy[] = [
     slug: 'open-access-licensing',
     title: 'Open Access & Licensing',
     summary:
-      'Describes APC-free open access, licensing options, author rights, and how readers may legally access and share published content.',
+      'Describes open access, publication charges, licensing, author rights, and how readers may legally access and share published content.',
     sections: [
       {
         title: 'Open access commitment',
         body: 'NextGenIQ Press journals are free and open access. Articles are permanently available without subscription barriers, supporting global knowledge exchange.',
       },
       {
-        title: 'APC-free publishing',
-        body: 'Authors are not required to pay article processing charges for current NextGenIQ Press journals. Removing publication fees lowers barriers for researchers worldwide.',
+        title: 'Publication charges',
+        body: 'There is no charge for manuscript submission. Article Processing Charges, waivers, and discounts for each journal will be announced transparently on the journal’s APC page; where an APC applies, payment is requested only after acceptance and never influences editorial decisions.',
       },
       {
         title: 'Licensing',
@@ -302,7 +302,7 @@ export const footerGroups = [
 
 export const publishingFacts = [
   'Peer-reviewed journals across computing, engineering, health, business, sustainability, and forensics',
-  'APC-free open access with CC BY licensing and transparent ethics policies',
+  'Open access with CC BY licensing, no submission fees, and transparent ethics policies',
   'Conference proceedings series with ISBN assignment and optional DOI support',
 ]
 
@@ -619,12 +619,19 @@ export const indexingItems: InfoCard[] = [
   {
     title: 'Open Access Discoverability',
     summary:
-      'APC-free open access with CC BY licensing improves global reach for authors, institutions, and readers.',
+      'Open access with CC BY licensing improves global reach for authors, institutions, and readers.',
     badge: 'OA',
   },
 ]
 
 export const newsItems: InfoCard[] = [
+  {
+    title: 'Journal pages updated with new author, policy, and content sections',
+    summary:
+      'All ten journals now provide About, Authors, Policies, and Content menus, including a Generative AI Policy, Research Data Policy, Reviewer Guidelines, and Special Issue Guidelines.',
+    meta: 'Oct 2026',
+    badge: 'Update',
+  },
   {
     title: 'LNISI book series now live on the NextGenIQ Press portal',
     summary:
@@ -638,12 +645,5 @@ export const newsItems: InfoCard[] = [
       'International Series in Research and Innovation is available with full about and call-for-books pages for open-access monographs and edited volumes.',
     meta: 'Sep 2026',
     badge: 'Announcement',
-  },
-  {
-    title: 'APC waived across active journals until September 2026',
-    summary:
-      'Authors can publish open access with no article processing charge during the introductory waiver period.',
-    meta: 'Sep 2026',
-    badge: 'Update',
   },
 ]

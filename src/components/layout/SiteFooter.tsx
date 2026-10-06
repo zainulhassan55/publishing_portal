@@ -62,7 +62,7 @@ function SiteFooter() {
       <div className="relative border-t border-white/10">
         <Container className="flex flex-col gap-2 py-4 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} NextGenIQ Press. All rights reserved.</p>
-          <p>Independent academic publishing · APC-free open access</p>
+          <p>Independent academic publishing · Open access</p>
         </Container>
       </div>
     </footer>

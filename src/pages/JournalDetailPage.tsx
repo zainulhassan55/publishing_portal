@@ -1,6 +1,7 @@
 import { Link, useOutletContext } from 'react-router-dom'
 import Container from '../components/layout/Container'
 import ActionLink from '../components/shared/ActionLink'
+import { journalMenu } from '../data/journalTemplate'
 import { ojsJournalRegisterUrl, ojsSubmitUrl } from '../lib/ojs'
 import type { JournalDetail } from '../types/content'
 
@@ -8,30 +9,48 @@ type JournalOutletContext = {
   journal: JournalDetail
 }
 
+const topicPreviewCount = 12
+const groupLinkClass = 'text-sm font-medium text-slate-700 transition hover:text-accent-700'
+
 function JournalDetailPage() {
   const { journal } = useOutletContext<JournalOutletContext>()
   const pages = journal.pages ?? []
+  const pageLabels = new Map(pages.map((page) => [page.id, page.label]))
 
   return (
     <>
       <section className="section-y prose-justify">
         <Container className="space-y-8">
-          <div className="grid gap-5 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
-            <article className="rounded-xl border border-line bg-white p-5 shadow-[0_8px_22px_rgba(7,19,31,0.04)] sm:p-7">
+          <div className="grid gap-5 lg:grid-cols-[1.4fr_0.8fr] lg:items-stretch">
+            <article className="flex flex-col rounded-xl border border-line bg-white p-5 shadow-[0_8px_22px_rgba(7,19,31,0.04)] sm:p-7">
               <p className="meta text-accent-700">Aims & scope</p>
               <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink-950 sm:text-[1.85rem]">
                 Research focus
               </h2>
               <div className="section-rule mt-4 max-w-20" />
-              <p className="mt-4 text-sm leading-7 text-slate-700 sm:text-base sm:leading-8">{journal.scope}</p>
-              {journal.ownership ? (
-                <p className="mt-5 rounded-xl border border-line bg-paper-soft px-4 py-3 text-sm leading-7 text-slate-600">
-                  {journal.ownership}
+              {(journal.overview ?? [journal.scope]).map((paragraph) => (
+                <p key={paragraph.slice(0, 72)} className="mt-4 text-sm leading-7 text-slate-700 sm:text-base sm:leading-8">
+                  {paragraph}
                 </p>
-              ) : null}
+              ))}
+              <div className="mt-auto pt-5">
+                {pageLabels.has('about') ? (
+                  <Link
+                    to={`/journals/${journal.slug}/about`}
+                    className="text-sm font-semibold text-accent-700 transition hover:text-ink-950"
+                  >
+                    Read more about the journal →
+                  </Link>
+                ) : null}
+                {journal.ownership ? (
+                  <p className="mt-4 rounded-xl border border-line bg-paper-soft px-4 py-3 text-sm leading-7 text-slate-600">
+                    {journal.ownership}
+                  </p>
+                ) : null}
+              </div>
             </article>
 
-            <aside className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            <aside className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-[auto_1fr]">
               <div className="rounded-2xl border border-line bg-ink-950 p-6 text-white">
                 <p className="meta text-accent-300">For authors</p>
                 <h3 className="mt-3 font-display text-2xl font-semibold">Ready to submit?</h3>
@@ -85,7 +104,7 @@ function JournalDetailPage() {
               </h2>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {journal.topics.map((topic, index) => (
+              {journal.topics.slice(0, topicPreviewCount).map((topic, index) => (
                 <div
                   key={topic}
                   className="rounded-xl border border-line bg-white p-4 transition hover:border-accent-600 hover:shadow-[0_12px_28px_rgba(7,19,31,0.06)]"
@@ -97,43 +116,49 @@ function JournalDetailPage() {
                 </div>
               ))}
             </div>
+            {journal.topics.length > topicPreviewCount && pageLabels.has('aims-scope') ? (
+              <Link
+                to={`/journals/${journal.slug}/aims-scope`}
+                className="mt-5 inline-block text-sm font-semibold text-accent-700 transition hover:text-ink-950"
+              >
+                View all {journal.topics.length} topics in Aims & Scope →
+              </Link>
+            ) : null}
           </div>
 
           {pages.length > 0 ? (
             <div>
               <div className="mb-6">
-                <p className="meta text-accent-700">Journal documentation</p>
+                <p className="meta text-accent-700">Journal information</p>
                 <h2 className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink-950">
-                  Policies & guidance
+                  About, authors, policies & content
                 </h2>
-                <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-                  Complete journal pages for authors, editors, and readers — covering about,
-                  instructions, charges, ethics, and editorial workflow.
-                </p>
               </div>
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {pages.map((page, index) => (
-                  <Link
-                    key={page.id}
-                    to={`/journals/${journal.slug}/${page.id}`}
-                    className="group relative overflow-hidden rounded-2xl border border-line bg-white p-6 transition hover:-translate-y-1 hover:border-ink-700 hover:shadow-[0_18px_40px_rgba(7,19,31,0.08)]"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="font-display text-2xl font-semibold text-accent-600">
-                        {String(index + 1).padStart(2, '0')}
-                      </p>
-                      <span className="rounded-md border border-line bg-paper-soft px-2 py-1 text-[11px] font-semibold tracking-[0.08em] text-slate-500 uppercase transition group-hover:border-ink-700 group-hover:text-ink-950">
-                        Open
-                      </span>
-                    </div>
-                    <h3 className="mt-4 font-display text-xl font-semibold text-ink-950">
-                      {page.label}
-                    </h3>
-                    <p className="mt-3 text-sm leading-7 text-slate-600">{page.summary}</p>
-                    <p className="mt-5 text-sm font-semibold text-accent-700 transition group-hover:text-ink-950">
-                      Read full page →
-                    </p>
-                  </Link>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {journalMenu.map((group) => (
+                  <div key={group.label} className="rounded-2xl border border-line bg-white p-6">
+                    <h3 className="font-display text-xl font-semibold text-ink-950">{group.label}</h3>
+                    <div className="section-rule mt-3 max-w-12" />
+                    <ul className="mt-4 space-y-2.5">
+                      {group.items.map((item) => (
+                        <li key={item.kind === 'page' ? item.id : item.kind}>
+                          {item.kind === 'submit' ? (
+                            <a href={ojsSubmitUrl(journal.slug)} className={groupLinkClass}>
+                              {item.label} ↗
+                            </a>
+                          ) : item.kind === 'archive' ? (
+                            <Link to={`/journals/${journal.slug}/issues`} className={groupLinkClass}>
+                              {item.label}
+                            </Link>
+                          ) : pageLabels.has(item.id) ? (
+                            <Link to={`/journals/${journal.slug}/${item.id}`} className={groupLinkClass}>
+                              {pageLabels.get(item.id)}
+                            </Link>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ))}
               </div>
             </div>

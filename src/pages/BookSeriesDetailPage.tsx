@@ -15,17 +15,32 @@ function BookSeriesDetailPage() {
     <>
       <section className="section-y prose-justify">
         <Container className="space-y-8">
-          <div className="grid gap-5 lg:grid-cols-[1.4fr_0.8fr] lg:items-start">
-            <article className="rounded-xl border border-line bg-white p-5 shadow-[0_8px_22px_rgba(7,19,31,0.04)] sm:p-7">
+          <div className="grid gap-5 lg:grid-cols-[1.4fr_0.8fr] lg:items-stretch">
+            <article className="flex flex-col rounded-xl border border-line bg-white p-5 shadow-[0_8px_22px_rgba(7,19,31,0.04)] sm:p-7">
               <p className="meta text-accent-700">Aims & scope</p>
               <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-ink-950 sm:text-[1.85rem]">
                 Series focus
               </h2>
               <div className="section-rule mt-4 max-w-20" />
               <p className="mt-4 text-sm leading-7 text-slate-700 sm:text-base sm:leading-8">{series.scope}</p>
+              {pages.some((page) => page.id === 'about') ? (
+                <div className="mt-auto pt-5">
+                  <Link
+                    to={`/books/${series.slug}/about`}
+                    className="text-sm font-semibold text-accent-700 transition hover:text-ink-950"
+                  >
+                    Read more about the series →
+                  </Link>
+                  {series.publisher ? (
+                    <p className="mt-4 rounded-xl border border-line bg-paper-soft px-4 py-3 text-sm leading-7 text-slate-600">
+                      The series is owned and published by {series.publisher}.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </article>
 
-            <aside className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            <aside className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-[auto_1fr]">
               <div className="rounded-2xl border border-line bg-ink-950 p-6 text-white">
                 <p className="meta text-accent-300">For authors & editors</p>
                 <h3 className="mt-3 font-display text-2xl font-semibold">Propose a volume</h3>

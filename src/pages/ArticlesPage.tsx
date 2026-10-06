@@ -66,7 +66,7 @@ function ArticlesPage() {
                       <ul className="mt-3 space-y-2.5 text-sm text-slate-600">
                         <li>Review author guidelines before submission</li>
                         <li>Check open calls for papers</li>
-                        <li>Confirm journal scope and APC waiver details</li>
+                        <li>Confirm journal scope and APC details</li>
                       </ul>
                       <ActionLink to="/guidelines" variant="secondary" size="sm" className="mt-4">
                         Author guidelines

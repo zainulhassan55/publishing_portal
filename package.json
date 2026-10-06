@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:vps": "tsc -b && vite build --mode vps --outDir dist-vps",
     "lint": "eslint .",
     "preview": "vite preview"
   },

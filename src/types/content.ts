@@ -76,6 +76,16 @@ export type JournalPage = {
   blocks: ContentBlock[]
 }
 
+export type JournalMenuItem =
+  | { kind: 'page'; id: string }
+  | { kind: 'submit'; label: string }
+  | { kind: 'archive'; label: string }
+
+export type JournalMenuGroup = {
+  label: string
+  items: JournalMenuItem[]
+}
+
 export type JournalDetail = {
   slug: string
   title: string
@@ -87,6 +97,8 @@ export type JournalDetail = {
   access: string
   frequency: string
   scope: string
+  /** Paragraphs for the overview "Research focus" box; falls back to `scope`. */
+  overview?: string[]
   editor: string
   reviewType: string
   license: string

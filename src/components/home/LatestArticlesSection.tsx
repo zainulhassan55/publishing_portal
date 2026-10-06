@@ -83,7 +83,7 @@ function LatestArticlesSection() {
                     </li>
                     <li className="flex gap-2">
                       <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-accent-600" />
-                      APC waived until September 2026
+                      No manuscript submission fee
                     </li>
                     <li className="flex gap-2">
                       <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-accent-600" />

@@ -11,7 +11,7 @@ function TrustHighlightsSection() {
           <SectionHeading
             eyebrow="Editorial Standards"
             title="COPE-aligned ethics and open access policies"
-            description="Transparent peer review, APC-free licensing, and preservation practices for authors and indexing readiness."
+            description="Transparent peer review, open CC BY licensing, and preservation practices for authors and indexing readiness."
           />
           <ActionLink to="/policies" variant="primary" size="sm">
             Explore all policies

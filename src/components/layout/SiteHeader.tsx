@@ -42,7 +42,7 @@ function SiteHeader() {
       <div className="border-b border-white/10 bg-ink-950">
         <Container className="flex h-9 items-center justify-between gap-4">
           <p className="truncate text-[11px] font-medium tracking-[0.12em] text-slate-300 uppercase">
-            {brand.name} · Peer-reviewed · APC-free open access
+            {brand.name} · Peer-reviewed · Open access
           </p>
           <nav className="hidden items-center gap-5 text-[12px] font-medium text-slate-300 md:flex">
             {secondaryNavigationItems.slice(0, 4).map((item) => (
