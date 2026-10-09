@@ -1,0 +1,54 @@
+# /etc/systemd/system/ngiq-portal.service
+#
+# Runs the Next.js standalone server. `WorkingDirectory` points at the `current`
+# symlink, so a deploy that flips the symlink and restarts the unit picks up the
+# new release with no edit to this file.
+#
+#   sudo systemctl daemon-reload && sudo systemctl enable --now ngiq-portal
+
+[Unit]
+Description=NextGenIQ Press portal (Next.js)
+After=network.target mysql.service
+Wants=mysql.service
+
+[Service]
+Type=simple
+User=nextgeniq
+Group=nextgeniq
+WorkingDirectory=/home/nextgeniq/portal/current
+ExecStart=/usr/bin/node server.js
+
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+
+# Secrets live here, root-owned and 0600. Never in the repo and never in this
+# unit file, which is world-readable.
+EnvironmentFile=/etc/ngiq/portal.env
+
+Restart=always
+RestartSec=2
+# Give up after five failures in a minute rather than restart-looping forever;
+# the deploy health gate will have rolled back by then.
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ngiq-portal
+
+# The app writes nothing outside its release directory: all state is in MySQL,
+# and content/harvest.json is written by the harvest job, not by the server.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/nextgeniq/portal/current/.next/cache
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

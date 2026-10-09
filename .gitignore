@@ -1,25 +1,35 @@
+# Dependencies
+node_modules
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Next.js
+.next
+out
+next-env.d.ts
+
+# Production bundles
+dist
+dist-vps
+
+# Environment — production values live in the systemd EnvironmentFile on the VPS
+.env
+.env.local
+.env*.local
+
+# OJS harvest snapshot. Regenerate with `npm run harvest`; it is a derived read
+# model of OJS, not source, and committing it would make the repo the source of
+# truth for content that OJS owns.
+content/harvest.json
+
 # Logs
-logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-dist-vps
-*.local
-
-# Editor directories and files
+# Editor and OS
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+*.swp

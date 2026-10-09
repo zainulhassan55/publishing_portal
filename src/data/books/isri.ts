@@ -1,10 +1,11 @@
 import type { BookSeries, BookSeriesDetail } from '../../types/content'
+import { PENDING_ISSN_LABEL } from '../issn'
 
 export const isriSeries: BookSeries = {
   slug: 'isri',
   title: 'International Series in Research and Innovation',
   shortTitle: 'ISRI',
-  issn: 'ISSN Sample',
+  issn: PENDING_ISSN_LABEL,
   area: 'Research & Innovation',
   access: 'Open Access',
   frequency: 'Irregular',
@@ -19,8 +20,8 @@ export const isriDetail: BookSeriesDetail = {
   shortTitle: 'ISRI',
   tagline:
     'International research monographs and edited books on discovery, innovation, and their use in practice.',
-  issn: 'ISSN Sample',
-  eIssn: 'eISSN Sample',
+  issn: PENDING_ISSN_LABEL,
+  eIssn: PENDING_ISSN_LABEL,
   area: 'Research & Innovation',
   access: 'Open Access',
   frequency: 'Irregular volumes',
