@@ -1,10 +1,11 @@
 import type { BookSeries, BookSeriesDetail } from '../../types/content'
+import { PENDING_ISSN_LABEL } from '../issn'
 
 export const lnisiSeries: BookSeries = {
   slug: 'lnisi',
   title: 'Lecture Notes in Interdisciplinary Science and Innovation',
   shortTitle: 'LNISI',
-  issn: 'ISSN Sample',
+  issn: PENDING_ISSN_LABEL,
   area: 'Interdisciplinary Science',
   access: 'Open Access',
   frequency: 'Irregular',
@@ -19,8 +20,8 @@ export const lnisiDetail: BookSeriesDetail = {
   shortTitle: 'LNISI',
   tagline:
     'Lecture notes, monographs, and edited volumes that connect scientific fields with innovation practice.',
-  issn: 'ISSN Sample',
-  eIssn: 'eISSN Sample',
+  issn: PENDING_ISSN_LABEL,
+  eIssn: PENDING_ISSN_LABEL,
   area: 'Interdisciplinary Science',
   access: 'Open Access',
   frequency: 'Irregular volumes',

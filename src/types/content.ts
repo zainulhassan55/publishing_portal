@@ -57,14 +57,22 @@ export type ValueItem = {
   summary: string
 }
 
+export type ContentTable = {
+  head: string[]
+  rows: string[][]
+  caption?: string
+}
+
 export type ContentBlock = {
   title: string
   paragraphs?: string[]
   bullets?: string[]
+  table?: ContentTable
   subsections?: {
     title: string
     paragraphs?: string[]
     bullets?: string[]
+    table?: ContentTable
   }[]
 }
 

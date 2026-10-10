@@ -1,4 +1,5 @@
 import type { ContentBlock, Journal, JournalDetail, JournalMenuGroup, JournalPage } from '../types/content'
+import { electronicIssn, issnLabel, printIssn } from './issn'
 
 export const editorialEmail = 'contact@nextgeniqpress.com'
 const siteUrl = 'https://www.nextgeniqpress.com'
@@ -915,7 +916,7 @@ export function buildJournal(j: JournalSpec): Journal {
     slug: j.slug,
     title: j.title,
     shortTitle: j.shortTitle,
-    issn: 'ISSN Sample',
+    issn: issnLabel(electronicIssn(j.slug)),
     area: j.area,
     access: 'Open Access',
     frequency: 'Continuous',
@@ -931,8 +932,8 @@ export function buildJournalDetail(j: JournalSpec): JournalDetail {
     title: j.title,
     shortTitle: j.shortTitle,
     tagline: j.tagline,
-    issn: 'ISSN Sample',
-    eIssn: 'eISSN Sample',
+    issn: issnLabel(printIssn(j.slug)),
+    eIssn: issnLabel(electronicIssn(j.slug)),
     area: j.area,
     access: 'Open Access',
     frequency: 'Continuous publication',

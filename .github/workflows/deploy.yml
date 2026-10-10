@@ -1,55 +1,76 @@
-name: Deploy React App to GitHub Pages
+#
+# Production deploy.
+#
+# Replaces a GitHub Pages workflow left over from the Vite single-page app,
+# which built `./dist` with `VITE_OJS_URL` and published to Pages. None of that
+# applies to the Next.js portal: it is a standalone Node server behind nginx on
+# the VPS, deployed by scripts/deploy.sh, and it has to run on the same origin
+# as OJS for the integration to work at all.
+#
+# Tag-triggered, because scripts/deploy.sh refuses an untagged production
+# deploy — a release must be reproducible from a tag, not from a branch tip.
+#
+name: Deploy portal
 
 on:
   push:
-    branches:
-      - main
+    tags: ['v*']
 
   workflow_dispatch:
+    inputs:
+      target:
+        description: Deploy target
+        required: true
+        default: staging
+        type: choice
+        options: [staging, production]
+
+# Never let two deploys interleave: they would race on the release symlink.
+concurrency:
+  group: deploy-${{ inputs.target || 'production' }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
+    name: Build and deploy
     runs-on: ubuntu-latest
+    environment: ${{ inputs.target || 'production' }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v5
         with:
-          node-version: lts/*
+          # deploy.sh runs `git describe --exact-match --tags HEAD`, which needs
+          # the tags, and names the release from the short SHA.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
 
-      - name: Build React app
-        run: npm run build
+      # deploy.sh does the rest: verify, harvest, build, upload to a new
+      # timestamped release, flip the symlink, health-gate, roll back on
+      # failure. Duplicating any of that here would let the two drift.
+      - name: Deploy
+        run: ./scripts/deploy.sh "${{ inputs.target || 'production' }}"
         env:
-          VITE_OJS_URL: ${{ vars.VITE_OJS_URL }}
-
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload build
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: "./dist"
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          DEPLOY_STAGING_HOST: ${{ secrets.DEPLOY_STAGING_HOST }}
+          DEPLOY_PRODUCTION_HOST: ${{ secrets.DEPLOY_PRODUCTION_HOST }}
+          NEXT_PUBLIC_SITE_URL: https://www.nextgeniqpress.com
+          # Harvest reads these. Without the key the snapshot falls back to
+          # OAI-PMH fidelity and the deploy still completes.
+          OJS_BASE_URL: ${{ vars.OJS_BASE_URL }}
+          OJS_API_KEY: ${{ secrets.OJS_API_KEY }}
+          # Production never serves the fixture articles. See
+          # src/data/content/index.ts.
+          NEXT_PUBLIC_DEMO_CONTENT: '0'

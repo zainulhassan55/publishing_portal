@@ -1,0 +1,323 @@
+/**
+ * Harvests published content from OJS into content/harvest.json.
+ *
+ * OJS is the system of record; the portal renders a read model. This script is
+ * the only thing that crosses that boundary, and it only ever reads.
+ *
+ * Run it in CI before `next build`, and on a cron after that so an article
+ * published in OJS reaches the site without a developer. The snapshot is
+ * disposable: deleting it loses nothing that a re-run cannot rebuild.
+ *
+ *   OJS_BASE_URL=https://www.nextgeniqpress.com/ojs OJS_API_KEY=… npm run harvest
+ *
+ * Two passes, because the two OJS read paths fail in different ways:
+ *
+ *   1. OAI-PMH inventory — needs no credentials and is authoritative on *what
+ *      exists*. This is the oracle: if OAI lists N published records, N is the
+ *      truth, whatever the API says.
+ *   2. REST enrichment — needs an API key and is authoritative on *detail*.
+ *      OAI's Dublin Core would lose the affiliations, ORCIDs and CRediT roles
+ *      the article page and the Scholar citation tags need.
+ *
+ * The run fails only when the two **disagree** — OAI says records exist and the
+ * API returned fewer. That is the real partial-harvest signal. Previously any
+ * HTTP failure was fatal, which meant a missing or unusable API key took the
+ * whole deploy down (scripts/deploy.sh runs this before `next build` under
+ * `set -e`), even though an unauthenticated OJS is a configuration state and
+ * not a reason to refuse to publish the site.
+ */
+import { mkdirSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { loadLocalEnv } from './env.ts'
+
+loadLocalEnv()
+
+const here = dirname(fileURLToPath(import.meta.url))
+const outPath = join(here, '..', 'content', 'harvest.json')
+
+const baseUrl = (process.env.OJS_BASE_URL || '').replace(/\/$/, '')
+const apiKey = process.env.OJS_API_KEY || ''
+
+const JOURNAL_SLUGS = ['ijdh', 'ijdm', 'ijds', 'ijei', 'ijic', 'ijis', 'ijmc', 'ijmr', 'ijqt', 'ijse']
+
+type Localised = Record<string, string> | string | undefined
+
+const text = (value: Localised): string => {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  return value.en ?? Object.values(value)[0] ?? ''
+}
+
+const slugify = (title: string) =>
+  title
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .slice(0, 80)
+
+/** Set once the API answers 401/403, so 20 journals log one diagnosis, not 20. */
+let apiUnauthorised = false
+
+async function ojsGet<T>(context: string, path: string): Promise<T | null> {
+  const url = `${baseUrl}/index.php/${context}/api/v1${path}`
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json', ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}) },
+    })
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) apiUnauthorised = true
+      else console.warn(`  ${context}${path} → HTTP ${response.status}`)
+      return null
+    }
+    return (await response.json()) as T
+  } catch (error) {
+    console.warn(`  ${context}${path} → ${error instanceof Error ? error.message : 'failed'}`)
+    return null
+  }
+}
+
+/**
+ * OAI-PMH inventory: how many published records OJS says each journal has.
+ *
+ * Credential-free, so this works even when the REST API is locked out, and it
+ * is what turns "the API returned nothing" into a decidable question — no
+ * records at all, or records the API would not hand over.
+ *
+ * Returns null if OAI itself is unreachable, which is the one case where
+ * nothing can be concluded.
+ */
+async function oaiInventory(): Promise<Map<string, number> | null> {
+  const counts = new Map<string, number>(JOURNAL_SLUGS.map((slug) => [slug, 0]))
+  let resumptionToken: string | null = null
+  let pages = 0
+
+  do {
+    const url = resumptionToken
+      ? `${baseUrl}/index.php/index/oai?verb=ListIdentifiers&resumptionToken=${encodeURIComponent(resumptionToken)}`
+      : `${baseUrl}/index.php/index/oai?verb=ListIdentifiers&metadataPrefix=oai_dc`
+
+    let xml: string
+    try {
+      const response = await fetch(url, { headers: { Accept: 'application/xml' } })
+      xml = await response.text()
+    } catch (error) {
+      console.warn(`  OAI inventory → ${error instanceof Error ? error.message : 'failed'}`)
+      return null
+    }
+
+    // An empty repository is a valid answer, not an error.
+    if (/<error code="noRecordsMatch"/.test(xml)) return counts
+
+    if (/<error code=/.test(xml)) {
+      console.warn(`  OAI inventory → ${xml.match(/<error code="([^"]*)"/)?.[1] ?? 'error'}`)
+      return null
+    }
+
+    // Each <header> carries one <setSpec> per journal (plus section-level
+    // setSpecs like `ijdh:ART`, which the slug check below ignores).
+    for (const header of xml.match(/<header[^>]*>[\s\S]*?<\/header>/g) ?? []) {
+      if (/status="deleted"/.test(header)) continue
+      for (const spec of header.match(/<setSpec>([^<]*)<\/setSpec>/g) ?? []) {
+        const slug = spec.replace(/<\/?setSpec>/g, '')
+        if (counts.has(slug)) counts.set(slug, (counts.get(slug) ?? 0) + 1)
+      }
+    }
+
+    resumptionToken = xml.match(/<resumptionToken[^>]*>([^<]+)<\/resumptionToken>/)?.[1] ?? null
+    pages += 1
+  } while (resumptionToken && pages < 100)
+
+  return counts
+}
+
+type OjsAuthor = {
+  givenName?: Localised
+  familyName?: Localised
+  affiliation?: Localised
+  orcid?: string
+  email?: string
+  country?: string
+  primaryContact?: boolean
+}
+
+type OjsPublication = {
+  id?: number
+  title?: Localised
+  abstract?: Localised
+  keywords?: Record<string, string[]>
+  pub_id_doi?: string
+  pages?: string
+  datePublished?: string
+  authors?: OjsAuthor[]
+  sectionId?: number
+  issueId?: number
+  galleys?: { urlPublished?: string; label?: string }[]
+}
+
+type OjsSubmission = {
+  id: number
+  status?: number
+  dateSubmitted?: string
+  publications?: OjsPublication[]
+  currentPublicationId?: number
+}
+
+type OjsIssue = {
+  id: number
+  volume?: number
+  number?: string | number
+  year?: number
+  title?: Localised
+  datePublished?: string
+  isCurrent?: boolean
+}
+
+if (!baseUrl) {
+  console.log('OJS_BASE_URL is not set — writing an empty snapshot.')
+  console.log('This is the expected state before the first article is published; every')
+  console.log('listing page renders its launch-state copy from it.')
+  mkdirSync(dirname(outPath), { recursive: true })
+  writeFileSync(outPath, `${JSON.stringify({ harvestedAt: new Date().toISOString(), articles: [], issues: [] }, null, 2)}\n`)
+  process.exit(0)
+}
+
+const articles: Record<string, unknown>[] = []
+const issues: Record<string, unknown>[] = []
+
+// Pass 1: what OJS says exists, before asking for any detail.
+console.log('taking the OAI inventory…')
+const inventory = await oaiInventory()
+const expectedTotal = inventory ? [...inventory.values()].reduce((sum, n) => sum + n, 0) : null
+
+if (inventory) {
+  console.log(`  OAI reports ${expectedTotal} published record(s) across ${JOURNAL_SLUGS.length} journal(s)\n`)
+} else {
+  console.log('  OAI inventory unavailable — cannot verify completeness this run\n')
+}
+
+// Pass 2: detail for each record, from the REST API.
+for (const slug of JOURNAL_SLUGS) {
+  console.log(`harvesting ${slug}…`)
+
+  const issueResult = await ojsGet<{ items?: OjsIssue[] }>(slug, '/issues?count=100')
+
+  const issueById = new Map<number, OjsIssue>()
+  for (const issue of issueResult?.items ?? []) {
+    issueById.set(issue.id, issue)
+    issues.push({
+      journalSlug: slug,
+      volume: issue.volume ?? 1,
+      number: Number(issue.number ?? 1),
+      year: issue.year ?? new Date(issue.datePublished ?? Date.now()).getUTCFullYear(),
+      title: text(issue.title) || undefined,
+      publishedIso: issue.datePublished?.slice(0, 10),
+      current: Boolean(issue.isCurrent),
+      sections: [],
+    })
+  }
+
+  // status 3 is STATUS_PUBLISHED in OJS; anything else is not public.
+  const submissionResult = await ojsGet<{ items?: OjsSubmission[] }>(slug, '/submissions?status=3&count=100')
+  if (submissionResult === null) continue
+
+  for (const submission of submissionResult.items ?? []) {
+    const publication =
+      submission.publications?.find((p) => p.id === submission.currentPublicationId) ?? submission.publications?.[0]
+    if (!publication) continue
+
+    const title = text(publication.title)
+    if (!title) continue
+
+    const affiliations = new Map<string, { id: string; name: string; country?: string }>()
+    const authors = (publication.authors ?? []).map((author, index) => {
+      const name = [text(author.givenName), text(author.familyName)].filter(Boolean).join(' ')
+      const affiliationName = text(author.affiliation)
+      const affiliationIds: string[] = []
+
+      if (affiliationName) {
+        const existing = [...affiliations.values()].find((a) => a.name === affiliationName)
+        const id = existing?.id ?? `af${affiliations.size + 1}`
+        if (!existing) affiliations.set(id, { id, name: affiliationName, country: author.country })
+        affiliationIds.push(id)
+      }
+
+      return {
+        name: name || `Author ${index + 1}`,
+        affiliationIds,
+        orcid: author.orcid?.replace(/^https?:\/\/orcid\.org\//, '') || undefined,
+        corresponding: author.primaryContact || undefined,
+      }
+    })
+
+    const issue = publication.issueId ? issueById.get(publication.issueId) : undefined
+    const published = publication.datePublished?.slice(0, 10) ?? issue?.datePublished?.slice(0, 10)
+    if (!published) continue
+
+    articles.push({
+      id: `ojs-${submission.id}`,
+      slug: slugify(title),
+      journalSlug: slug,
+      // OJS section names do not map cleanly onto the portal's article types,
+      // so a Research Article default is applied and corrected per journal
+      // section mapping once the sections are configured in OJS.
+      type: 'Research Article',
+      status: 'published',
+      title,
+      authors,
+      affiliations: [...affiliations.values()],
+      abstract: text(publication.abstract).replace(/<[^>]+>/g, '').trim(),
+      keywords: publication.keywords?.en ?? [],
+      doi: publication.pub_id_doi ?? '',
+      volume: issue?.volume ?? 1,
+      issue: Number(issue?.number ?? 1),
+      pages: publication.pages || undefined,
+      publishedIso: published,
+      receivedIso: submission.dateSubmitted?.slice(0, 10),
+      access: 'Open access',
+      licence: 'CC BY 4.0',
+      pdfHref: publication.galleys?.find((g) => /pdf/i.test(g.label ?? ''))?.urlPublished,
+    })
+  }
+}
+
+mkdirSync(dirname(outPath), { recursive: true })
+writeFileSync(
+  outPath,
+  `${JSON.stringify({ harvestedAt: new Date().toISOString(), articles, issues }, null, 2)}\n`,
+)
+
+console.log(`\nwrote ${articles.length} article(s) and ${issues.length} issue(s) to content/harvest.json`)
+
+if (apiUnauthorised) {
+  console.warn('\nThe OJS REST API rejected this run as unauthorised.')
+  console.warn(
+    apiKey
+      ? '  OJS_API_KEY is set but was refused. Check the key, and that api_key_secret'
+      : '  OJS_API_KEY is not set. Generate one for a service user, and check that api_key_secret',
+  )
+  console.warn('  is configured in config.inc.php — without it OJS cannot validate any token.')
+  console.warn('  Run `npm run spike` for a precise diagnosis.')
+}
+
+// A partial harvest must not silently become the published site: a journal that
+// errored would look like a journal with no articles. But "incomplete" is only
+// decidable against the OAI inventory — counting HTTP failures made a missing
+// API key fatal to the deploy, which is a configuration state, not a reason to
+// refuse to publish.
+if (expectedTotal !== null && articles.length < expectedTotal) {
+  console.error(`\nOAI reports ${expectedTotal} published record(s) but only ${articles.length} were harvested.`)
+  console.error('The snapshot is incomplete — do not deploy it.')
+  for (const [slug, expected] of inventory ?? []) {
+    const got = articles.filter((a) => a.journalSlug === slug).length
+    if (got < expected) console.error(`  ${slug}: expected ${expected}, got ${got}`)
+  }
+  process.exit(1)
+}
+
+if (expectedTotal === 0) {
+  console.log('\nOJS has no published records yet. An empty snapshot is the correct result;')
+  console.log('every listing page renders its launch-state copy from it.')
+}

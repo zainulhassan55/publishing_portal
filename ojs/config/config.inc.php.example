@@ -1,0 +1,91 @@
+;
+; Redacted copy of the production OJS config.inc.php.
+;
+; Structure and non-secret settings only. Every secret is a placeholder — this
+; file exists so the next person can see what the install depends on, not so it
+; can be used directly. Copy the real values from the server, replace the
+; secrets, and keep this in sync when a setting changes.
+;
+; The settings called out below are the ones the portal integration depends on.
+; `npm run spike` (check 0) asserts the first three against the live instance,
+; so this is verifiable rather than aspirational. See ojs/README.md and
+; docs/OJS-INTEGRATION.md.
+;
+; OJS 3.5.0.5
+;
+
+[general]
+
+; Correct as of the last probe. A development value here breaks every absolute
+; URL OJS emits, including the ones in review invitation emails.
+base_url = "https://www.nextgeniqpress.com/ojs"
+
+; Required for the REST API paths the harvest uses.
+restful_urls = On
+
+; Without this, DOI deposits and review reminders never run.
+scheduled_tasks = On
+
+; F-11 — OPEN. Without this the session cookie ships with no `Secure`
+; attribute, so a single plaintext request to the origin leaks a live session.
+force_ssl = On
+
+session_cookie_name = "OJSSID"
+
+; --------------------------------------------------------------------------
+; OPEN: unset in production, and it blocks the entire API surface.
+;
+; OJS cannot validate ANY API token without this — every key is rejected with
+; "the site administrator has not configured a secret key", which means the
+; portal harvest runs at OAI-PMH fidelity only.
+;
+; Set once, to 64 random characters, and never rotate it: rotating invalidates
+; every key ever issued, including the portal's service key.
+; --------------------------------------------------------------------------
+api_key_secret = "REPLACE_WITH_64_RANDOM_CHARACTERS"
+
+[oai]
+
+oai = On
+
+; --------------------------------------------------------------------------
+; F-02 — OPEN, and the most time-sensitive setting in this file.
+;
+; This, NOT base_url, is what forms the OAI repository identifier. It is still
+; the development value, so records are advertised as
+; `oai:localhost:8000:article/1`. Every harvester that reads that caches a
+; broken permanent identity.
+;
+; The repository currently has zero published records, so this is a one-line
+; fix today. After the first article publishes it requires re-registration with
+; every service that already harvested — DOAJ, BASE, Google Scholar, Crossref.
+; --------------------------------------------------------------------------
+repository_id = "www.nextgeniqpress.com"
+
+[database]
+
+driver = mysqli
+host = localhost
+username = "REPLACE"
+password = "REPLACE"
+name = ojs
+
+[email]
+
+; F-07 — review invitations were being filtered as spam because DKIM was not
+; enabled, and the editorial process stalled with no visible error. SPF, DKIM
+; and DMARC must all pass for this sender before relying on any OJS mail.
+smtp = On
+smtp_server = "REPLACE"
+smtp_port = 587
+smtp_auth = "tls"
+smtp_username = "REPLACE"
+smtp_password = "REPLACE"
+
+[security]
+
+salt = "REPLACE"
+
+[files]
+
+files_dir = /home/nextgeniq/ojs-files

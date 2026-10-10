@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main, frontend-redesign]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Audit finding F-15: there was no lint or test gate on any branch, so
+      # nothing stopped a broken build reaching production.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      # Builds against an empty harvest, which is the production state today and
+      # proves every listing page renders its launch state rather than crashing
+      # on missing content.
+      - name: Harvest (empty snapshot)
+        run: npm run harvest
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://www.nextgeniqpress.com
+
+      # The whole point of the rebuild: a crawler must receive real HTML.
+      # Audit finding F-01 was that every URL returned the same 983-byte shell.
+      - name: Verify server-rendered HTML
+        run: node scripts/check-ssr.mjs
+
+  audit:
+    name: Production dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Only production dependencies gate the build. Advisories in the lint
+      # toolchain do not ship to a reader and must not block a release.
+      - run: npm audit --omit=dev --audit-level=high

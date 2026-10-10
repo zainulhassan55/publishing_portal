@@ -1,0 +1,430 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Token contract
+   ---------------------------------------------------------------------------
+   The mockups address every colour as var(--token, #fallback). Those tokens are
+   defined once here, fixed to the "Ink and teal" palette from the mockups'
+   theme.js. Markup copied from the mockups therefore renders identically
+   without any theme machinery.
+--------------------------------------------------------------------------- */
+
+
+
+/* Resolved tokens — light. */
+:root {
+  /* Ink and teal — the single site theme. There is no palette picker and no
+     dim mode: the mockups' control panel was design-review scaffolding, not a
+     product feature. */
+  --brand: #0b1416;
+  --accent: #0c8375;
+  --accent-dark: #0a685c;
+  --accent-soft: #cdf0e7;
+  --accent-tint: #edfaf5;
+  --warm: #c2410c;
+
+  --page: #ffffff;
+  --page-2: #f5f6f7;
+  --surface: #ffffff;
+  --surface-2: #f5f6f7;
+  --surface-3: #fafbfb;
+  --line: #dce1e6;
+  --line-soft: #eef1f4;
+  --line-strong: #b9c1c9;
+  --muted: #505c68;
+  --ink: #101b27;
+  --ink-2: #1f2a36;
+  --ink-3: #3c4854;
+
+  /* Semantic status colours. Hardcoded inline in the mockups; tokenised here. */
+  --ok: #1e6b3a;
+  --ok-soft: #e7f4ec;
+  --warn: #8a5300;
+  --warn-soft: #fdf3e0;
+  --warn-strong: #d9a441;
+  --danger: #a52a2a;
+  --danger-soft: #fbeaea;
+  --info: #145e5e;
+  --info-soft: #e4f2f2;
+
+  --radius-card: 10px;
+  --radius-control: 8px;
+  --radius-pill: 999px;
+  --shell-max: 1280px;
+  --shell-pad: 32px;
+
+  color-scheme: light;
+
+  /* Inline styles copied from the mockups reference these directly. */
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+
+@theme inline {
+  --color-page: var(--page);
+  --color-page-2: var(--page-2);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-line-strong: var(--line-strong);
+  --color-muted: var(--muted);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-brand: var(--brand);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-tint: var(--accent-tint);
+  --color-warm: var(--warm);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-strong: var(--warn-strong);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --radius-card: 10px;
+  --radius-control: 8px;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+@layer base {
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: 96px;
+  }
+
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    color: var(--ink);
+    font-weight: 600;
+    line-height: 1.22;
+    letter-spacing: -0.01em;
+  }
+
+  /* The old site justified body text, which produced rivers at narrow widths. */
+  p {
+    text-align: left;
+    text-wrap: pretty;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Recurring component patterns extracted from the mockups
+--------------------------------------------------------------------------- */
+
+@layer components {
+  /* Page shell: max-width 1280px with 32px gutters. */
+  .shell {
+    width: 100%;
+    max-width: var(--shell-max);
+    margin-inline: auto;
+    padding-inline: var(--shell-pad);
+  }
+
+  @media (max-width: 640px) {
+    .shell {
+      padding-inline: 20px;
+    }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+  }
+
+  .card-hover {
+    transition:
+      border-color 0.18s ease,
+      box-shadow 0.18s ease,
+      transform 0.18s ease;
+  }
+
+  .card-hover:hover {
+    border-color: var(--line-strong);
+    box-shadow: 0 6px 20px -12px rgb(0 0 0 / 0.22);
+    transform: translateY(-2px);
+  }
+
+  /* Measure: the old site ran to 80–95ch, well past comfortable reading. */
+  .prose-measure {
+    max-width: 68ch;
+  }
+
+  .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Wide content must scroll inside its own container, never the page body. */
+  .scroll-x {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-control);
+    padding: 10px 16px;
+    font-weight: 600;
+  }
+
+  .skip-link:focus {
+    left: 16px;
+    top: 16px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion — ported from motion.js. Every animation is suppressed under
+   prefers-reduced-motion, and scroll-reveal degrades to "already revealed".
+--------------------------------------------------------------------------- */
+
+@keyframes ngiq-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ngiq-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ngiq-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ngiq-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ngiq-pop {
+  0% {
+    transform: scale(0.82);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ngiq-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ngiq-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes ngiq-line-fill {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes ngiq-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal[data-revealed='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+.anim-rise {
+  animation: ngiq-rise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.anim-drop {
+  animation: ngiq-drop 0.22s ease both;
+}
+
+.anim-slide-in {
+  animation: ngiq-slide-in 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.anim-slide-in-left {
+  animation: ngiq-slide-in-left 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.anim-pop {
+  animation: ngiq-pop 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.anim-fade {
+  animation: ngiq-fade 0.3s ease both;
+}
+
+.anim-pulse {
+  animation: ngiq-pulse 1.9s ease-in-out infinite;
+}
+
+.anim-spin {
+  animation: ngiq-spin 0.7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+}
