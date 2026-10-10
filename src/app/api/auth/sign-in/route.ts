@@ -78,7 +78,12 @@ export const POST = handler(async (request) => {
     return jsonError('invalid-credentials', 401)
   }
 
-  const form = await fetchLoginForm()
+  // The browser's agent rides along on every OJS call, so the session OJS
+  // creates is fingerprinted to the browser that will later present it
+  // directly via the OJSSID hand-off. See withUserAgent in ojs-login.ts.
+  const userAgent = request.headers.get('user-agent')
+
+  const form = await fetchLoginForm(userAgent)
   if (!form) {
     return NextResponse.json(
       { ok: false, error: 'ojs-unreachable' },
@@ -86,7 +91,7 @@ export const POST = handler(async (request) => {
     )
   }
 
-  const result = await postSignIn(form, identifier, password)
+  const result = await postSignIn(form, identifier, password, userAgent)
 
   if (!result.ok) {
     if (result.reason === 'ojs-unreachable') {
@@ -101,7 +106,7 @@ export const POST = handler(async (request) => {
     return jsonError('invalid-credentials', 401, result.message ? { message: result.message } : {})
   }
 
-  const identity = await fetchOjsIdentity(result.sid)
+  const identity = await fetchOjsIdentity(result.sid, userAgent)
   if (!identity) {
     // OJS accepted the credentials but the session does not resolve to a user.
     // Reporting success here would hand out a session with no identity behind

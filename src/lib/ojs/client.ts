@@ -24,7 +24,7 @@
 import { ojsApiUrl, ojsBaseUrl, ojsServiceApiKey } from './config'
 import { OJS_SESSION_COOKIE } from '../auth/roles'
 
-export type OjsAuth = 'service' | { sid: string; csrfToken?: string | null }
+export type OjsAuth = 'service' | { sid: string; csrfToken?: string | null; userAgent?: string | null }
 
 export type OjsResult<T> =
   | { ok: true; status: number; data: T }
@@ -52,6 +52,9 @@ export async function ojsFetch<T = unknown>(
   } else {
     headers.Cookie = `${OJS_SESSION_COOKIE}=${options.auth.sid}`
     if (options.auth.csrfToken) headers['X-Csrf-Token'] = options.auth.csrfToken
+    // OJS fingerprints sessions by the agent that created them — the
+    // browser's, relayed at sign-in — and rejects any other presenter.
+    if (options.auth.userAgent) headers['User-Agent'] = options.auth.userAgent
   }
 
   if (options.body !== undefined) headers['Content-Type'] = 'application/json'

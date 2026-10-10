@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   if (token && databaseConfigured) {
     try {
       const session = await readSession(token)
-      if (session) await postSignOut(session.ojsSid)
+      if (session) await postSignOut(session.ojsSid, request.headers.get('user-agent'))
       await destroySession(token)
     } catch (error) {
       console.error('[sign-out] cleanup failed, clearing cookies anyway:', error)
