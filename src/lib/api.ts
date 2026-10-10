@@ -9,8 +9,9 @@ export const jsonError = (error: string, status: number, extra: object = {}) =>
 
 /**
  * Wraps a route handler so a validation failure becomes a 422 with field
- * errors, a missing database becomes a 503, and anything else becomes a 500
- * that logs server-side without leaking internals to the client.
+ * errors, a rate limit becomes a 429, a missing database becomes a 503, and
+ * anything else becomes a 500 that logs server-side without leaking internals
+ * to the client.
  */
 export function handler(fn: (request: Request) => Promise<Response>) {
   return async (request: Request): Promise<Response> => {
@@ -22,6 +23,22 @@ export function handler(fn: (request: Request) => Promise<Response>) {
       }
 
       const message = error instanceof Error ? error.message : 'unknown'
+
+      // `enforceRateLimit` signals by throwing. Without this branch it fell
+      // through to the 500 below, so every rate-limited request on every route
+      // looked like a server fault — to the user, to the client code deciding
+      // what to show, and to error tracking. A 429 with Retry-After is the
+      // whole point of having a limit.
+      if (message === 'rate-limited') {
+        const retryAfter = (error as { retryAfter?: number }).retryAfter ?? 60
+        return NextResponse.json(
+          { ok: false, error: 'rate-limited', retryAfter },
+          {
+            status: 429,
+            headers: { 'Cache-Control': 'no-store', 'Retry-After': String(retryAfter) },
+          },
+        )
+      }
 
       if (message.includes('PORTAL_DATABASE_URL')) {
         console.error('[api] database not configured:', message)

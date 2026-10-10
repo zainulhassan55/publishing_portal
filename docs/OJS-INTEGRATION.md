@@ -86,9 +86,9 @@ What this unlocks: **the whole integration can be built and tested from
 | --- | --- | --- |
 | Article, issue, journal pages | OAI inventory + REST enrichment → `content/harvest.json` → static pages | Built (`scripts/harvest.ts`) |
 | Search | Build-time index over the same data | Built (`src/lib/search.ts`) |
-| Sign in / session | Link out to the OJS login page | **Built — the current path.** `PORTAL_NATIVE_SIGNIN=0` |
-| Sign in / session, in-portal | Portal-owned session over a server-side login relay | **Not built — Phase 3. Gate PASSED 2026-10-10**, so it is now buildable |
-| Wizard steps 1–6, autosave | Portal-native, drafts in the portal DB | Built; autosave needs a session, so dormant until Phase 3 |
+| Sign in / session | Link out to the OJS login page | Built — the fallback, and what ships with `PORTAL_NATIVE_SIGNIN=0` |
+| Sign in / session, in-portal | Portal-owned session over a server-side login relay | **Built 2026-10-10.** Verified end to end against the live OJS: sign-in, session resolution, role mapping, sign-out on both sides, expiry, revalidation, rate limiting. Enable with `PORTAL_NATIVE_SIGNIN=1` |
+| Wizard steps 1–6, autosave | Portal-native, drafts in the portal DB | Built, and live now that sessions resolve |
 | Final submit | Hand off to the OJS wizard | **Built — the current path**, and the only one until Phase 4 |
 | Dashboard reads | OJS REST on behalf of the user | Not built — Phase 4, unblocked: create and read both verified working |
 | File uploads | Author attaches in OJS | **By design, permanently.** See "Files" below |

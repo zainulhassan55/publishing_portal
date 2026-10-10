@@ -1,42 +1,140 @@
 import { NextResponse } from 'next/server'
+import { handler, enforceRateLimit, jsonError, readJson } from '@/lib/api'
+import { databaseConfigured } from '@/lib/db'
+import { isEmail } from '@/lib/validate'
+import { fetchLoginForm, fetchOjsIdentity, postSignIn } from '@/lib/auth/ojs-login'
+import { PORTAL_SESSION_COOKIE, SESSION_TTL_SECONDS, createSession } from '@/lib/auth/portal-session'
+import { ojsBaseUrl } from '@/lib/ojs/config'
 
 export const dynamic = 'force-dynamic'
 
 /**
- * In-portal sign-in — not implemented, and reports that honestly.
+ * Signs a user in against OJS and issues the portal's own session.
  *
- * OJS exposes no login API, so signing in from the portal means driving its web
- * login handler server-side. That is the one genuinely undocumented part of the
- * integration, and three separate things have to hold before it can work:
+ * OJS 3.5 has no login API, so this drives its web login handler server-side:
+ * fetch the form for a CSRF token and an anonymous session, post the
+ * credentials, then confirm the result against the OJS profile page — which is
+ * also where the identity comes from, since `/api/v1/users/me` does not exist
+ * in this release. The approach was verified against the live instance before
+ * being built on; see `npm run spike` check 3 and docs/OJS-INTEGRATION.md.
  *
- *   1. The relay itself: fetch the login page for a CSRF token and an anonymous
- *      session, POST the credentials carrying both, and take the rotated
- *      session id OJS issues on success.
- *   2. Identity resolution. There is no `/api/v1/users/me` in OJS 3.5, so the
- *      resulting session has to be confirmed against the OJS profile page.
- *   3. A portal-owned session store, because the OJS cookie is scoped
- *      `path=/ojs/` and cannot be read by portal routes — and re-issuing a copy
- *      at `path=/` (what this route used to do) leaves two cookies of the same
- *      name whose precedence is browser-dependent.
+ * What the browser ends up holding is `ngiq_session`, the portal's own cookie.
+ * **The OJS session id never reaches the browser** — it stays in
+ * `portal_sessions`. That is deliberate: OJS scopes `OJSSID` to `path=/ojs/`,
+ * so a copy re-issued at `path=/` would leave two cookies of the same name
+ * whose precedence is browser-dependent, which is an intermittent
+ * session-mixing bug rather than a theoretical one.
  *
- * The previous implementation did (1) and part of (3) and could never return
- * success: it set the cookie on its own response and then read the *request*
- * cookie store back to verify, which the browser had never populated.
- *
- * `npm run spike` check 3 is the gate for building the real thing. Until then
- * the sign-in page links out to OJS, which always works, and this route returns
- * 503 so the UI shows that fallback rather than a credential error that would
- * wrongly suggest the password was wrong.
- *
- * See docs/OJS-INTEGRATION.md.
+ * `PORTAL_NATIVE_SIGNIN` gates the whole route. With it off the sign-in page
+ * leads with the OJS link-out instead, which always works.
  */
-export async function POST() {
-  return NextResponse.json(
-    {
-      ok: false,
-      error: 'unavailable',
-      message: 'Sign in through the journal system. Accounts are managed in OJS.',
-    },
+
+type Body = { email?: string; password?: string }
+
+const nativeSignInEnabled = process.env.PORTAL_NATIVE_SIGNIN === '1'
+
+const unavailable = (message: string) =>
+  NextResponse.json(
+    { ok: false, error: 'unavailable', message },
     { status: 503, headers: { 'Cache-Control': 'no-store' } },
   )
-}
+
+export const POST = handler(async (request) => {
+  if (!nativeSignInEnabled) {
+    return unavailable('Sign in through the journal system. Accounts are managed in OJS.')
+  }
+  if (!ojsBaseUrl) {
+    return unavailable('Sign-in is not configured on this server.')
+  }
+  if (!databaseConfigured) {
+    // Without the session store there is nowhere to put the result, and
+    // succeeding at the OJS end only to drop the session would look like a
+    // wrong password to the user.
+    return unavailable('Sign-in is temporarily unavailable. Please try the journal system.')
+  }
+
+  // A credential endpoint with no rate limit is an open invitation to
+  // credential stuffing — and every attempt here is relayed to OJS, so the
+  // limit protects OJS too, not just the portal.
+  enforceRateLimit(request, 'sign-in', 5)
+
+  const body = await readJson<Body>(request)
+  const identifier = body.email?.trim() ?? ''
+  const password = body.password ?? ''
+
+  if (!identifier || !password) {
+    return jsonError('validation', 422, {
+      errors: [
+        ...(identifier ? [] : [{ field: 'email', message: 'Enter the email address you registered with' }]),
+        ...(password ? [] : [{ field: 'password', message: 'Enter your password' }]),
+      ],
+    })
+  }
+
+  // OJS accepts either a username or an email in this field, so an address that
+  // is not email-shaped is still worth relaying — it may be a username. The
+  // check only exists to catch obvious nonsense before an outbound request.
+  if (identifier.length > 320 || (identifier.includes('@') && !isEmail(identifier))) {
+    return jsonError('invalid-credentials', 401)
+  }
+
+  const form = await fetchLoginForm()
+  if (!form) {
+    return NextResponse.json(
+      { ok: false, error: 'ojs-unreachable' },
+      { status: 502, headers: { 'Cache-Control': 'no-store' } },
+    )
+  }
+
+  const result = await postSignIn(form, identifier, password)
+
+  if (!result.ok) {
+    if (result.reason === 'ojs-unreachable') {
+      return NextResponse.json(
+        { ok: false, error: 'ojs-unreachable' },
+        { status: 502, headers: { 'Cache-Control': 'no-store' } },
+      )
+    }
+    // OJS's own wording is passed through: "not been validated" and "disabled"
+    // are both reported as invalid credentials otherwise, and the user has no
+    // way to tell that the fix is in their inbox.
+    return jsonError('invalid-credentials', 401, result.message ? { message: result.message } : {})
+  }
+
+  const identity = await fetchOjsIdentity(result.sid)
+  if (!identity) {
+    // OJS accepted the credentials but the session does not resolve to a user.
+    // Reporting success here would hand out a session with no identity behind
+    // it, so this fails loudly instead.
+    console.error('[sign-in] OJS accepted credentials but the session did not resolve to a user')
+    return NextResponse.json(
+      { ok: false, error: 'session-not-accepted' },
+      { status: 502, headers: { 'Cache-Control': 'no-store' } },
+    )
+  }
+
+  const { token } = await createSession({
+    user: identity,
+    ojsSid: result.sid,
+    ojsCsrfToken: identity.csrfToken ?? null,
+  })
+
+  const response = NextResponse.json(
+    { ok: true, user: { id: identity.id, fullName: identity.fullName, roles: identity.roles } },
+    { headers: { 'Cache-Control': 'no-store' } },
+  )
+
+  response.cookies.set({
+    name: PORTAL_SESSION_COOKIE,
+    value: token,
+    httpOnly: true,
+    // Not in development, where the portal is served over plain HTTP on
+    // localhost and a Secure cookie would never be sent back.
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: SESSION_TTL_SECONDS,
+  })
+
+  return response
+})
