@@ -28,7 +28,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from '@/components/auth/SessionProvider'
 import { formatDate, formatDateShort } from '@/lib/format'
-import { ojsDashboardUrl, ojsReviewUrl } from '@/lib/ojs/config'
+import { ojsDashboardUrl, ojsHandoffUrl, ojsReviewUrl } from '@/lib/ojs/config'
 import type { Submission, SubmissionStatus } from '@/types/publishing'
 
 export type JournalRef = { slug: string; code: string; title: string }
@@ -331,7 +331,9 @@ export function DashboardPage({ journals }: Props) {
    * "View decision letter" that had no letter to show, would be the dead
    * control of audit finding F-18. Labels therefore say where they lead.
    */
-  const ojsHref = cur?.ojsUrl ?? ojsDashboardUrl(cur?.journalSlug ?? 'index')
+  // Wrapped in the hand-off so the reader arrives in OJS already signed in,
+  // instead of being asked for credentials a second time.
+  const ojsHref = ojsHandoffUrl(cur?.ojsUrl ?? ojsDashboardUrl(cur?.journalSlug ?? 'index'))
 
   const actions: ActionDef[] = !cur
     ? []
@@ -684,7 +686,7 @@ export function DashboardPage({ journals }: Props) {
                           <tr>
                             <td colSpan={3} style={{ padding: '18px 14px', fontSize: 14, color: 'var(--muted,#505C68)', lineHeight: 1.6 }}>
                               No drafts in progress. <Link href="/submit">Start a submission</Link>, or{' '}
-                              <a href={ojsDashboardUrl('index')}>check submissions already with the editorial system</a>.
+                              <a href={ojsHandoffUrl(ojsDashboardUrl('index'))}>check submissions already with the editorial system</a>.
                             </td>
                           </tr>
                         ) : null}
@@ -946,7 +948,7 @@ export function DashboardPage({ journals }: Props) {
                       {journals.map((j) => (
                         <a
                           key={j.slug}
-                          href={ojsReviewUrl(j.slug)}
+                          href={ojsHandoffUrl(ojsReviewUrl(j.slug))}
                           title={j.title}
                           style={{
                             border: '1px solid var(--line-strong,#B9C1C9)',
