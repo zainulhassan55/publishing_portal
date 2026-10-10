@@ -48,7 +48,9 @@ type ApiDraft = {
   updatedAt: string
 }
 
-type DoneState = { mode: 'api'; reference: string } | { mode: 'handoff'; continueUrl: string }
+type DoneState =
+  | { mode: 'api'; reference: string; continueUrl: string; notTransferred: string[] }
+  | { mode: 'handoff'; continueUrl: string }
 
 const LABELS = ['Journal and section', 'Requirements', 'Metadata', 'Authors', 'Files', 'Declarations', 'Review and submit']
 
@@ -402,11 +404,19 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
           mode?: 'api' | 'handoff'
           reference?: string
           continueUrl?: string
+          notTransferred?: string[]
         }
         if (!res.ok || !data.mode) throw new Error('submit-failed')
-        if (data.mode === 'api' && data.reference) setDone({ mode: 'api', reference: data.reference })
-        else if (data.mode === 'handoff' && data.continueUrl) setDone({ mode: 'handoff', continueUrl: data.continueUrl })
-        else throw new Error('submit-failed')
+        if (data.mode === 'api' && data.reference && data.continueUrl) {
+          setDone({
+            mode: 'api',
+            reference: data.reference,
+            continueUrl: data.continueUrl,
+            notTransferred: data.notTransferred ?? [],
+          })
+        } else if (data.mode === 'handoff' && data.continueUrl) {
+          setDone({ mode: 'handoff', continueUrl: data.continueUrl })
+        } else throw new Error('submit-failed')
         window.scrollTo(0, 0)
       } catch {
         setSubmitNote('submit-failed')
@@ -530,21 +540,49 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
                 borderRadius: 2,
               }}
             >
-              {done.mode === 'api' ? '✓ Submission received' : '✓ Draft saved'}
+              {done.mode === 'api' ? '✓ Submission created' : '✓ Draft saved'}
             </span>
             <h1 style={{ margin: '16px 0 6px', fontFamily: 'var(--font-serif)', fontSize: 30, fontWeight: 600, color: 'var(--ink,#101B27)' }}>
-              {done.mode === 'api' ? 'Thank you. Your manuscript has been submitted.' : 'One final step in the editorial system.'}
+              {done.mode === 'api' ? 'One step left: attach your files.' : 'One final step in the editorial system.'}
             </h1>
             {done.mode === 'api' ? (
-              <p style={{ margin: 0, fontSize: 15, color: 'var(--ink-3,#3C4854)', lineHeight: 1.6 }}>
-                Submission ID{' '}
-                <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--ink,#101B27)' }}>{done.reference}</strong> · {jTitle}. A
-                receipt has been sent to {user?.email ?? 'your email address'} and to all co-authors.
-              </p>
+              <>
+                {/*
+                  Deliberately does NOT say "submitted". The submission exists in
+                  OJS with its metadata, but no manuscript file is attached yet,
+                  so an editor cannot act on it. Telling an author they are
+                  finished here would leave papers sitting incomplete while
+                  everyone believed they were in review.
+                */}
+                <p style={{ margin: 0, fontSize: 15, color: 'var(--ink-3,#3C4854)', lineHeight: 1.6 }}>
+                  <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--ink,#101B27)' }}>{done.reference}</strong> · {jTitle}.
+                  Everything you entered has been saved to the editorial system — title, abstract, keywords and authors. You do not
+                  need to type any of it again.
+                </p>
+                <p style={{ margin: '10px 0 0', fontSize: 15, color: 'var(--ink-3,#3C4854)', lineHeight: 1.6 }}>
+                  Your submission is <strong>not complete until the files are attached</strong>. Continue below to upload them.
+                </p>
+                {done.notTransferred.length > 0 ? (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      border: '1px solid #EBCB98',
+                      background: '#FDF1DE',
+                      borderRadius: 3,
+                      padding: '12px 16px',
+                      fontSize: 14,
+                      color: '#8A5300',
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    Add these in the editorial system — they could not be carried over: {done.notTransferred.join('; ')}.
+                  </div>
+                ) : null}
+              </>
             ) : (
               <p style={{ margin: 0, fontSize: 15, color: 'var(--ink-3,#3C4854)', lineHeight: 1.6 }}>
-                Your draft for {jTitle} is saved. Continue in the editorial system to attach your files and confirm the submission —
-                your answers carry over.
+                Your draft for {jTitle} is saved here and you can return to it at any time. The editorial system needs the details
+                entered there as well — it could not be done for you this time, so keep this page open to copy from.
               </p>
             )}
             <h2
@@ -582,53 +620,41 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
               ))}
             </ol>
             <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-              {done.mode === 'api' ? (
-                <Link
-                  href={`/dashboard?submitted=${encodeURIComponent(done.reference)}`}
-                  style={{
-                    background: 'var(--accent,#1D5DA8)',
-                    color: '#fff',
-                    padding: '10px 18px',
-                    borderRadius: 3,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Go to My submissions
-                </Link>
-              ) : (
-                <a
-                  href={done.continueUrl}
-                  style={{
-                    background: 'var(--accent,#1D5DA8)',
-                    color: '#fff',
-                    padding: '10px 18px',
-                    borderRadius: 3,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Continue in the editorial system
-                </a>
-              )}
-              {done.mode === 'handoff' ? (
-                <Link
-                  href="/dashboard"
-                  style={{
-                    border: '1px solid var(--line-strong,#B9C1C9)',
-                    color: 'var(--ink,#101B27)',
-                    padding: '9px 18px',
-                    borderRadius: 3,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Go to My submissions
-                </Link>
-              ) : null}
+              {/*
+                The primary action is the same in both modes — go to OJS — but
+                it means different things: in 'api' it opens THIS submission at
+                its file step, in 'handoff' it opens a blank wizard. The label
+                says which, because "Continue" would imply the metadata is
+                already there when in the hand-off case it is not.
+              */}
+              <a
+                href={done.continueUrl}
+                style={{
+                  background: 'var(--accent,#1D5DA8)',
+                  color: '#fff',
+                  padding: '10px 18px',
+                  borderRadius: 3,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                }}
+              >
+                {done.mode === 'api' ? 'Attach files in the editorial system' : 'Continue in the editorial system'}
+              </a>
+              <Link
+                href="/dashboard"
+                style={{
+                  border: '1px solid var(--line-strong,#B9C1C9)',
+                  color: 'var(--ink,#101B27)',
+                  padding: '9px 18px',
+                  borderRadius: 3,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                }}
+              >
+                Go to My submissions
+              </Link>
               <Link
                 href={jHref}
                 style={{
