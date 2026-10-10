@@ -23,10 +23,39 @@ import { loadLocalEnv } from './env.ts'
 
 loadLocalEnv()
 
-const baseUrl = (process.env.OJS_BASE_URL || '').replace(/\/$/, '')
-const apiKey = process.env.OJS_API_KEY || ''
-const spikeUser = process.env.OJS_SPIKE_USER || ''
-const spikePass = process.env.OJS_SPIKE_PASS || ''
+/**
+ * Treat an unreplaced placeholder as absent.
+ *
+ * Documentation that says `OJS_SPIKE_USER=<username>` invites pasting the
+ * angle brackets along with it, and the resulting failure looks identical to a
+ * wrong password: OJS answers "Invalid username/email or password" either way.
+ * Catching it here turns a confusing dead end into an instruction.
+ */
+const configured = (name: string): string => {
+  const value = (process.env[name] || '').trim()
+  if (/^<.*>$/.test(value) || /^(your|the)[-_ ]/i.test(value) || value.toUpperCase() === `REPLACE_${name}`) {
+    console.error(`\n  ${name} still holds the placeholder "${value}" — replace it with the real value.`)
+    return ''
+  }
+  return value
+}
+
+const baseUrl = configured('OJS_BASE_URL').replace(/\/$/, '')
+const apiKey = configured('OJS_API_KEY')
+const spikeUser = configured('OJS_SPIKE_USER')
+const spikePass = configured('OJS_SPIKE_PASS')
+
+/**
+ * Which mutating checks may run. `1` or `all` enables both; name them
+ * individually (`submit`, `files`, or `submit,files`) to re-test one without
+ * creating state for the other — check 4 creates a real submission every run,
+ * and a spike that quietly litters the editorial dashboard is its own problem.
+ */
+const mutate = (process.env.OJS_SPIKE_MUTATE || '')
+  .split(',')
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean)
+const mayMutate = (target: string) => mutate.includes('1') || mutate.includes('all') || mutate.includes(target)
 
 /** The journal context the credentialled checks exercise. */
 const SPIKE_CONTEXT = 'ijdh'
@@ -355,6 +384,8 @@ if (!apiKey) {
 heading('Check 3 — login relay + whoami (gates Phase 3)')
 
 let spikeSid: string | null = null
+/** OJS wants this in `X-Csrf-Token` on mutating API calls (check 4). */
+let spikeCsrfToken: string | null = null
 
 if (!spikeUser || !spikePass) {
   record('3  login relay', 'SKIP', 'OJS_SPIKE_USER / OJS_SPIKE_PASS not set — this is the only Phase 3 blocker')
@@ -392,8 +423,36 @@ if (!spikeUser || !spikePass) {
 
     if (!signIn) {
       record('3b signIn', 'FAIL', 'unreachable')
-    } else if (/pkp_form_error|Invalid username/i.test(signIn.body)) {
-      record('3b signIn', 'FAIL', 'OJS rejected the credentials (form re-rendered with an error)')
+    } else if (/pkp_form_error|Invalid username|not been validated|disabled/i.test(signIn.body)) {
+      /**
+       * Surface OJS's own wording. "Rejected" covers several very different
+       * situations and the fix differs for each: a wrong password, an account
+       * awaiting email validation (OJS `require_validation`, and note that
+       * validation mail cannot arrive while F-07/DKIM is unresolved), a
+       * disabled account, or a relay that is genuinely malformed. Guessing
+       * between them wastes more time than printing the message.
+       */
+      const errors = [...signIn.body.matchAll(/<[^>]*class="[^"]*pkp_form_error[^"]*"[^>]*>([\s\S]*?)<\//g)]
+        .map((m) => m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim())
+        .filter(Boolean)
+
+      const validation = /not been validated|validate your account|confirm your email/i.test(signIn.body)
+      const disabled = /disabled/i.test(signIn.body)
+
+      const diagnosis = validation
+        ? 'account awaits EMAIL VALIDATION — click the link in the registration email, or disable require_validation in config.inc.php'
+        : disabled
+          ? 'account appears DISABLED in OJS'
+          : 'credentials refused — verify them by logging in manually in a private window'
+
+      record('3b signIn', 'FAIL', diagnosis)
+      if (errors.length > 0) {
+        for (const e of errors) console.log(`         OJS says: "${e}"`)
+      } else {
+        console.log(`         body excerpt: ${excerpt(signIn.body, 300)}`)
+      }
+      console.log('         Note 3a PASSED: the relay mechanism itself works — form fetched,')
+      console.log('         csrfToken scraped, session issued. Only authentication failed.')
       spikeSid = null
     } else {
       record('3b signIn', 'PASS', `HTTP ${signIn.status}, session ${spikeSid === anonymousSid ? 'reused' : 'rotated'}`)
@@ -409,27 +468,52 @@ if (!spikeUser || !spikePass) {
       if (!profile) {
         record('3c whoami', 'FAIL', 'profile page unreachable')
       } else if (profile.status === 200) {
-        const field = (name: string) =>
-          profile.body.match(new RegExp(`name="${name}"[^>]*value="([^"]*)"`))?.[1] ??
-          profile.body.match(new RegExp(`value="([^"]*)"[^>]*name="${name}"`))?.[1] ??
-          ''
+        /**
+         * OJS 3.5 embeds the signed-in user as a JSON object for its Vue app:
+         *
+         *   currentUser = {"csrfToken":"…","id":22,"roles":[1048576,65536],
+         *                  "fullName":"…","username":"…","initials":"KY",…}
+         *
+         * Parsing that is far steadier than scraping form inputs — it is data,
+         * not markup, so a template or CSS change cannot break it. It also
+         * carries two things the earlier form-scraping plan assumed were
+         * unavailable:
+         *
+         *   - `roles`, as OJS role ids, matching ROLE_NAMES in
+         *     src/lib/auth/session.ts. Role-gated UI does NOT have to wait for
+         *     a service-key lookup against index/api/v1/users/{id}.
+         *   - `csrfToken`, which is what OJS wants in `X-Csrf-Token` on
+         *     mutating API calls — the specific unknown behind check 4.
+         *
+         * `email` is absent. Nothing in the session needs it; fetch it from the
+         * users API if a surface ever does.
+         */
+        const blob = profile.body.match(/currentUser\s*=\s*(\{[\s\S]*?\});/)?.[1]
+        let identity: { id?: number; username?: string; fullName?: string; roles?: number[]; csrfToken?: string } | null =
+          null
 
-        const identity = {
-          userName: field('username'),
-          email: field('email'),
-          givenName: field('givenName\\[en\\]') || field('givenName'),
-          familyName: field('familyName\\[en\\]') || field('familyName'),
+        if (blob) {
+          try {
+            identity = JSON.parse(blob)
+          } catch {
+            identity = null
+          }
         }
 
-        const parsed = Object.entries(identity).filter(([, v]) => v !== '')
-
-        if (parsed.length === 0) {
-          // Authenticated but unparsable: the approach works, the selectors do
+        if (!identity?.id) {
+          // Authenticated but unparsable: the approach works, the parser does
           // not. Phase 3 must treat this as signed-out, never as a 500.
-          record('3c whoami', 'FAIL', 'profile page 200 but no identity fields parsed — selectors need updating')
+          record('3c whoami', 'FAIL', 'profile page 200 but currentUser could not be parsed')
           console.log(`         body excerpt: ${excerpt(profile.body, 240)}`)
         } else {
-          record('3c whoami', 'PASS', parsed.map(([k, v]) => `${k}=${v}`).join(' '))
+          record(
+            '3c whoami',
+            'PASS',
+            `id=${identity.id} username=${identity.username} roles=[${(identity.roles ?? []).join(',')}]`,
+          )
+          console.log(`         fullName: ${identity.fullName ?? '(absent)'}`)
+          console.log(`         csrfToken for mutating API calls: ${identity.csrfToken ? 'present' : 'absent'}`)
+          spikeCsrfToken = identity.csrfToken ?? null
         }
       } else {
         record('3c whoami', 'FAIL', `HTTP ${profile.status} → ${profile.headers.get('location') ?? 'no redirect'}`)
@@ -455,8 +539,8 @@ heading('Check 4 — submission create shape (report only)')
 
 if (!spikeSid) {
   record('4  create submission', 'SKIP', 'no authenticated spike session')
-} else if (process.env.OJS_SPIKE_MUTATE !== '1') {
-  record('4  create submission', 'SKIP', 'set OJS_SPIKE_MUTATE=1 to run — this creates real state in OJS')
+} else if (!mayMutate('submit')) {
+  record('4  create submission', 'SKIP', 'set OJS_SPIKE_MUTATE=submit (or 1) to run — this creates a real submission')
 } else {
   const create = await probe(apiUrl(SPIKE_CONTEXT, '/submissions'), {
     method: 'POST',
@@ -464,6 +548,9 @@ if (!spikeSid) {
       Cookie: `OJSSID=${spikeSid}`,
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      // Scraped from `currentUser` on the profile page in check 3c. A 403
+      // without it is the documented signal that OJS requires it.
+      ...(spikeCsrfToken ? { 'X-Csrf-Token': spikeCsrfToken } : {}),
     },
     body: JSON.stringify({ locale: 'en', sectionId: 1 }),
   })
@@ -495,15 +582,24 @@ heading('Check 5 — temporary file upload shape (report only)')
 
 if (!spikeSid) {
   record('5  temporaryFiles', 'SKIP', 'no authenticated spike session')
-} else if (process.env.OJS_SPIKE_MUTATE !== '1') {
-  record('5  temporaryFiles', 'SKIP', 'set OJS_SPIKE_MUTATE=1 to run')
+} else if (!mayMutate('files')) {
+  record('5  temporaryFiles', 'SKIP', 'set OJS_SPIKE_MUTATE=files (or 1) to run')
 } else {
   const payload = new FormData()
   payload.append('file', new Blob(['spike probe, safe to delete\n'], { type: 'text/plain' }), 'spike-probe.txt')
 
   const upload = await probe(apiUrl(SPIKE_CONTEXT, '/temporaryFiles'), {
     method: 'POST',
-    headers: { Cookie: `OJSSID=${spikeSid}`, Accept: 'application/json' },
+    headers: {
+      Cookie: `OJSSID=${spikeSid}`,
+      Accept: 'application/json',
+      // Required, and its omission is what made an earlier run look like OJS
+      // refusing uploads: the 403 body read "You may have been logged out",
+      // which is OJS's CSRF rejection, not an authentication failure.
+      ...(spikeCsrfToken ? { 'X-Csrf-Token': spikeCsrfToken } : {}),
+      // Content-Type is deliberately unset so fetch adds the multipart
+      // boundary itself.
+    },
     body: payload,
   })
 
