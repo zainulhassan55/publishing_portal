@@ -13,7 +13,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from '@/components/auth/SessionProvider'
 import { deadlineState, formatFileSize, wordCount } from '@/lib/format'
 import {
@@ -108,6 +108,7 @@ const LINE = 'var(--line-strong,#B9C1C9)'
 
 export function SubmitWizard({ journals, calls, subjects }: Props) {
   const sp = useSearchParams()
+  const router = useRouter()
   const { user } = useSession()
 
   const jParam = sp.get('journal')
@@ -129,6 +130,8 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
   const [drag, setDrag] = useState(false)
   const [draftId, setDraftId] = useState<number | null>(null)
   const [submitNote, setSubmitNote] = useState<'save-failed' | 'submit-failed' | null>(null)
+  /** 'Save and exit' is mid-flight; blocks a double click that would double-insert. */
+  const [exiting, setExiting] = useState(false)
   const [rorSuggest, setRorSuggest] = useState<Record<string, RorItem[]>>({})
 
   const uid = useRef(1)
@@ -672,20 +675,57 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
               Drafts are not saved until you <Link href="/sign-in?next=/submit">sign in</Link>.
             </span>
           )}
-          <Link
-            href="/dashboard"
+          {/*
+            A button, not a link.
+
+            This was `<Link href="/dashboard">`, which navigated away without
+            saving anything — it only ever appeared to work because autosave is
+            debounced at 700ms and had usually already fired. Click straight
+            after typing and that edit was gone. A control labelled "Save and
+            exit" that only exits is the same defect as the dead controls in
+            audit finding F-18.
+
+            It now flushes the pending save, waits for it, and only navigates
+            once the draft is actually stored. If the save fails it stays put
+            and says so, because leaving the page is the one thing that loses
+            the work.
+          */}
+          <button
+            type="button"
+            disabled={exiting}
+            onClick={async () => {
+              if (!user) {
+                router.push('/sign-in?next=/submit')
+                return
+              }
+              setExiting(true)
+              if (saveTimer.current) clearTimeout(saveTimer.current)
+              const id = await persist()
+              if (!id) {
+                setExiting(false)
+                setSubmitNote('save-failed')
+                window.scrollTo(0, 0)
+                return
+              }
+              // Plain /dashboard: the draft appears in the list there and links
+              // back to /submit?d=<id>. A ?draft= param would be ignored.
+              router.push('/dashboard')
+            }}
             style={{
               border: '1px solid var(--line-strong,#B9C1C9)',
+              background: 'var(--surface,#fff)',
               color: 'var(--ink,#101B27)',
               padding: '8px 14px',
               borderRadius: 3,
+              font: 'inherit',
               fontSize: 13,
               fontWeight: 500,
-              textDecoration: 'none',
+              cursor: exiting ? 'default' : 'pointer',
+              opacity: exiting ? 0.7 : 1,
             }}
           >
-            Save and exit
-          </Link>
+            {exiting ? 'Saving…' : 'Save and exit'}
+          </button>
         </div>
       </div>
       <div
