@@ -140,7 +140,11 @@ export const POST = handler(async (request) => {
     return handoff('unknown-section')
   }
 
-  const auth = { sid: portalSession.ojsSid, csrfToken: portalSession.ojsCsrfToken }
+  const auth = {
+    sid: portalSession.ojsSid,
+    csrfToken: portalSession.ojsCsrfToken,
+    userAgent: request.headers.get('user-agent'),
+  }
 
   /* ----------------------------- 1. create ------------------------------ */
 

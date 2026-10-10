@@ -39,7 +39,7 @@
  * OJS must degrade to "signed out", never to a 500 on a public page.
  */
 
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { databaseConfigured } from '../db'
 import { OJS_SESSION_COOKIE, ROLE_NAMES, hasRole, type Session, type SessionUser } from './roles'
 
@@ -122,8 +122,11 @@ export async function getSession(): Promise<Session> {
     if (!session.stale) return { user: session.user }
 
     // Past the revalidation threshold: confirm with OJS and refresh the cache.
+    // The browser's agent rides along: OJS fingerprints the session by the
+    // agent that created it (the browser's, relayed at sign-in) and would
+    // reject this check under any other identity.
     const { fetchOjsIdentity } = await import('./ojs-login')
-    const identity = await fetchOjsIdentity(session.ojsSid)
+    const identity = await fetchOjsIdentity(session.ojsSid, (await headers()).get('user-agent'))
 
     if (!identity) {
       // OJS no longer recognises the session — signed out there, timed out, or

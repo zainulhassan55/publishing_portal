@@ -34,6 +34,21 @@ export type LoginForm = { sid: string; csrfToken: string }
 
 const COOKIE_TIMEOUT_MS = 10_000
 
+/**
+ * OJS fingerprints every session with the user agent that created it and
+ * rejects requests presenting a different one — unconditionally, unlike the
+ * configurable IP check. Each step here therefore accepts the browser's
+ * agent, so the session is born with — and is always presented under — the
+ * identity of the browser that will eventually use it directly via the
+ * OJSSID hand-off (/api/auth/ojs-handoff). Without this, the hand-off always
+ * bounced to the OJS login form: the session said "node", the browser said
+ * otherwise.
+ */
+const withUserAgent = (
+  headers: Record<string, string>,
+  userAgent?: string | null,
+): Record<string, string> => (userAgent ? { ...headers, 'User-Agent': userAgent } : headers)
+
 const firstCookie = (response: Response, name = OJS_SESSION_COOKIE): string | null => {
   const match = (response.headers.getSetCookie?.() ?? []).find((c) => c.startsWith(`${name}=`))
   return match ? match.split(';')[0].split('=').slice(1).join('=') : null
@@ -146,10 +161,10 @@ export function parseCurrentUser(html: string): OjsIdentity | null {
 /* --------------------------------- steps ---------------------------------- */
 
 /** Step 1: an anonymous session plus the form's CSRF token. */
-export async function fetchLoginForm(): Promise<LoginForm | null> {
+export async function fetchLoginForm(userAgent?: string | null): Promise<LoginForm | null> {
   try {
     const response = await fetch(ojsLoginPageUrl(), {
-      headers: { Accept: 'text/html' },
+      headers: withUserAgent({ Accept: 'text/html' }, userAgent),
       redirect: 'manual',
       cache: 'no-store',
       signal: AbortSignal.timeout(COOKIE_TIMEOUT_MS),
@@ -176,7 +191,12 @@ export type SignInResult =
  * because a release that changed the redirect behaviour would otherwise make
  * every failed login look like a success.
  */
-export async function postSignIn(form: LoginForm, username: string, password: string): Promise<SignInResult> {
+export async function postSignIn(
+  form: LoginForm,
+  username: string,
+  password: string,
+  userAgent?: string | null,
+): Promise<SignInResult> {
   const body = new URLSearchParams({
     username,
     password,
@@ -189,11 +209,14 @@ export async function postSignIn(form: LoginForm, username: string, password: st
   try {
     response = await fetch(ojsSignInUrl(), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'text/html',
-        Cookie: `${OJS_SESSION_COOKIE}=${form.sid}`,
-      },
+      headers: withUserAgent(
+        {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'text/html',
+          Cookie: `${OJS_SESSION_COOKIE}=${form.sid}`,
+        },
+        userAgent,
+      ),
       body,
       redirect: 'manual',
       cache: 'no-store',
@@ -226,10 +249,10 @@ export async function postSignIn(form: LoginForm, username: string, password: st
  * *not* authenticated — if identity is unknown the session is unusable, and
  * guessing is worse than asking the user to sign in again.
  */
-export async function fetchOjsIdentity(sid: string): Promise<OjsIdentity | null> {
+export async function fetchOjsIdentity(sid: string, userAgent?: string | null): Promise<OjsIdentity | null> {
   try {
     const response = await fetch(ojsProfileUrl(), {
-      headers: { Cookie: `${OJS_SESSION_COOKIE}=${sid}`, Accept: 'text/html' },
+      headers: withUserAgent({ Cookie: `${OJS_SESSION_COOKIE}=${sid}`, Accept: 'text/html' }, userAgent),
       redirect: 'manual',
       cache: 'no-store',
       signal: AbortSignal.timeout(COOKIE_TIMEOUT_MS),
@@ -251,10 +274,10 @@ export async function fetchOjsIdentity(sid: string): Promise<OjsIdentity | null>
  * other tab on /ojs could still use, which is the opposite of what sign-out
  * promises.
  */
-export async function postSignOut(sid: string): Promise<void> {
+export async function postSignOut(sid: string, userAgent?: string | null): Promise<void> {
   try {
     await fetch(ojsSignOutUrl(), {
-      headers: { Cookie: `${OJS_SESSION_COOKIE}=${sid}` },
+      headers: withUserAgent({ Cookie: `${OJS_SESSION_COOKIE}=${sid}` }, userAgent),
       redirect: 'manual',
       cache: 'no-store',
       signal: AbortSignal.timeout(COOKIE_TIMEOUT_MS),

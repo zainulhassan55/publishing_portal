@@ -122,7 +122,7 @@ const STAGE_INDEX: Record<SubmissionStatus, number> = {
 const isoDate = (value: string | null | undefined): string | undefined =>
   value ? value.replace(' ', 'T').slice(0, 19) + 'Z' : undefined
 
-export const GET = handler(async () => {
+export const GET = handler(async (request) => {
   const session = await getSession()
   if (!session.user) return jsonError('unauthenticated', 401)
 
@@ -134,7 +134,11 @@ export const GET = handler(async () => {
 
   if (!portalSession?.ojsSid) return jsonOk({ submissions: [], reason: 'no-ojs-session' })
 
-  const auth = { sid: portalSession.ojsSid, csrfToken: portalSession.ojsCsrfToken }
+  const auth = {
+    sid: portalSession.ojsSid,
+    csrfToken: portalSession.ojsCsrfToken,
+    userAgent: request.headers.get('user-agent'),
+  }
 
   const perJournal = await Promise.all(
     journalSlugs.map(async (slug) => {
