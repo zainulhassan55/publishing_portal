@@ -128,7 +128,7 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
   const [done, setDone] = useState<DoneState | null>(null)
   const [drag, setDrag] = useState(false)
   const [draftId, setDraftId] = useState<number | null>(null)
-  const [submitNote, setSubmitNote] = useState<'error' | null>(null)
+  const [submitNote, setSubmitNote] = useState<'save-failed' | 'submit-failed' | null>(null)
   const [rorSuggest, setRorSuggest] = useState<Record<string, RorItem[]>>({})
 
   const uid = useRef(1)
@@ -149,7 +149,18 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
 
   /* ----------------------------- autosave ------------------------------- */
 
-  async function persist(): Promise<number | null> {
+  /**
+   * Saves the draft, returning the row id it is stored under.
+   *
+   * `retryAsNew` handles a draft id this tab holds whose row no longer exists —
+   * deleted from another tab, or lost. The server answers 404 and the save
+   * would otherwise fail forever: the old code returned the stale id anyway,
+   * which the final submit then sent, got a second 404 for, and surfaced as
+   * "something went wrong" with no way out but reloading. Dropping the id and
+   * re-inserting recovers silently, which is right — the author's work is in
+   * this tab's state and is not what went missing.
+   */
+  async function persist(retryAsNew = true): Promise<number | null> {
     const s = stateRef.current
     if (!s.user) {
       setSaving(false)
@@ -167,19 +178,30 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
           files: s.files,
         }),
       })
-      const data = (await res.json()) as { ok?: boolean; id?: number }
-      setSaving(false)
+      const data = (await res.json()) as { ok?: boolean; id?: number; error?: string }
+
       if (res.ok && data.id) {
+        setSaving(false)
         if (!s.draftId) setDraftId(data.id)
         setSavedAt('All changes saved')
         return data.id
       }
+
+      if (res.status === 404 && s.draftId && retryAsNew) {
+        setDraftId(null)
+        stateRef.current = { ...stateRef.current, draftId: null }
+        return persist(false)
+      }
+
+      setSaving(false)
       setSavedAt('Could not save — will retry on the next change')
-      return s.draftId
+      // Deliberately null, not the stale id: handing back an id the server
+      // rejected is what made the submit fail confusingly.
+      return null
     } catch {
       setSaving(false)
       setSavedAt('Could not save — will retry on the next change')
-      return stateRef.current.draftId
+      return null
     }
   }
 
@@ -358,7 +380,15 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
       try {
         if (saveTimer.current) clearTimeout(saveTimer.current)
         const id = await persist()
-        if (!id) throw new Error('save-failed')
+        // Distinguished from a submit failure below, because the reassurance
+        // differs: if the save failed the draft is NOT stored, and telling
+        // someone otherwise invites them to close the tab and lose the work.
+        if (!id) {
+          setSubmitNote('save-failed')
+          window.scrollTo(0, 0)
+          setBusy(false)
+          return
+        }
         const res = await fetch('/api/drafts/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -376,7 +406,7 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
         else throw new Error('submit-failed')
         window.scrollTo(0, 0)
       } catch {
-        setSubmitNote('error')
+        setSubmitNote('submit-failed')
         window.scrollTo(0, 0)
       } finally {
         setBusy(false)
@@ -755,7 +785,7 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
                 </ul>
               </div>
             ) : null}
-            {submitNote === 'error' ? (
+            {submitNote !== null ? (
               <div
                 role="alert"
                 style={{
@@ -769,8 +799,17 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
                   lineHeight: 1.5,
                 }}
               >
-                Something went wrong while submitting. Your draft is saved — please try again, or contact the editorial office if it
-                keeps happening.
+                {submitNote === 'save-failed' ? (
+                  <>
+                    Your draft could not be saved, so it has <strong>not</strong> been submitted. Keep this tab open — nothing you
+                    have entered is lost — and try again in a moment.
+                  </>
+                ) : (
+                  <>
+                    Something went wrong while submitting. Your draft is saved, so nothing is lost — please try again, or contact the
+                    editorial office if it keeps happening.
+                  </>
+                )}
               </div>
             ) : null}
 
