@@ -5,15 +5,22 @@
  * Markup and inline styles are copied from the mockup; the DCLogic renderVals
  * body is ported to React state below.
  *
- * The only real data is the signed-in author's drafts from GET /api/drafts.
- * Submissions, status timelines, decision letters and review invitations come
- * from fixtures the server wrapper passes **only in demo mode**, which is
- * opt-in — so in production both tabs fall through to their empty states, and
- * those states link out to OJS rather than implying there is nothing to see.
+ * All data is real. Submissions come from GET /api/submissions, which reads
+ * them out of OJS on the signed-in author's behalf; drafts come from
+ * GET /api/drafts, which is portal state because a draft has no OJS submission
+ * yet. The fixture submissions, decision letters and review invitations that
+ * used to populate this page are gone — they were useful while building the UI
+ * and misleading the moment sign-in started working, because invented
+ * manuscripts sat beside the author's real ones.
  *
- * Reading real per-user workflow state needs the portal session (Phase 3) for
- * the author tab. The reviewer tab will keep linking out permanently: OJS 3.5
- * exposes no reviewer or review-round resource on its REST API.
+ * The division: **read here, act in OJS.** Status, dates and metadata render in
+ * the portal, so selecting a submission opens the detail panel rather than
+ * bouncing the author out. Every action links to the per-submission URL OJS
+ * supplies, because uploading a revision needs a file and reviewer reports and
+ * decision letters have no API in OJS 3.5 at all.
+ *
+ * The reviewer tab links out permanently for the same reason: OJS exposes no
+ * reviewer or review-round resource.
  */
 
 import Link from 'next/link'
@@ -22,14 +29,26 @@ import { useSearchParams } from 'next/navigation'
 import { useSession } from '@/components/auth/SessionProvider'
 import { formatDate, formatDateShort } from '@/lib/format'
 import { ojsDashboardUrl, ojsReviewUrl } from '@/lib/ojs/config'
-import type { ReviewInvitation, Submission, SubmissionStatus } from '@/types/publishing'
+import type { Submission, SubmissionStatus } from '@/types/publishing'
 
 export type JournalRef = { slug: string; code: string; title: string }
 
 type Props = {
   journals: JournalRef[]
-  demoSubmissions: Submission[]
-  demoInvitations: ReviewInvitation[]
+}
+
+type ApiSubmission = {
+  id: string
+  ojsSubmissionId: number
+  journalSlug: string
+  title: string
+  status: SubmissionStatus
+  stage: number
+  submittedIso?: string
+  updatedIso: string
+  coauthors: string[]
+  ojsUrl: string | null
+  publishedUrl: string | null
 }
 
 type ApiDraft = {
@@ -58,6 +77,9 @@ type Row = {
   draft?: boolean
   draftDbId?: number
   letter?: Letter
+  /** OJS's own per-submission author workflow URL. Where actions go. */
+  ojsUrl?: string | null
+  publishedUrl?: string | null
 }
 
 type TimelineItem = {
@@ -167,28 +189,27 @@ function buildTimeline(cur: Row): TimelineItem[] {
     })
 }
 
-export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Props) {
+export function DashboardPage({ journals }: Props) {
   const sp = useSearchParams()
   const { user, loading } = useSession()
 
-  const isNewParam = sp.get('new') === '1'
+  // `?submitted=<reference>` is set by the wizard after a successful submit.
+  // The `?new=1` demo trigger and its hardcoded reference are gone: it injected
+  // a fabricated submission row and preselected it, which made the dashboard
+  // show a manuscript that did not exist.
   const submittedParam = sp.get('submitted')
-  const justSubmitted = isNewParam || submittedParam !== null
-  const bannerRef = submittedParam || 'NGIQ-IJDH-2026-0388'
+  const justSubmitted = submittedParam !== null
+  const bannerRef = submittedParam ?? ''
 
   const [tab, setTab] = useState<'author' | 'reviewer'>(sp.get('tab') === 'reviewer' ? 'reviewer' : 'author')
   const [filter, setFilter] = useState<'all' | 'action' | 'progress' | 'closed'>('all')
   const [panel, setPanel] = useState<{ sel: string | null; count: number; letter: boolean }>({
-    sel: isNewParam ? 'NGIQ-IJDH-2026-0388' : null,
+    sel: null,
     count: 0,
     letter: false,
   })
   const [drafts, setDrafts] = useState<ApiDraft[]>([])
-  const [inv, setInv] = useState<Record<string, 'pending' | 'active' | 'declined'>>(() =>
-    Object.fromEntries(
-      demoInvitations.map((d) => [d.id, d.status === 'pending' ? 'pending' : d.status === 'declined' ? 'declined' : 'active']),
-    ),
-  )
+  const [apiSubs, setApiSubs] = useState<ApiSubmission[]>([])
   const [avail, setAvail] = useState(true)
   const prefsRef = useRef<Record<string, unknown> | null>(null)
 
@@ -199,6 +220,15 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled && data?.ok && Array.isArray(data.drafts)) setDrafts(data.drafts)
+      })
+      .catch(() => {})
+    // Real submissions, read from OJS on this author's behalf. Replaces the
+    // fixtures that used to sit here, which were useful while building the UI
+    // and misleading the moment sign-in worked.
+    fetch('/api/submissions', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled && data?.ok && Array.isArray(data.submissions)) setApiSubs(data.submissions)
       })
       .catch(() => {})
     fetch('/api/profile/prefs', { cache: 'no-store' })
@@ -217,22 +247,30 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
 
   const subs: Row[] = useMemo(() => {
     const bySlug = new Map(journals.map((j) => [j.slug, j]))
-    const list: Row[] = demoSubmissions.map((s) => {
+    const list: Row[] = apiSubs.map((s) => {
       const j = bySlug.get(s.journalSlug)
       return {
         id: s.id,
         code: j?.code ?? s.journalSlug.toUpperCase(),
         jTitle: j?.title ?? s.journalSlug,
         journalSlug: s.journalSlug,
-        type: s.type,
+        // OJS has no per-submission article type the author can read, so this
+        // is left blank rather than guessed. The portal knows it only for
+        // submissions it created itself, and inventing it for the rest would
+        // make the column untrustworthy everywhere.
+        type: '—',
         title: s.title,
         submitted: s.submittedIso ? formatDateShort(s.submittedIso) : '—',
         updated: formatDateShort(s.updatedIso),
         status: s.status,
-        action: s.nextAction,
+        action:
+          s.status === 'Draft' && s.submittedIso === undefined
+            ? 'Incomplete in the editorial system — files not attached'
+            : undefined,
         co: s.coauthors.length ? s.coauthors.join(', ') : 'None added',
         stage: STATUS_STAGE[s.status],
-        letter: s.decisionLetter,
+        ojsUrl: s.ojsUrl,
+        publishedUrl: s.publishedUrl,
       }
     })
     drafts.forEach((d) => {
@@ -258,25 +296,8 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
         draftDbId: d.id,
       })
     })
-    if (isNewParam) {
-      list.unshift({
-        id: 'NGIQ-IJDH-2026-0388',
-        code: 'IJDH',
-        jTitle: 'International Journal of Digital Health',
-        journalSlug: 'ijdh',
-        type: 'Research Article',
-        title:
-          'Remote photoplethysmography for continuous heart-rate monitoring in home-based cardiac rehabilitation: a prospective validation study',
-        submitted: '7 Oct 2026',
-        updated: '7 Oct 2026',
-        status: 'Submitted',
-        action: 'Technical check within 3 working days',
-        co: 'Daniel Reyes-Morales',
-        stage: 1,
-      })
-    }
     return list
-  }, [demoSubmissions, drafts, isNewParam, journals])
+  }, [apiSubs, drafts, journals])
 
   const select = (id: string) => setPanel((p) => (p.sel === id ? p : { sel: id, count: p.count + 1, letter: false }))
   const toggleLetter = () => setPanel((p) => ({ ...p, letter: !p.letter }))
@@ -296,28 +317,50 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
     setPanel((p) => ({ ...p, sel: null }))
   }
 
+  /**
+   * The split that makes this dashboard honest: **read here, act in OJS.**
+   *
+   * Status, dates and metadata come from the API and render in the portal — so
+   * clicking a submission opens the detail panel here rather than bouncing the
+   * author out. But every action goes to `cur.ojsUrl`, the per-submission
+   * author workflow URL OJS supplies, because the things an author actually
+   * *does* have no API in OJS 3.5: uploading a revision needs a file, and
+   * reviewer reports and decision letters are not exposed at all.
+   *
+   * A "Submit revision" button here that could not upload a file, or a
+   * "View decision letter" that had no letter to show, would be the dead
+   * control of audit finding F-18. Labels therefore say where they lead.
+   */
+  const ojsHref = cur?.ojsUrl ?? ojsDashboardUrl(cur?.journalSlug ?? 'index')
+
   const actions: ActionDef[] = !cur
     ? []
-    : cur.draft
+    : cur.draft && cur.draftDbId
       ? [
           { label: 'Resume draft', href: `/submit?draft=${cur.draftDbId}`, primary: true },
           { label: 'Delete draft', onClick: () => cur.draftDbId && void deleteDraft(cur.draftDbId) },
         ]
       : cur.status === 'Revisions requested'
         ? [
-            { label: 'Submit revision', href: ojsDashboardUrl(cur.journalSlug ?? 'index'), external: true, primary: true },
+            { label: 'Submit revision in the editorial system', href: ojsHref, external: true, primary: true },
             { label: 'Message editorial office', href: '/contact' },
           ]
-        : cur.status === 'In production'
+        : cur.status === 'Published'
           ? [
-              { label: 'View accepted manuscript', href: ojsDashboardUrl(cur.journalSlug ?? 'index'), external: true },
-              { label: 'Message editorial office', href: '/contact' },
+              ...(cur.publishedUrl
+                ? [{ label: 'View published article', href: cur.publishedUrl, external: true, primary: true }]
+                : []),
+              { label: 'Open in the editorial system', href: ojsHref, external: true },
             ]
           : cur.status === 'Rejected'
-            ? [{ label: 'View decision letter', onClick: () => setPanel((p) => ({ ...p, letter: true })) }]
+            ? [
+                // The letter itself lives in OJS; there is no API for it.
+                { label: 'Read the decision in the editorial system', href: ojsHref, external: true, primary: true },
+                { label: 'Message editorial office', href: '/contact' },
+              ]
             : [
-                { label: 'View submission', href: ojsDashboardUrl(cur.journalSlug ?? 'index'), external: true },
-                { label: 'Withdraw', href: '/contact' },
+                { label: 'Open in the editorial system', href: ojsHref, external: true, primary: true },
+                { label: 'Message editorial office', href: '/contact' },
               ]
 
   const actionStyle = (primary?: boolean): React.CSSProperties => ({
@@ -329,35 +372,6 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
     background: primary ? 'var(--accent,#1D5DA8)' : 'var(--surface,#fff)',
     color: primary ? '#fff' : 'var(--ink,#101B27)',
     border: `1px solid ${primary ? 'var(--accent,#1D5DA8)' : 'var(--line-strong,#B9C1C9)'}`,
-  })
-
-  const invites = demoInvitations.map((d) => {
-    const bySlug = new Map(journals.map((j) => [j.slug, j]))
-    const st = inv[d.id] ?? 'pending'
-    const m = {
-      pending: ['Invitation', 'var(--accent-soft,#E8F0FA)', 'var(--accent-dark,#174C8A)'],
-      active: ['Review in progress', '#FDF1DE', '#8A5300'],
-      declined: ['Declined', 'var(--surface-2,#F5F6F7)', 'var(--muted,#505C68)'],
-    }[st]
-    const note =
-      st === 'active'
-        ? `Accepted ${formatDateShort(d.respondByIso)} · Review due ${formatDateShort(d.dueIso)}`
-        : `Invited ${formatDateShort(d.invitedIso)} by the ${d.invitedBy} · Response requested by ${formatDateShort(d.respondByIso)}`
-    return {
-      id: d.id,
-      code: bySlug.get(d.journalSlug)?.code ?? d.journalSlug.toUpperCase(),
-      journalSlug: d.journalSlug,
-      title: d.title,
-      note,
-      due: formatDateShort(d.dueIso),
-      status: m[0],
-      chipBg: m[1],
-      chipFg: m[2],
-      pending: st === 'pending',
-      active: st === 'active',
-      accept: () => setInv((v) => ({ ...v, [d.id]: 'active' })),
-      decline: () => setInv((v) => ({ ...v, [d.id]: 'declined' })),
-    }
   })
 
   const toggleAvail = () => {
@@ -377,7 +391,9 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
   const roleTabs = (
     [
       ['author', 'As author', subs.length],
-      ['reviewer', 'As reviewer', invites.length],
+      // No count: OJS exposes no reviewer resource, so the portal cannot know
+      // how many invitations there are. A "0" would be a claim, not a fact.
+      ['reviewer', 'As reviewer', null],
     ] as const
   ).map(([k, label, n]) => ({
     k,
@@ -520,7 +536,10 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
                     borderBottom: `3px solid ${t.bar}`,
                   }}
                 >
-                  {t.label} <span style={{ color: 'var(--muted,#505C68)', fontWeight: 400 }}>({t.n})</span>
+                  {t.label}
+                  {t.n !== null ? (
+                    <span style={{ color: 'var(--muted,#505C68)', fontWeight: 400 }}> ({t.n})</span>
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -898,126 +917,13 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
 
             {tab === 'reviewer' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 20, maxWidth: 900 }}>
-                {invites.map((iv) => (
-                  <div
-                    key={iv.id}
-                    style={{
-                      background: 'var(--surface,#fff)',
-                      border: '1px solid var(--line,#DCE1E6)',
-                      borderRadius: 3,
-                      padding: '18px 20px',
-                      display: 'flex',
-                      gap: 20,
-                      flexWrap: 'wrap',
-                      alignItems: 'flex-start',
-                    }}
-                  >
-                    <div style={{ flex: 1, minWidth: 280, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)' }}>{iv.id}</span> · {iv.code} · Double-blind
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-serif)',
-                          fontSize: 17,
-                          fontWeight: 600,
-                          color: 'var(--ink,#101B27)',
-                          lineHeight: 1.35,
-                        }}
-                      >
-                        {iv.title}
-                      </span>
-                      <span style={{ fontSize: 13, color: 'var(--ink-3,#3C4854)' }}>{iv.note}</span>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 500,
-                          padding: '2px 8px',
-                          borderRadius: 2,
-                          background: iv.chipBg,
-                          color: iv.chipFg,
-                        }}
-                      >
-                        {iv.status}
-                      </span>
-                      {iv.pending ? (
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button
-                            onClick={iv.decline}
-                            style={{
-                              border: '1px solid var(--line-strong,#B9C1C9)',
-                              background: 'var(--surface,#fff)',
-                              borderRadius: 3,
-                              padding: '7px 12px',
-                              font: 'inherit',
-                              fontSize: 13,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Decline
-                          </button>
-                          <button
-                            onClick={iv.accept}
-                            style={{
-                              border: 0,
-                              background: 'var(--accent-dark,#0A685C)',
-                              color: '#fff',
-                              borderRadius: 3,
-                              padding: '7px 14px',
-                              font: 'inherit',
-                              fontSize: 13,
-                              fontWeight: 500,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Accept · due {iv.due}
-                          </button>
-                        </div>
-                      ) : null}
-                      {iv.active ? (
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <a
-                            href={ojsReviewUrl(iv.journalSlug)}
-                            style={{
-                              border: '1px solid var(--line-strong,#B9C1C9)',
-                              background: 'var(--surface,#fff)',
-                              borderRadius: 3,
-                              padding: '7px 12px',
-                              fontSize: 13,
-                              color: 'var(--ink,#101B27)',
-                              textDecoration: 'none',
-                            }}
-                          >
-                            Download manuscript
-                          </a>
-                          <a
-                            href={ojsReviewUrl(iv.journalSlug)}
-                            style={{
-                              background: 'var(--accent,#1D5DA8)',
-                              color: '#fff',
-                              borderRadius: 3,
-                              padding: '7px 14px',
-                              fontSize: 13,
-                              fontWeight: 500,
-                              textDecoration: 'none',
-                            }}
-                          >
-                            Continue review
-                          </a>
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-                {invites.length === 0 ? (
-                  // Peer review runs in OJS and works; what OJS 3.5 does not
-                  // expose is a reviewer REST resource, so there is nothing for
-                  // the portal to read review state from even once sign-in
-                  // works. This panel is the permanent answer, not a
-                  // placeholder for an unbuilt feature — see
-                  // docs/OJS-INTEGRATION.md.
+                  {/*
+                    Peer review runs in OJS and works. What OJS 3.5 does not
+                    expose is a reviewer REST resource, so there is nothing for
+                    the portal to read review state from — not a gap that
+                    sign-in or Phase 4 closes. This panel is the permanent
+                    answer, not a placeholder. See docs/OJS-INTEGRATION.md.
+                  */}
                   <div
                     style={{
                       background: 'var(--surface,#fff)',
@@ -1058,7 +964,7 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
                       ))}
                     </div>
                   </div>
-                ) : null}
+
                 <div
                   style={{
                     display: 'flex',
