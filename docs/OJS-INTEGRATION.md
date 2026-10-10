@@ -55,9 +55,30 @@ Two rules follow, and neither is negotiable:
    and OJS holds it. `user_prefs` keys on `ojs_user_id` and holds only fields
    OJS has no concept of.
 
-Both run on one origin: nginx serves the portal at `/` and OJS at `/ojs`. That
-is not an accident of history — it is the thing that makes the auth design below
-possible at all.
+In production both run on one origin: nginx serves the portal at `/` and OJS at
+`/ojs`.
+
+**Same-origin is a preference, not a requirement.** An earlier version of this
+document called it "load-bearing — the thing that makes the auth design
+possible". That was true of the *first* auth design, which had the browser hold
+the OJS cookie and present it to portal routes. That design was abandoned
+because OJS scopes the cookie to `path=/ojs/`, so the browser never sends it to
+portal routes anyway, and re-issuing a copy at `path=/` leaves two cookies of
+the same name whose precedence is browser-dependent.
+
+The design that replaced it — see "Auth architecture" — has the portal talk to
+OJS **server to server** and issue its own session cookie. The browser only ever
+holds `ngiq_session`, and the OJS cookie never leaves the server. Origins
+therefore do not enter into it.
+
+What same-origin still buys: unified URLs, and no CORS surface. Note
+`connect-src 'self'` in `next.config.ts` already forbids the browser from
+calling OJS directly, so there is no CORS requirement to satisfy.
+
+What this unlocks: **the whole integration can be built and tested from
+`localhost` against the live OJS**, with no deployment at all. Set
+`NEXT_PUBLIC_OJS_PATH` to the absolute OJS URL so link-outs resolve, and
+`OJS_BASE_URL` to the same value for server-side calls.
 
 ## Integration ladder
 
@@ -65,15 +86,89 @@ possible at all.
 | --- | --- | --- |
 | Article, issue, journal pages | OAI inventory + REST enrichment → `content/harvest.json` → static pages | Built (`scripts/harvest.ts`) |
 | Search | Build-time index over the same data | Built (`src/lib/search.ts`) |
-| Sign in / session | Link out to the OJS login page | **Built — the current path.** `PORTAL_NATIVE_SIGNIN=0` |
-| Sign in / session, in-portal | Portal-owned session over a server-side login relay | **Not built — Phase 3**, gated on spike check 3 |
-| Wizard steps 1–6, autosave | Portal-native, drafts in the portal DB | Built; autosave needs a session, so dormant until Phase 3 |
+| Sign in / session | Link out to the OJS login page | Built — the fallback, and what ships with `PORTAL_NATIVE_SIGNIN=0` |
+| Sign in / session, in-portal | Portal-owned session over a server-side login relay | **Built 2026-10-10.** Verified end to end against the live OJS: sign-in, session resolution, role mapping, sign-out on both sides, expiry, revalidation, rate limiting. Enable with `PORTAL_NATIVE_SIGNIN=1` |
+| Wizard steps 1–6, autosave | Portal-native, drafts in the portal DB | Built, and live now that sessions resolve |
 | Final submit | Hand off to the OJS wizard | **Built — the current path**, and the only one until Phase 4 |
-| Dashboard reads | OJS REST on behalf of the user | Not built — Phase 4. Shows portal drafts and link-outs today |
+| Dashboard reads | OJS REST on behalf of the user | Not built — Phase 4, unblocked: create and read both verified working |
 | File uploads | Author attaches in OJS | **By design, permanently.** See "Files" below |
 | Peer review itself | Runs in OJS — assignment, rounds, forms, reminders, decisions | **Working.** OJS's own feature, untouched by any of this |
 | Reviewer workspace in the portal | Link out to `{journal}/dashboard/reviewAssignments` | **By design, permanently** — no reviewer API to build against |
 | Editorial back office | Link out to `{journal}/dashboard/editorial` | By design |
+
+## Spike results — recorded 2026-10-10
+
+**Check 3 PASSED. In-portal sign-in is possible, and Phase 3 and Phase 4 are
+go.** Run against the live instance with a self-registered author account.
+
+### How identity is obtained
+
+Not by scraping form inputs, as originally planned. OJS 3.5 embeds the
+signed-in user as JSON for its Vue front end, on any authenticated page:
+
+```js
+currentUser = {"csrfToken":"…","id":22,"roles":[1048576,65536],
+               "fullName":"…","username":"…","initials":"KY",
+               "isUserLoggedInAs":false,"unreadTasksCount":0}
+```
+
+Three consequences, all better than the plan assumed:
+
+1. **It is data, not markup.** A template or CSS change cannot break the parse,
+   which was the main fragility risk in the whole design.
+2. **`roles` are present**, as OJS role ids matching `ROLE_NAMES` in
+   `src/lib/auth/session.ts` (`1048576` reader, `65536` author). Role-gated UI
+   does **not** have to wait for a service-key lookup against
+   `index/api/v1/users/{id}`, contrary to what this document previously said.
+3. **`csrfToken` is present**, and it is what OJS wants in `X-Csrf-Token` on
+   mutating API calls — the specific unknown behind check 4.
+
+`email` is absent from the blob. Nothing in the session needs it; read it from
+the users API if a surface ever does.
+
+### The login relay
+
+```
+GET  /index.php/index/login            → scrape name="csrfToken", keep the OJSSID
+POST /index.php/index/login/signIn     → username, password, remember, source, csrfToken
+                                         200 + re-rendered form = rejected
+                                         302 + rotated OJSSID  = authenticated
+GET  /index.php/index/user/profile     → 200 and currentUser = identity
+                                         302                 = not authenticated
+```
+
+### Mutating calls — verified working
+
+`POST {ctx}/api/v1/submissions` with the session cookie **and
+`X-Csrf-Token`** → **HTTP 200**, returning the full submission object including
+`id`, `_href` and `currentPublicationId`. No 403. So the portal can create real
+OJS submissions on an author's behalf.
+
+Title, abstract and keywords live on the *publication* in 3.4+, so Phase 4 is
+create-submission then `PUT {ctx}/api/v1/submissions/{id}/publications/{pubId}`.
+The body currently in `src/app/api/drafts/submit/route.ts` sets them at the
+submission level and needs correcting.
+
+`POST {ctx}/api/v1/temporaryFiles`, multipart field name **`file`**, with
+`X-Csrf-Token` → **HTTP 200**, `{"id":1,"name":"…","mimetype":"…"}`.
+
+**Without `X-Csrf-Token` both return 403** with the body *"The form could not be
+submitted. You may have been logged out."* That message describes a CSRF
+rejection, not an authentication failure — an earlier run omitted the header and
+the 403 was briefly misread as OJS refusing uploads.
+
+### Still unknown: `genreId`
+
+Attaching a temporary file to a submission needs `fileStage` and `genreId`.
+Genres are per journal and there is **no discovery endpoint** — `genres`,
+`_genres` and `submissions/{id}/files/genres` are all absent. Hardcoding ids
+per journal is the only route, and it is exactly the kind of table that rots
+silently.
+
+This does not change the decision to hand files off to OJS, but it does narrow
+the reasoning: the API path is now **verified to work** rather than unverified,
+so the remaining objections are the second copy of unscreened research data and
+this `genreId` gap. See "Files" below.
 
 ## The auth spike (gate for Phase 3)
 

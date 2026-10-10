@@ -13,7 +13,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from '@/components/auth/SessionProvider'
 import { deadlineState, formatFileSize, wordCount } from '@/lib/format'
 import {
@@ -48,7 +48,9 @@ type ApiDraft = {
   updatedAt: string
 }
 
-type DoneState = { mode: 'api'; reference: string } | { mode: 'handoff'; continueUrl: string }
+type DoneState =
+  | { mode: 'api'; reference: string; continueUrl: string; notTransferred: string[] }
+  | { mode: 'handoff'; continueUrl: string }
 
 const LABELS = ['Journal and section', 'Requirements', 'Metadata', 'Authors', 'Files', 'Declarations', 'Review and submit']
 
@@ -108,6 +110,7 @@ const LINE = 'var(--line-strong,#B9C1C9)'
 
 export function SubmitWizard({ journals, calls, subjects }: Props) {
   const sp = useSearchParams()
+  const router = useRouter()
   const { user } = useSession()
 
   const jParam = sp.get('journal')
@@ -128,7 +131,9 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
   const [done, setDone] = useState<DoneState | null>(null)
   const [drag, setDrag] = useState(false)
   const [draftId, setDraftId] = useState<number | null>(null)
-  const [submitNote, setSubmitNote] = useState<'error' | null>(null)
+  const [submitNote, setSubmitNote] = useState<'save-failed' | 'submit-failed' | null>(null)
+  /** 'Save and exit' is mid-flight; blocks a double click that would double-insert. */
+  const [exiting, setExiting] = useState(false)
   const [rorSuggest, setRorSuggest] = useState<Record<string, RorItem[]>>({})
 
   const uid = useRef(1)
@@ -149,7 +154,18 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
 
   /* ----------------------------- autosave ------------------------------- */
 
-  async function persist(): Promise<number | null> {
+  /**
+   * Saves the draft, returning the row id it is stored under.
+   *
+   * `retryAsNew` handles a draft id this tab holds whose row no longer exists —
+   * deleted from another tab, or lost. The server answers 404 and the save
+   * would otherwise fail forever: the old code returned the stale id anyway,
+   * which the final submit then sent, got a second 404 for, and surfaced as
+   * "something went wrong" with no way out but reloading. Dropping the id and
+   * re-inserting recovers silently, which is right — the author's work is in
+   * this tab's state and is not what went missing.
+   */
+  async function persist(retryAsNew = true): Promise<number | null> {
     const s = stateRef.current
     if (!s.user) {
       setSaving(false)
@@ -167,19 +183,30 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
           files: s.files,
         }),
       })
-      const data = (await res.json()) as { ok?: boolean; id?: number }
-      setSaving(false)
+      const data = (await res.json()) as { ok?: boolean; id?: number; error?: string }
+
       if (res.ok && data.id) {
+        setSaving(false)
         if (!s.draftId) setDraftId(data.id)
         setSavedAt('All changes saved')
         return data.id
       }
+
+      if (res.status === 404 && s.draftId && retryAsNew) {
+        setDraftId(null)
+        stateRef.current = { ...stateRef.current, draftId: null }
+        return persist(false)
+      }
+
+      setSaving(false)
       setSavedAt('Could not save — will retry on the next change')
-      return s.draftId
+      // Deliberately null, not the stale id: handing back an id the server
+      // rejected is what made the submit fail confusingly.
+      return null
     } catch {
       setSaving(false)
       setSavedAt('Could not save — will retry on the next change')
-      return stateRef.current.draftId
+      return null
     }
   }
 
@@ -358,7 +385,15 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
       try {
         if (saveTimer.current) clearTimeout(saveTimer.current)
         const id = await persist()
-        if (!id) throw new Error('save-failed')
+        // Distinguished from a submit failure below, because the reassurance
+        // differs: if the save failed the draft is NOT stored, and telling
+        // someone otherwise invites them to close the tab and lose the work.
+        if (!id) {
+          setSubmitNote('save-failed')
+          window.scrollTo(0, 0)
+          setBusy(false)
+          return
+        }
         const res = await fetch('/api/drafts/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -369,14 +404,22 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
           mode?: 'api' | 'handoff'
           reference?: string
           continueUrl?: string
+          notTransferred?: string[]
         }
         if (!res.ok || !data.mode) throw new Error('submit-failed')
-        if (data.mode === 'api' && data.reference) setDone({ mode: 'api', reference: data.reference })
-        else if (data.mode === 'handoff' && data.continueUrl) setDone({ mode: 'handoff', continueUrl: data.continueUrl })
-        else throw new Error('submit-failed')
+        if (data.mode === 'api' && data.reference && data.continueUrl) {
+          setDone({
+            mode: 'api',
+            reference: data.reference,
+            continueUrl: data.continueUrl,
+            notTransferred: data.notTransferred ?? [],
+          })
+        } else if (data.mode === 'handoff' && data.continueUrl) {
+          setDone({ mode: 'handoff', continueUrl: data.continueUrl })
+        } else throw new Error('submit-failed')
         window.scrollTo(0, 0)
       } catch {
-        setSubmitNote('error')
+        setSubmitNote('submit-failed')
         window.scrollTo(0, 0)
       } finally {
         setBusy(false)
@@ -497,21 +540,49 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
                 borderRadius: 2,
               }}
             >
-              {done.mode === 'api' ? '✓ Submission received' : '✓ Draft saved'}
+              {done.mode === 'api' ? '✓ Submission created' : '✓ Draft saved'}
             </span>
             <h1 style={{ margin: '16px 0 6px', fontFamily: 'var(--font-serif)', fontSize: 30, fontWeight: 600, color: 'var(--ink,#101B27)' }}>
-              {done.mode === 'api' ? 'Thank you. Your manuscript has been submitted.' : 'One final step in the editorial system.'}
+              {done.mode === 'api' ? 'One step left: attach your files.' : 'One final step in the editorial system.'}
             </h1>
             {done.mode === 'api' ? (
-              <p style={{ margin: 0, fontSize: 15, color: 'var(--ink-3,#3C4854)', lineHeight: 1.6 }}>
-                Submission ID{' '}
-                <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--ink,#101B27)' }}>{done.reference}</strong> · {jTitle}. A
-                receipt has been sent to {user?.email ?? 'your email address'} and to all co-authors.
-              </p>
+              <>
+                {/*
+                  Deliberately does NOT say "submitted". The submission exists in
+                  OJS with its metadata, but no manuscript file is attached yet,
+                  so an editor cannot act on it. Telling an author they are
+                  finished here would leave papers sitting incomplete while
+                  everyone believed they were in review.
+                */}
+                <p style={{ margin: 0, fontSize: 15, color: 'var(--ink-3,#3C4854)', lineHeight: 1.6 }}>
+                  <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--ink,#101B27)' }}>{done.reference}</strong> · {jTitle}.
+                  Everything you entered has been saved to the editorial system — title, abstract, keywords and authors. You do not
+                  need to type any of it again.
+                </p>
+                <p style={{ margin: '10px 0 0', fontSize: 15, color: 'var(--ink-3,#3C4854)', lineHeight: 1.6 }}>
+                  Your submission is <strong>not complete until the files are attached</strong>. Continue below to upload them.
+                </p>
+                {done.notTransferred.length > 0 ? (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      border: '1px solid #EBCB98',
+                      background: '#FDF1DE',
+                      borderRadius: 3,
+                      padding: '12px 16px',
+                      fontSize: 14,
+                      color: '#8A5300',
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    Add these in the editorial system — they could not be carried over: {done.notTransferred.join('; ')}.
+                  </div>
+                ) : null}
+              </>
             ) : (
               <p style={{ margin: 0, fontSize: 15, color: 'var(--ink-3,#3C4854)', lineHeight: 1.6 }}>
-                Your draft for {jTitle} is saved. Continue in the editorial system to attach your files and confirm the submission —
-                your answers carry over.
+                Your draft for {jTitle} is saved here and you can return to it at any time. The editorial system needs the details
+                entered there as well — it could not be done for you this time, so keep this page open to copy from.
               </p>
             )}
             <h2
@@ -549,53 +620,41 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
               ))}
             </ol>
             <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-              {done.mode === 'api' ? (
-                <Link
-                  href={`/dashboard?submitted=${encodeURIComponent(done.reference)}`}
-                  style={{
-                    background: 'var(--accent,#1D5DA8)',
-                    color: '#fff',
-                    padding: '10px 18px',
-                    borderRadius: 3,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Go to My submissions
-                </Link>
-              ) : (
-                <a
-                  href={done.continueUrl}
-                  style={{
-                    background: 'var(--accent,#1D5DA8)',
-                    color: '#fff',
-                    padding: '10px 18px',
-                    borderRadius: 3,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Continue in the editorial system
-                </a>
-              )}
-              {done.mode === 'handoff' ? (
-                <Link
-                  href="/dashboard"
-                  style={{
-                    border: '1px solid var(--line-strong,#B9C1C9)',
-                    color: 'var(--ink,#101B27)',
-                    padding: '9px 18px',
-                    borderRadius: 3,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Go to My submissions
-                </Link>
-              ) : null}
+              {/*
+                The primary action is the same in both modes — go to OJS — but
+                it means different things: in 'api' it opens THIS submission at
+                its file step, in 'handoff' it opens a blank wizard. The label
+                says which, because "Continue" would imply the metadata is
+                already there when in the hand-off case it is not.
+              */}
+              <a
+                href={done.continueUrl}
+                style={{
+                  background: 'var(--accent,#1D5DA8)',
+                  color: '#fff',
+                  padding: '10px 18px',
+                  borderRadius: 3,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                }}
+              >
+                {done.mode === 'api' ? 'Attach files in the editorial system' : 'Continue in the editorial system'}
+              </a>
+              <Link
+                href="/dashboard"
+                style={{
+                  border: '1px solid var(--line-strong,#B9C1C9)',
+                  color: 'var(--ink,#101B27)',
+                  padding: '9px 18px',
+                  borderRadius: 3,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                }}
+              >
+                Go to My submissions
+              </Link>
               <Link
                 href={jHref}
                 style={{
@@ -642,20 +701,57 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
               Drafts are not saved until you <Link href="/sign-in?next=/submit">sign in</Link>.
             </span>
           )}
-          <Link
-            href="/dashboard"
+          {/*
+            A button, not a link.
+
+            This was `<Link href="/dashboard">`, which navigated away without
+            saving anything — it only ever appeared to work because autosave is
+            debounced at 700ms and had usually already fired. Click straight
+            after typing and that edit was gone. A control labelled "Save and
+            exit" that only exits is the same defect as the dead controls in
+            audit finding F-18.
+
+            It now flushes the pending save, waits for it, and only navigates
+            once the draft is actually stored. If the save fails it stays put
+            and says so, because leaving the page is the one thing that loses
+            the work.
+          */}
+          <button
+            type="button"
+            disabled={exiting}
+            onClick={async () => {
+              if (!user) {
+                router.push('/sign-in?next=/submit')
+                return
+              }
+              setExiting(true)
+              if (saveTimer.current) clearTimeout(saveTimer.current)
+              const id = await persist()
+              if (!id) {
+                setExiting(false)
+                setSubmitNote('save-failed')
+                window.scrollTo(0, 0)
+                return
+              }
+              // Plain /dashboard: the draft appears in the list there and links
+              // back to /submit?d=<id>. A ?draft= param would be ignored.
+              router.push('/dashboard')
+            }}
             style={{
               border: '1px solid var(--line-strong,#B9C1C9)',
+              background: 'var(--surface,#fff)',
               color: 'var(--ink,#101B27)',
               padding: '8px 14px',
               borderRadius: 3,
+              font: 'inherit',
               fontSize: 13,
               fontWeight: 500,
-              textDecoration: 'none',
+              cursor: exiting ? 'default' : 'pointer',
+              opacity: exiting ? 0.7 : 1,
             }}
           >
-            Save and exit
-          </Link>
+            {exiting ? 'Saving…' : 'Save and exit'}
+          </button>
         </div>
       </div>
       <div
@@ -755,7 +851,7 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
                 </ul>
               </div>
             ) : null}
-            {submitNote === 'error' ? (
+            {submitNote !== null ? (
               <div
                 role="alert"
                 style={{
@@ -769,8 +865,17 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
                   lineHeight: 1.5,
                 }}
               >
-                Something went wrong while submitting. Your draft is saved — please try again, or contact the editorial office if it
-                keeps happening.
+                {submitNote === 'save-failed' ? (
+                  <>
+                    Your draft could not be saved, so it has <strong>not</strong> been submitted. Keep this tab open — nothing you
+                    have entered is lost — and try again in a moment.
+                  </>
+                ) : (
+                  <>
+                    Something went wrong while submitting. Your draft is saved, so nothing is lost — please try again, or contact the
+                    editorial office if it keeps happening.
+                  </>
+                )}
               </div>
             ) : null}
 

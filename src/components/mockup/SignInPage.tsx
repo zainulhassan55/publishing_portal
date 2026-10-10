@@ -4,6 +4,7 @@
  * SignIn.dc.html, replicated verbatim per docs/REPLICATION.md.
  *
  * Behaviour wiring (the visual stays the mockup's):
+ * - the field accepts an email OR a username, because OJS accepts either;
  * - the form posts to POST /api/auth/sign-in — never localStorage;
  * - 200 → refresh the session and follow ?next= (same-origin paths only);
  * - 401 → the mockup's inline error style; 503 → OJS login link; 429 → retry;
@@ -25,6 +26,20 @@ import { ojsLoginUrl, ojsLostPasswordUrl, ojsRegisterUrl } from '@/lib/ojs/confi
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
+/**
+ * OJS authenticates on username OR email, so the field accepts both.
+ *
+ * Requiring an email shape here locked out every account that signs in with a
+ * username — which is how the OJS registration form names the field, so it is
+ * the common case, not an edge one. Only an input that looks like a malformed
+ * address is rejected; anything else is plausibly a username and is relayed.
+ */
+const looksUsable = (value: string): boolean => {
+  const v = value.trim()
+  if (v.length === 0 || v.length > 320) return false
+  return v.includes('@') ? EMAIL_RE.test(v) : true
+}
+
 /** Only same-origin absolute paths are followed, so `?next=` cannot be an open redirect. */
 const safeNext = (value: string | null): string => {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return '/dashboard'
@@ -43,17 +58,20 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
   const [tried, setTried] = useState(false)
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState<Failure | null>(null)
+  /** OJS's own error text, when it is more specific than "wrong password". */
+  const [serverMessage, setServerMessage] = useState<string | null>(null)
 
-  const eBad = tried && !EMAIL_RE.test(email)
+  const eBad = tried && !looksUsable(email)
   const pBad = tried && !pw
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setTried(true)
-    const ok = EMAIL_RE.test(email) && pw
+    const ok = looksUsable(email) && pw
     if (!ok || busy) return
     setBusy(true)
     setFailure(null)
+    setServerMessage(null)
     try {
       const res = await fetch('/api/auth/sign-in', {
         method: 'POST',
@@ -65,8 +83,16 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
         router.push(safeNext(params.get('next')))
         return // stay busy while navigating
       }
-      if (res.status === 401) setFailure('credentials')
-      else if (res.status === 503) setFailure('unavailable')
+      if (res.status === 401) {
+        // Pass OJS's own wording through when it says something more useful
+        // than "wrong password" — an account awaiting email validation, or a
+        // disabled one. Collapsing those into "check your details" sends
+        // people round in circles retyping a password that was never wrong.
+        const body = (await res.json().catch(() => null)) as { message?: string } | null
+        const detail = body?.message?.trim()
+        setServerMessage(detail && !/invalid username\/email or password/i.test(detail) ? detail : null)
+        setFailure('credentials')
+      } else if (res.status === 503) setFailure('unavailable')
       else if (res.status === 429) setFailure('rate-limited')
       else setFailure('generic')
     } catch {
@@ -94,9 +120,9 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
           </div>
           <form onSubmit={onSubmit} noValidate hidden={!nativeSignIn} style={{ display: nativeSignIn ? 'flex' : 'none', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <label htmlFor="si-email" style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink,#101B27)' }}>Email address</label>
-              <input id="si-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={eBad ? 'true' : 'false'} style={{ font: 'inherit', fontSize: 14, padding: '9px 12px', border: `1px solid ${eBad ? '#A52A2A' : 'var(--line-strong,#B9C1C9)'}`, borderRadius: 3 }} />
-              {eBad ? <span style={{ fontSize: 13, color: '#A52A2A' }}>Enter the email address you registered with</span> : null}
+              <label htmlFor="si-email" style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink,#101B27)' }}>Email address or username</label>
+              <input id="si-email" type="text" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={eBad ? 'true' : 'false'} style={{ font: 'inherit', fontSize: 14, padding: '9px 12px', border: `1px solid ${eBad ? '#A52A2A' : 'var(--line-strong,#B9C1C9)'}`, borderRadius: 3 }} />
+              {eBad ? <span style={{ fontSize: 13, color: '#A52A2A' }}>Enter the email address or username you registered with</span> : null}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -109,7 +135,11 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
             {failure !== null ? (
               <div role="alert" style={{ fontSize: 13, color: '#A52A2A', lineHeight: 1.5 }}>
                 {failure === 'credentials' ? (
-                  <>That email address and password do not match an account. Check both and try again.</>
+                  serverMessage ? (
+                    <>{serverMessage}</>
+                  ) : (
+                    <>That email address and password do not match an account. Check both and try again.</>
+                  )
                 ) : failure === 'unavailable' ? (
                   <>Signing in from the portal is not available. <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>Sign in on the editorial system instead</a> — your account works there.</>
                 ) : failure === 'rate-limited' ? (

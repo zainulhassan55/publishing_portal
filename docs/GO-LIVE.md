@@ -440,8 +440,9 @@ https://www.nextgeniqpress.com/ojs/
 
 🔄 **If OJS breaks:** paste your saved copy back into the Vhost tab.
 
-> **Never move OJS to a subdomain** like `ojs.nextgeniqpress.com`. Both halves
-> must share one address or sign-in can never work.
+> Keeping OJS at `/ojs` on this origin is preferred for unified URLs, but it is
+> not required by the auth design — the portal reaches OJS server to server. A
+> subdomain would work; it just reads less like one product.
 
 ---
 

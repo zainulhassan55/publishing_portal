@@ -6,6 +6,23 @@
  * DDL. If a migration ever needs a stored routine with internal semicolons,
  * apply it by hand and insert the ledger row — do not make this splitter
  * cleverer than it needs to be.
+ *
+ * ## The bug this previously had, because it is an easy one to reintroduce
+ *
+ * Comment lines are stripped from each chunk *line by line*. The earlier
+ * version tested whether the whole chunk started with `--` and discarded it if
+ * so — which silently dropped every `CREATE TABLE` that had an explanatory
+ * comment above it. On a schema where most tables are commented, that applied
+ * one table out of six, recorded the migration as done, and exited 0. The
+ * result was a database missing most of its tables and a ledger insisting the
+ * schema was current.
+ *
+ * Hence the guard below: a `.sql` file that yields **zero** statements is an
+ * error, not a no-op. A migration that parses to nothing is always a parser
+ * fault, never an empty migration anyone meant to write.
+ *
+ * Caveat accepted: a `--` sequence inside a string literal would be stripped
+ * too. That has not come up in DDL and the alternative is a real SQL parser.
  */
 import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -50,10 +67,30 @@ for (const file of files) {
   }
 
   const sql = readFileSync(join(migrationsDir, file), 'utf8')
-  const statements = sql
+
+  // Order matters: strip comments FIRST, then split.
+  //
+  // Splitting first means a semicolon inside a comment — "…on mutating API
+  // calls;" is a perfectly natural thing to write — cuts a CREATE TABLE in
+  // half and the migration dies with a syntax error pointing at the truncation
+  // rather than at the comment that caused it.
+  const withoutComments = sql
+    .split('\n')
+    .filter((line) => !/^\s*--/.test(line))
+    .join('\n')
+
+  const statements = withoutComments
     .split(/;\s*$/m)
     .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !/^--/.test(s.replace(/\n/g, '')))
+    .filter((s) => s.length > 0)
+
+  if (statements.length === 0) {
+    console.error(`\n${file} parsed to zero statements. Refusing to record it as applied.`)
+    console.error('That is a splitter fault, not an empty migration. Fix it before continuing —')
+    console.error('recording it would leave the schema incomplete and the ledger claiming otherwise.')
+    await connection.end()
+    process.exit(1)
+  }
 
   for (const statement of statements) {
     await connection.query(statement)

@@ -14,6 +14,8 @@ jobs:
   verify:
     name: Typecheck, lint, test, build
     runs-on: ubuntu-latest
+    # A full run takes ~3 minutes; anything near this cap is a hang, not work.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
 
@@ -54,6 +56,7 @@ jobs:
   audit:
     name: Production dependency audit
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

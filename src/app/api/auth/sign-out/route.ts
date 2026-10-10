@@ -1,38 +1,54 @@
 import { NextResponse } from 'next/server'
-import { OJS_SESSION_COOKIE } from '@/lib/auth/session'
-import { ojsBaseUrl } from '@/lib/ojs/config'
+import { databaseConfigured } from '@/lib/db'
+import { OJS_SESSION_COOKIE } from '@/lib/auth/roles'
+import { PORTAL_SESSION_COOKIE, destroySession, readSession } from '@/lib/auth/portal-session'
+import { postSignOut } from '@/lib/auth/ojs-login'
 
 export const dynamic = 'force-dynamic'
 
 /**
- * Clears the session cookie and asks OJS to end the session on its side too.
- * Both steps matter: dropping only the cookie would leave a live OJS session
- * that any other tab on /ojs could still use.
+ * Ends the portal session and the OJS session behind it.
  *
- * The cookie is cleared at **two paths**. OJS issues it at `path=/ojs/`, while
- * the portal's previous sign-in route re-issued a copy at `path=/`. Clearing
- * only `/` left the real OJS cookie in place, so signing out of the portal left
- * the user signed in on /ojs — the opposite of what this endpoint promises.
- * Anyone carrying that split state gets it cleaned up on their next sign-out.
+ * Both halves matter. Deleting only the portal row would leave a live OJS
+ * session that any other tab on /ojs could still use — the opposite of what
+ * sign-out promises. Ending only the OJS side would leave a portal cookie
+ * resolving to a dead session until its next revalidation.
+ *
+ * Order is deliberate: read the row first, tell OJS, then delete. If the OJS
+ * call fails the row is still deleted, so a user is never stuck appearing
+ * signed in because a third party was unreachable.
+ *
+ * Never errors. Sign-out that fails is worse than useless — it leaves someone
+ * believing they are signed out when they are not — so every path ends in the
+ * same redirect with the cookies cleared.
  */
 export async function POST(request: Request) {
-  const cookie = request.headers.get('cookie') ?? ''
+  const token = request.headers
+    .get('cookie')
+    ?.split(';')
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(`${PORTAL_SESSION_COOKIE}=`))
+    ?.slice(PORTAL_SESSION_COOKIE.length + 1)
 
-  if (ojsBaseUrl && cookie.includes(`${OJS_SESSION_COOKIE}=`)) {
+  if (token && databaseConfigured) {
     try {
-      await fetch(`${ojsBaseUrl}/index.php/index/login/signOut`, {
-        headers: { Cookie: cookie },
-        redirect: 'manual',
-        cache: 'no-store',
-      })
-    } catch {
-      // Best effort: the local cookie is cleared regardless.
+      const session = await readSession(token)
+      if (session) await postSignOut(session.ojsSid)
+      await destroySession(token)
+    } catch (error) {
+      console.error('[sign-out] cleanup failed, clearing cookies anyway:', error)
     }
   }
 
-  const url = new URL('/', request.url)
-  const response = NextResponse.redirect(url, { status: 303 })
+  const response = NextResponse.redirect(new URL('/', request.url), { status: 303 })
 
+  response.cookies.set({ name: PORTAL_SESSION_COOKIE, value: '', path: '/', maxAge: 0 })
+
+  // Clears the stray OJSSID copies the previous cookie-adoption design left at
+  // `path=/`, and anything scoped to `/ojs/` that this origin can see. Harmless
+  // when absent, and it means anyone carrying that old split state gets it
+  // cleaned up on their next sign-out rather than keeping a half-session
+  // indefinitely.
   for (const path of ['/', '/ojs/']) {
     response.cookies.set({ name: OJS_SESSION_COOKIE, value: '', path, maxAge: 0 })
   }

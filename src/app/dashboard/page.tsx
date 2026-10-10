@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { DashboardPage } from '@/components/mockup/DashboardPage'
-import { demoInvitations, demoSubmissions } from '@/components/dashboard/demo-submissions'
 import { journalCode, journals } from '@/data/registry'
-import { demoContentEnabled } from '@/data/content'
 
 export const metadata: Metadata = {
   title: 'My submissions',
@@ -18,9 +16,13 @@ export const metadata: Metadata = {
 /**
  * Server wrapper for the replicated Dashboard.dc.html page. The route stays a
  * server component so it is statically rendered: identity resolves client-side
- * from /api/session (SessionProvider), the server only contributes the journal
- * lookup table and, in demo mode, the fixtures. Passing the fixtures from here
- * keeps them out of the production client bundle when demo content is off.
+ * from /api/session, submissions from /api/submissions and drafts from
+ * /api/drafts. The server contributes only the journal lookup table.
+ *
+ * It used to pass fixture submissions and review invitations in demo mode.
+ * Those are gone — the dashboard now shows the author's real OJS submissions,
+ * and fabricated manuscripts sitting beside real ones was confusing rather
+ * than illustrative.
  */
 export default function Dashboard() {
   const journalRefs = journals.map((journal) => ({
@@ -31,11 +33,7 @@ export default function Dashboard() {
 
   return (
     <Suspense fallback={null}>
-      <DashboardPage
-        journals={journalRefs}
-        demoSubmissions={demoContentEnabled ? demoSubmissions : []}
-        demoInvitations={demoContentEnabled ? demoInvitations : []}
-      />
+      <DashboardPage journals={journalRefs} />
     </Suspense>
   )
 }
