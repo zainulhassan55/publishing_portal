@@ -6,7 +6,7 @@ import { journalCode, journals } from '@/data/registry'
 export const metadata: Metadata = {
   title: 'My submissions',
   description:
-    'Track your NextGenIQ Press drafts, submissions and review invitations, and pick up where you left off in the submission wizard.',
+    'Track your NextGenIQ Press submissions and review invitations, and resume incomplete submissions in the editorial system.',
   alternates: { canonical: '/dashboard' },
   // A per-user workspace must never be indexed, and there is nothing here for a
   // crawler to follow either.
@@ -16,8 +16,9 @@ export const metadata: Metadata = {
 /**
  * Server wrapper for the replicated Dashboard.dc.html page. The route stays a
  * server component so it is statically rendered: identity resolves client-side
- * from /api/session, submissions from /api/submissions and drafts from
- * /api/drafts. The server contributes only the journal lookup table.
+ * from /api/session and submissions from /api/submissions — including OJS's
+ * own incomplete submissions, now that OJS is the single home for in-progress
+ * work. The server contributes only the journal lookup table.
  *
  * It used to pass fixture submissions and review invitations in demo mode.
  * Those are gone — the dashboard now shows the author's real OJS submissions,
