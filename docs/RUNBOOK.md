@@ -22,9 +22,14 @@ Cron
   harvest + revalidate
 ```
 
-Same-origin is load-bearing, not incidental: it is what allows the OJS session
-cookie to authenticate portal API calls. Do not move OJS to a subdomain without
-reading `OJS-INTEGRATION.md` first.
+Same-origin is a **preference**, not a requirement. The portal reaches OJS
+server to server and issues its own session cookie, so the OJS cookie never
+reaches the browser and the two need not share an origin. What one origin buys
+is unified URLs and no CORS surface. Read `OJS-INTEGRATION.md` before changing
+it, but it is not the constraint an earlier version of this runbook claimed.
+
+A practical consequence: the integration can be developed and tested entirely
+from `localhost` against the live OJS, with no deployment.
 
 ## Deploying
 

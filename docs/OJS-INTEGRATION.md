@@ -55,9 +55,30 @@ Two rules follow, and neither is negotiable:
    and OJS holds it. `user_prefs` keys on `ojs_user_id` and holds only fields
    OJS has no concept of.
 
-Both run on one origin: nginx serves the portal at `/` and OJS at `/ojs`. That
-is not an accident of history — it is the thing that makes the auth design below
-possible at all.
+In production both run on one origin: nginx serves the portal at `/` and OJS at
+`/ojs`.
+
+**Same-origin is a preference, not a requirement.** An earlier version of this
+document called it "load-bearing — the thing that makes the auth design
+possible". That was true of the *first* auth design, which had the browser hold
+the OJS cookie and present it to portal routes. That design was abandoned
+because OJS scopes the cookie to `path=/ojs/`, so the browser never sends it to
+portal routes anyway, and re-issuing a copy at `path=/` leaves two cookies of
+the same name whose precedence is browser-dependent.
+
+The design that replaced it — see "Auth architecture" — has the portal talk to
+OJS **server to server** and issue its own session cookie. The browser only ever
+holds `ngiq_session`, and the OJS cookie never leaves the server. Origins
+therefore do not enter into it.
+
+What same-origin still buys: unified URLs, and no CORS surface. Note
+`connect-src 'self'` in `next.config.ts` already forbids the browser from
+calling OJS directly, so there is no CORS requirement to satisfy.
+
+What this unlocks: **the whole integration can be built and tested from
+`localhost` against the live OJS**, with no deployment at all. Set
+`NEXT_PUBLIC_OJS_PATH` to the absolute OJS URL so link-outs resolve, and
+`OJS_BASE_URL` to the same value for server-side calls.
 
 ## Integration ladder
 

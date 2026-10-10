@@ -1,8 +1,17 @@
 /**
- * OJS lives on the same origin as the portal, mounted at /ojs by nginx. That is
- * what makes session-based auth possible at all: the OJS session cookie is
- * scoped to /ojs/ and is sent automatically on same-origin API requests from
- * the browser, with no token handoff. See docs/OJS-INTEGRATION.md.
+ * Where the browser should send a user who clicks through to OJS.
+ *
+ * In production OJS is mounted at /ojs on the portal's own origin, so a relative
+ * prefix is correct. Set this to an absolute URL —
+ * `https://www.nextgeniqpress.com/ojs` — to develop against the live instance
+ * from localhost; every builder below composes onto it unchanged.
+ *
+ * This is presentation only. It does **not** carry auth: the portal reaches OJS
+ * server to server (see `ojsApiUrl` and `requireOjsBaseUrl`) and issues its own
+ * session cookie, so the OJS cookie never reaches the browser and the two
+ * origins need not match. An earlier comment here claimed same-origin was what
+ * made session auth possible; that described a cookie-adoption design that was
+ * abandoned. See docs/OJS-INTEGRATION.md.
  */
 export const ojsPathPrefix = process.env.NEXT_PUBLIC_OJS_PATH || '/ojs'
 
