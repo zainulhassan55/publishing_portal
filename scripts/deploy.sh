@@ -88,6 +88,13 @@ cp -R migrations "$STAGE/migrations"
 mkdir -p "$STAGE/scripts"
 cp scripts/migrate.ts scripts/env.ts "$STAGE/scripts/"
 
+# migrate.ts needs mysql2 as a resolvable package, and the release bundle
+# cannot provide it: Next compiles server dependencies into its own chunks
+# rather than shipping them under node_modules. A private install next to the
+# script satisfies the import without touching the app's node_modules.
+printf '{"private":true,"type":"module"}' > "$STAGE/scripts/package.json"
+npm install --prefix "$STAGE/scripts" --no-save --no-audit --no-fund --loglevel=error mysql2
+
 echo "==> Uploading to $SSH_HOST:$RELEASES_DIR/$RELEASE"
 ssh "$SSH_HOST" "mkdir -p '$RELEASES_DIR/$RELEASE'"
 rsync -az --delete "$STAGE/" "$SSH_HOST:$RELEASES_DIR/$RELEASE/"
