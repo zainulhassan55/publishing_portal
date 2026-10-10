@@ -75,3 +75,9 @@ jobs:
           # Production never serves the fixture articles. See
           # src/data/content/index.ts.
           NEXT_PUBLIC_DEMO_CONTENT: '0'
+          # The sign-in page is statically prerendered, so this flag is read
+          # at BUILD time — setting it only in the server's .env changes the
+          # runtime API route but not the already-built page. It must be on
+          # in both places. The server .env copy still gates the credential
+          # endpoint itself.
+          PORTAL_NATIVE_SIGNIN: '1'
