@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { publicBaseUrl } from '@/lib/api'
 import { databaseConfigured } from '@/lib/db'
 import { OJS_SESSION_COOKIE } from '@/lib/auth/roles'
 import { PORTAL_SESSION_COOKIE, destroySession, readSession } from '@/lib/auth/portal-session'
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const response = NextResponse.redirect(new URL('/', request.url), { status: 303 })
+  const response = NextResponse.redirect(new URL('/', publicBaseUrl(request)), { status: 303 })
 
   response.cookies.set({ name: PORTAL_SESSION_COOKIE, value: '', path: '/', maxAge: 0 })
 

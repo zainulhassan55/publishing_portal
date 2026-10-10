@@ -53,6 +53,32 @@ export function handler(fn: (request: Request) => Promise<Response>) {
   }
 }
 
+/**
+ * The site's public base URL, for building redirect Locations.
+ *
+ * `request.url` is the wrong base behind nginx: the standalone server reports
+ * its own bind address, so `new URL('/', request.url)` produced
+ * `https://localhost:3000/` — a browser following a sign-out redirect there
+ * just hangs. The configured site URL is authoritative; the proxy's forwarded
+ * headers cover local development, where NEXT_PUBLIC_SITE_URL is unset; the
+ * raw request URL remains only as the bare `next dev` fallback.
+ */
+export function publicBaseUrl(request: Request): URL {
+  const site = process.env.NEXT_PUBLIC_SITE_URL
+  if (site) {
+    try {
+      return new URL(site)
+    } catch {
+      /* a malformed env var must not break every redirect */
+    }
+  }
+
+  const requestUrl = new URL(request.url)
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
+  const proto = request.headers.get('x-forwarded-proto') ?? requestUrl.protocol.replace(/:$/, '')
+  return host ? new URL(`${proto}://${host}`) : requestUrl
+}
+
 export async function readJson<T>(request: Request): Promise<T> {
   try {
     return (await request.json()) as T
