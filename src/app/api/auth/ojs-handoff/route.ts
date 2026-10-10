@@ -27,8 +27,23 @@ export const dynamic = 'force-dynamic'
  * the OJS login form — exactly where the link went before this route existed.
  */
 export async function GET(request: Request) {
-  const base = new URL(request.url)
-  const requested = base.searchParams.get('to') ?? ''
+  const requestUrl = new URL(request.url)
+  const requested = requestUrl.searchParams.get('to') ?? ''
+
+  // request.url cannot be the redirect base: behind nginx the standalone
+  // server reports its own bind address, so relative destinations resolved
+  // against it sent readers to https://localhost:3000. The configured site
+  // URL is authoritative; the proxy's forwarded headers cover local dev,
+  // where NEXT_PUBLIC_SITE_URL is usually unset.
+  let base = requestUrl
+  const site = process.env.NEXT_PUBLIC_SITE_URL
+  if (site) {
+    base = new URL(site)
+  } else {
+    const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
+    const proto = request.headers.get('x-forwarded-proto') ?? requestUrl.protocol.replace(/:$/, '')
+    if (host) base = new URL(`${proto}://${host}`)
+  }
 
   // Relative prefix means OJS shares this origin and can be handed the cookie.
   // An absolute prefix is the cross-origin development layout (localhost portal
