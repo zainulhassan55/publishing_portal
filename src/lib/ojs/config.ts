@@ -46,6 +46,14 @@ export const ojsLoginUrl = ojsUrl('index', '/login')
 export const ojsRegisterUrl = ojsUrl('index', '/user/register')
 export const ojsLostPasswordUrl = ojsUrl('index', '/login/lostPassword')
 
+/**
+ * Routes a click through the session hand-off (/api/auth/ojs-handoff), so a
+ * signed-in portal user lands in OJS already authenticated instead of at its
+ * login form. Harmless when signed out: the route just redirects. Use for
+ * links shown to signed-in users; public pages can keep linking directly.
+ */
+export const ojsHandoffUrl = (target: string) => `/api/auth/ojs-handoff?to=${encodeURIComponent(target)}`
+
 export const ojsJournalUrl = (slug: string) => ojsUrl(slug)
 export const ojsSubmitUrl = (slug: string) => ojsUrl(slug, '/submission/wizard')
 export const ojsJournalRegisterUrl = (slug: string) => ojsUrl(slug, '/user/register')

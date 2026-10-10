@@ -33,7 +33,7 @@ import {
   type JournalOption,
 } from '@/components/submit/types'
 import { ORCID_MESSAGES, authorField, errorMap, orcidState, validateStep } from '@/components/submit/validation'
-import { ojsSubmitUrl } from '@/lib/ojs/config'
+import { ojsHandoffUrl, ojsSubmitUrl } from '@/lib/ojs/config'
 
 type Props = { journals: JournalOption[]; calls: CallOption[]; subjects: string[] }
 
@@ -628,7 +628,7 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
                 already there when in the hand-off case it is not.
               */}
               <a
-                href={done.continueUrl}
+                href={ojsHandoffUrl(done.continueUrl)}
                 style={{
                   background: 'var(--accent,#1D5DA8)',
                   color: '#fff',
