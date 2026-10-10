@@ -32,9 +32,13 @@ const checks = [
   { path: '/about', must: ['NextGenIQ Press'] },
 ]
 
+// `detached` puts npm and the `next start` it spawns into their own process
+// group, so `stop` can kill the group. Killing only the npm wrapper leaves the
+// server alive, which held the CI step open until the 6-hour job timeout.
 const server = spawn('npm', ['run', 'start', '--', '--port', PORT], {
   env: { ...process.env, NODE_ENV: 'production' },
   stdio: ['ignore', 'pipe', 'pipe'],
+  detached: true,
 })
 
 let serverLog = ''
@@ -46,7 +50,11 @@ server.stderr.on('data', (d) => {
 })
 
 const stop = () => {
-  if (!server.killed) server.kill('SIGTERM')
+  try {
+    process.kill(-server.pid, 'SIGTERM')
+  } catch {
+    if (!server.killed) server.kill('SIGTERM')
+  }
 }
 
 process.on('exit', stop)
@@ -121,3 +129,6 @@ if (failures > 0) {
 }
 
 console.log('\nAll server-rendering checks passed.')
+// Explicit exit: the detached server's piped stdio would otherwise keep the
+// event loop alive even after the kill.
+process.exit(0)
