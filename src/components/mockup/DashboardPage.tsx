@@ -3,9 +3,17 @@
 /**
  * Dashboard — verbatim replication of Dashboard.dc.html (see docs/REPLICATION.md).
  * Markup and inline styles are copied from the mockup; the DCLogic renderVals
- * body is ported to React state below. Data comes from the demo fixtures
- * (passed by the server wrapper, gated on demo mode) merged with the signed-in
- * author's real drafts from GET /api/drafts.
+ * body is ported to React state below.
+ *
+ * The only real data is the signed-in author's drafts from GET /api/drafts.
+ * Submissions, status timelines, decision letters and review invitations come
+ * from fixtures the server wrapper passes **only in demo mode**, which is
+ * opt-in — so in production both tabs fall through to their empty states, and
+ * those states link out to OJS rather than implying there is nothing to see.
+ *
+ * Reading real per-user workflow state needs the portal session (Phase 3) for
+ * the author tab. The reviewer tab will keep linking out permanently: OJS 3.5
+ * exposes no reviewer or review-round resource on its REST API.
  */
 
 import Link from 'next/link'
@@ -649,9 +657,15 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
                           )
                         })}
                         {list.length === 0 ? (
+                          // Drafts shown here are the portal's own; anything
+                          // already submitted is tracked in OJS, which the
+                          // portal cannot yet read per-user. Say so rather than
+                          // letting an empty table imply the author has nothing
+                          // in progress.
                           <tr>
-                            <td colSpan={3} style={{ padding: '18px 14px', fontSize: 14, color: 'var(--muted,#505C68)' }}>
-                              No submissions yet.
+                            <td colSpan={3} style={{ padding: '18px 14px', fontSize: 14, color: 'var(--muted,#505C68)', lineHeight: 1.6 }}>
+                              No drafts in progress. <Link href="/submit">Start a submission</Link>, or{' '}
+                              <a href={ojsDashboardUrl('index')}>check submissions already with the editorial system</a>.
                             </td>
                           </tr>
                         ) : null}
@@ -997,6 +1011,54 @@ export function DashboardPage({ journals, demoSubmissions, demoInvitations }: Pr
                     </div>
                   </div>
                 ))}
+                {invites.length === 0 ? (
+                  // Peer review runs in OJS and works; what OJS 3.5 does not
+                  // expose is a reviewer REST resource, so there is nothing for
+                  // the portal to read review state from even once sign-in
+                  // works. This panel is the permanent answer, not a
+                  // placeholder for an unbuilt feature — see
+                  // docs/OJS-INTEGRATION.md.
+                  <div
+                    style={{
+                      background: 'var(--surface,#fff)',
+                      border: '1px solid var(--line,#DCE1E6)',
+                      borderRadius: 3,
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 10,
+                    }}
+                  >
+                    <span style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 600, color: 'var(--ink,#101B27)' }}>
+                      Reviewing happens in the editorial system
+                    </span>
+                    <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-3,#3C4854)', lineHeight: 1.55 }}>
+                      Invitations, manuscripts and review forms are all held there. Open the reviewer workspace for the
+                      journal that invited you — the invitation email links straight to it.
+                    </p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 2 }}>
+                      {journals.map((j) => (
+                        <a
+                          key={j.slug}
+                          href={ojsReviewUrl(j.slug)}
+                          title={j.title}
+                          style={{
+                            border: '1px solid var(--line-strong,#B9C1C9)',
+                            background: 'var(--surface,#fff)',
+                            borderRadius: 3,
+                            padding: '6px 11px',
+                            fontSize: 13,
+                            fontFamily: 'var(--font-mono)',
+                            color: 'var(--ink,#101B27)',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          {j.code}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 <div
                   style={{
                     display: 'flex',

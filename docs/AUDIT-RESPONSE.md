@@ -15,7 +15,7 @@ Three honest categories:
 | # | Finding | Status | Where |
 | --- | --- | --- | --- |
 | F-01 | Client-rendered SPA is invisible to Google Scholar | **Fixed** | Every public route is statically generated. Article pages emit `citation_*` tags server-side (`src/lib/citation-meta.ts`) plus `ScholarlyArticle` JSON-LD (`src/lib/jsonld.ts`). `scripts/check-ssr.mjs` asserts real HTML on every push and fails CI if a route returns a shell. |
-| F-02 | OJS OAI identity is `localhost:8000` | **Open — OJS config** | Not a portal change. `base_url` in `config.inc.php`. Documented in `OJS-INTEGRATION.md` and `RUNBOOK.md` as the thing to fix *before* the first article publishes; afterwards it needs re-registration with every service that already harvested. |
+| F-02 | OJS OAI identity is `localhost:8000` | **Fixed (2026-10-10)** | Fixed via `[oai] repository_id`, **not** `base_url` as originally recorded here. `verb=Identify` now reports `repositoryIdentifier = www.nextgeniqpress.com` and `oai:www.nextgeniqpress.com:article/1`. Closed while the repository still had zero published records, so no harvester had cached the broken identity and no re-registration was needed. `npm run spike` check 0a guards it. |
 | F-03 | Placeholder ISSNs live on all ten journals | **Fixed** | `src/data/issn.ts` is the single registry; empty today, so every surface renders "Applied for". The literal `ISSN Sample` strings are gone from the codebase. Adding a real number is one line. |
 | F-04 | "DOI-ready articles" advertised with no Crossref workflow | **Enabled** | `/indexing` now states the real status of every service instead of implying coverage. DOI fields flow through the harvest, article metadata, citation export and JSON-LD. Remaining: Crossref membership and enabling the OJS DOI plugin. |
 | F-05 | No verified backup or disaster recovery | **Enabled** | `RUNBOOK.md` specifies what is backed up, what deliberately is not, and a quarterly restore drill with a dated results table. The drill is unrun — that table is empty on purpose, because an undated drill is the same as no drill. |
@@ -29,8 +29,8 @@ Three honest categories:
 | F-08 | All unknown URLs return 200, including `/robots.txt` | **Fixed** | Real `robots.ts` and `sitemap.ts`; unknown routes call `notFound()` and return 404. `check-ssr.mjs` asserts the 404 so it cannot regress. |
 | F-09 | No per-page titles, descriptions or social metadata | **Fixed** | Every route exports `metadata`/`generateMetadata` with a distinct title, description and canonical. Article pages add OpenGraph, Dublin Core and Scholar tags. |
 | F-10 | No digital preservation (DOAJ requires it) | **Open — OJS plugin** | PKP Preservation Network plugin. Listed on `/indexing` as in progress rather than claimed. |
-| F-11 | OJS session cookie missing `Secure` | **Partly fixed** | Cookies the portal sets carry `Secure`, `HttpOnly` and `SameSite=Lax` (`src/app/api/auth/sign-in/route.ts`), and HSTS is sent on every response. The OJS-set cookie needs `force_ssl = On` in `config.inc.php`. |
-| F-12 | No article pipeline from OJS to the site | **Fixed** | `scripts/harvest.ts` → `content/harvest.json` → static pages, search index and sitemap. Publishing in OJS no longer needs a developer. A partial harvest exits non-zero so it cannot be deployed. |
+| F-11 | OJS session cookie missing `Secure` | **Fixed (2026-10-10)** | `force_ssl = On` in `config.inc.php`. Verified: `OJSSID` now carries `secure; httponly; samesite=lax`. No redirect loop through the Varnish hop — the vhost already passes `fastcgi_param HTTPS "on"`. `npm run spike` check 0d guards it. |
+| F-12 | No article pipeline from OJS to the site | **Fixed** | `scripts/harvest.ts` → `content/harvest.json` → static pages, search index and sitemap. Publishing in OJS no longer needs a developer. Completeness is now decided against the credential-free OAI-PMH inventory — the run fails when OAI reports more published records than the API returned. It previously counted HTTP failures, which made a missing API key fatal to the whole deploy even though OJS requires a token for *every* API read. Remaining: generate the `portal-service` API key (`api_key_secret` is now set, so keys can be validated). |
 | F-13 | Editorial boards empty, admin account as editor of record | **Fixed in presentation** | Journal pages state plainly that appointments are being confirmed and that the editorial office handles manuscripts meanwhile. No invented names anywhere. The appointments themselves are editorial work. |
 | F-14 | Policy text has two sources of truth; sync tool missing | **Fixed on the portal side** | `src/data/policies.ts` is the single publisher-level source, with that rule written into the file. Journal-level pages are journal-scoped by design, not duplicates. The OJS copies should become links to these pages. |
 | F-15 | No tests, no lint gate, no staging | **Fixed** | `npm run verify` (typecheck + lint + test); CI runs it on every push plus a build, a harvest and the SSR check; `deploy.sh staging` gives a real staging target. 21 unit tests on the pure logic — including the ORCID checksum, which caught an invalid identifier in the fixtures. |
@@ -71,9 +71,28 @@ Three honest categories:
   these are published once a full year of decisions exists.
 - **Fictional content is not shipped.** The article, issue and metrics surfaces
   are fully built and exercised against fixtures behind
-  `NEXT_PUBLIC_DEMO_CONTENT=1`, but production reads the OJS harvest, which is
+  `NEXT_PUBLIC_DEMO_CONTENT=1`; production reads the OJS harvest, which is
   empty. Publishing invented articles would be the same class of credibility
   failure as F-03.
-- **The reviewer workspace and revision flow** (Phase 4) are not built. They
-  depend on OJS REST endpoints whose behaviour the auth spike has not yet
-  settled, and scoping them before that would be guessing.
+
+  This claim was false when written. The flag was `!== '0'`, so fixtures were
+  **on** unless an environment explicitly opted out, and `.env.example` set `1`.
+  Any deploy that simply omitted the variable would have published invented
+  articles. It is now `=== '1'` — opt-in — so the failure mode is an empty site
+  rather than a fictional one. CI builds without the flag and greps the output
+  for a fixture title, which is what makes the claim checkable rather than
+  aspirational.
+- **A portal-native reviewer workspace** is not built and **cannot be**: OJS
+  3.5.0.5 exposes no reviewer resource on its REST API. `reviews`,
+  `reviewAssignments` and `submissions/{id}/reviewRounds` all answer "route
+  could not be found" (probed; `npm run spike` check 1 asserts it).
+
+  To be unambiguous: **peer review works.** Reviewer assignment, review rounds,
+  blinding, review forms, reminders and editorial decisions are all OJS features
+  and all function normally. What is absent is the API to read that state from
+  outside, so reviewers do their work in OJS's own interface and the portal
+  links to it at `{journal}/dashboard/reviewAssignments` rather than
+  reimplementing it.
+
+  This was previously recorded as blocked on the auth spike, which was the wrong
+  diagnosis — no session would have unblocked an API that does not exist.

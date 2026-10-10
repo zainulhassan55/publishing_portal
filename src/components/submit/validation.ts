@@ -11,7 +11,7 @@
 
 import { wordCount } from '@/lib/format'
 import { isDoi, isEmail, isOrcid } from '@/lib/validate'
-import { REQUIRED_FILE_KINDS, TOTAL_STEPS, articleTypeSpec, type DraftState } from './types'
+import { TOTAL_STEPS, articleTypeSpec, type DraftState } from './types'
 
 export type StepError = { field: string; message: string }
 
@@ -143,17 +143,23 @@ function validateAuthors({ draft }: DraftState): StepError[] {
   return errors
 }
 
+/**
+ * The file step is a readiness checklist, not a gate.
+ *
+ * The portal records file *metadata* and never receives the bytes — manuscripts
+ * are attached in OJS, which is the system that stores them and the only place
+ * the requirement can actually be enforced. Blocking the step on a manifest
+ * nothing downstream reads made the author do work that was then discarded,
+ * which is the same defect class as the dead controls in audit finding F-18.
+ *
+ * So: still require a kind on any file the author chose to list, because an
+ * unlabelled entry makes the checklist useless. Do not require that files be
+ * listed at all, or that particular kinds appear — StepFiles shows those as
+ * advisory ✓/! indicators so the author knows what to have to hand, and OJS
+ * will refuse the submission without them.
+ */
 function validateFiles({ files }: DraftState): StepError[] {
   const errors: StepError[] = []
-
-  if (files.length === 0) {
-    return [{ field: 'f-files', message: 'Add the manuscript files you are submitting' }]
-  }
-
-  const kinds = files.map((file) => file.kind)
-  REQUIRED_FILE_KINDS.forEach((kind) => {
-    if (!kinds.includes(kind)) errors.push({ field: 'f-files', message: `Add a file of type “${kind}”` })
-  })
 
   files.forEach((file, index) => {
     if (!file.kind) errors.push({ field: fileField(index), message: `Choose a file type for ${file.name}` })

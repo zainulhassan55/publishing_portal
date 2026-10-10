@@ -15,6 +15,13 @@
 #   - keeps the previous releases so a rollback is one symlink flip,
 #   - and never touches any path outside $RELEASES_DIR.
 #
+# Paths match the CloudPanel site user (`nextgeniqpress`, home
+# /home/nextgeniqpress). The portal sits at ~/portal, outside
+# htdocs/www.nextgeniqpress.com, so nginx can never serve the application
+# source as static files. Override with DEPLOY_APP_DIR if the layout differs —
+# and check with `id nextgeniqpress` before the first deploy, because a wrong
+# user here fails late and confusingly.
+#
 # Usage:  ./scripts/deploy.sh staging|production
 set -euo pipefail
 
@@ -23,12 +30,12 @@ TARGET="${1:-}"
 case "$TARGET" in
   staging)
     SSH_HOST="${DEPLOY_STAGING_HOST:?DEPLOY_STAGING_HOST is not set}"
-    APP_DIR="/home/nextgeniq/staging"
+    APP_DIR="${DEPLOY_APP_DIR:-/home/nextgeniqpress/staging}"
     SERVICE="ngiq-portal-staging"
     ;;
   production)
     SSH_HOST="${DEPLOY_PRODUCTION_HOST:?DEPLOY_PRODUCTION_HOST is not set}"
-    APP_DIR="/home/nextgeniq/portal"
+    APP_DIR="${DEPLOY_APP_DIR:-/home/nextgeniqpress/portal}"
     SERVICE="ngiq-portal"
     ;;
   *)
@@ -82,12 +89,32 @@ echo "==> Activating"
 ssh "$SSH_HOST" bash -s <<REMOTE
 set -euo pipefail
 
+# Restart through whichever supervisor this host actually has.
+#
+# A managed-hosting site user typically cannot use systemd — on CloudPanel,
+# \`sudo -l\` for the site user permits only /usr/bin/clpctlWrapper, so
+# \`systemctl\` is unavailable and the process is supervised by PM2 from the
+# user's own home instead. Detecting it here keeps one deploy path for both
+# layouts rather than a second, drifting script.
+restart_app() {
+  if sudo -n systemctl restart '$SERVICE' 2>/dev/null; then
+    echo "restarted via systemd"
+  elif command -v pm2 >/dev/null 2>&1; then
+    pm2 restart '$SERVICE' --update-env >/dev/null
+    echo "restarted via pm2"
+  else
+    echo "No usable supervisor: systemd needs root and pm2 is not installed." >&2
+    echo "See the Plan B appendix in docs/GO-LIVE.md." >&2
+    return 1
+  fi
+}
+
 # Symlink swap via a temporary name and mv, so there is no instant where
 # 'current' does not exist.
 ln -sfn '$RELEASES_DIR/$RELEASE' '$CURRENT_LINK.new'
 mv -Tf '$CURRENT_LINK.new' '$CURRENT_LINK'
 
-sudo systemctl restart '$SERVICE'
+restart_app
 
 # Health gate: if the new release does not answer, roll straight back.
 for i in \$(seq 1 30); do
@@ -103,7 +130,7 @@ PREVIOUS=\$(ls -1dt '$RELEASES_DIR'/*/ | sed -n 2p)
 if [ -n "\$PREVIOUS" ]; then
   ln -sfn "\${PREVIOUS%/}" '$CURRENT_LINK.new'
   mv -Tf '$CURRENT_LINK.new' '$CURRENT_LINK'
-  sudo systemctl restart '$SERVICE'
+  restart_app
   echo "Rolled back to \$PREVIOUS" >&2
 fi
 exit 1

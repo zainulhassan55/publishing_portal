@@ -1,91 +1,42 @@
 import { NextResponse } from 'next/server'
-import { OJS_SESSION_COOKIE, getSession } from '@/lib/auth/session'
-import { ojsBaseUrl, requireOjsBaseUrl } from '@/lib/ojs/config'
 
 export const dynamic = 'force-dynamic'
 
-type Body = { email?: string; password?: string }
-
 /**
- * Signs in against OJS and adopts its session cookie.
+ * In-portal sign-in — not implemented, and reports that honestly.
  *
- * OJS exposes no login API, so this posts to its web login handler and relays
- * the Set-Cookie it issues. That is the undocumented part of the integration
- * and the reason docs/OJS-INTEGRATION.md gates Phase 3 on a spike: OJS may
- * require a CSRF token on the login form, and its response on success is a
- * redirect whose shape can change between releases.
+ * OJS exposes no login API, so signing in from the portal means driving its web
+ * login handler server-side. That is the one genuinely undocumented part of the
+ * integration, and three separate things have to hold before it can work:
  *
- * Until the spike confirms this path, the UI keeps the OJS login page as a
- * visible fallback, and this route reports `unavailable` rather than guessing.
+ *   1. The relay itself: fetch the login page for a CSRF token and an anonymous
+ *      session, POST the credentials carrying both, and take the rotated
+ *      session id OJS issues on success.
+ *   2. Identity resolution. There is no `/api/v1/users/me` in OJS 3.5, so the
+ *      resulting session has to be confirmed against the OJS profile page.
+ *   3. A portal-owned session store, because the OJS cookie is scoped
+ *      `path=/ojs/` and cannot be read by portal routes — and re-issuing a copy
+ *      at `path=/` (what this route used to do) leaves two cookies of the same
+ *      name whose precedence is browser-dependent.
+ *
+ * The previous implementation did (1) and part of (3) and could never return
+ * success: it set the cookie on its own response and then read the *request*
+ * cookie store back to verify, which the browser had never populated.
+ *
+ * `npm run spike` check 3 is the gate for building the real thing. Until then
+ * the sign-in page links out to OJS, which always works, and this route returns
+ * 503 so the UI shows that fallback rather than a credential error that would
+ * wrongly suggest the password was wrong.
+ *
+ * See docs/OJS-INTEGRATION.md.
  */
-export async function POST(request: Request) {
-  if (!ojsBaseUrl) {
-    return NextResponse.json(
-      { ok: false, error: 'unavailable', message: 'OJS_BASE_URL is not configured on the server.' },
-      { status: 503 },
-    )
-  }
-
-  let body: Body
-  try {
-    body = (await request.json()) as Body
-  } catch {
-    return NextResponse.json({ ok: false, error: 'bad-request' }, { status: 400 })
-  }
-
-  const email = body.email?.trim()
-  const password = body.password
-
-  if (!email || !password) {
-    return NextResponse.json({ ok: false, error: 'missing-credentials' }, { status: 400 })
-  }
-
-  const form = new URLSearchParams({ username: email, password, remember: '0' })
-
-  let upstream: Response
-  try {
-    upstream = await fetch(`${requireOjsBaseUrl()}/index.php/index/login/signIn`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'text/html',
-      },
-      body: form,
-      redirect: 'manual',
-      cache: 'no-store',
-    })
-  } catch {
-    return NextResponse.json({ ok: false, error: 'ojs-unreachable' }, { status: 502 })
-  }
-
-  // OJS redirects on success and re-renders the form with an error on failure.
-  const setCookie = upstream.headers.getSetCookie?.() ?? []
-  const sessionCookie = setCookie.find((c) => c.startsWith(`${OJS_SESSION_COOKIE}=`))
-  const redirected = upstream.status >= 300 && upstream.status < 400
-
-  if (!redirected || !sessionCookie) {
-    return NextResponse.json({ ok: false, error: 'invalid-credentials' }, { status: 401 })
-  }
-
-  const sid = sessionCookie.split(';')[0].split('=')[1]
-
-  const response = NextResponse.json({ ok: true })
-  response.cookies.set({
-    name: OJS_SESSION_COOKIE,
-    value: sid,
-    httpOnly: true,
-    // Audit finding F-11: the OJS session cookie shipped without Secure.
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-  })
-
-  // Confirm the adopted session actually resolves to a user before reporting
-  // success, so a cookie that OJS will reject never looks like a sign-in.
-  const session = await getSession()
-  if (!session.user) {
-    return NextResponse.json({ ok: false, error: 'session-not-accepted' }, { status: 502 })
-  }
-
-  return response
+export async function POST() {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: 'unavailable',
+      message: 'Sign in through the journal system. Accounts are managed in OJS.',
+    },
+    { status: 503, headers: { 'Cache-Control': 'no-store' } },
+  )
 }

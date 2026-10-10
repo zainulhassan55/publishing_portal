@@ -33,6 +33,7 @@ import {
   type JournalOption,
 } from '@/components/submit/types'
 import { ORCID_MESSAGES, authorField, errorMap, orcidState, validateStep } from '@/components/submit/validation'
+import { ojsSubmitUrl } from '@/lib/ojs/config'
 
 type Props = { journals: JournalOption[]; calls: CallOption[]; subjects: string[] }
 
@@ -127,7 +128,7 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
   const [done, setDone] = useState<DoneState | null>(null)
   const [drag, setDrag] = useState(false)
   const [draftId, setDraftId] = useState<number | null>(null)
-  const [submitNote, setSubmitNote] = useState<'sign-in' | 'error' | null>(null)
+  const [submitNote, setSubmitNote] = useState<'error' | null>(null)
   const [rorSuggest, setRorSuggest] = useState<Record<string, RorItem[]>>({})
 
   const uid = useRef(1)
@@ -342,8 +343,13 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
         if (all[0] !== 7) go(all[0])
         return
       }
+      // Signed out, which is every author until the portal session lands: hand
+      // straight off to the OJS wizard for the chosen journal. Prompting for
+      // sign-in here would be a dead end — the portal cannot resolve a session
+      // yet, so /sign-in links out to OJS and the author would arrive back
+      // still anonymous, with no way through.
       if (!user) {
-        setSubmitNote('sign-in')
+        setDone({ mode: 'handoff', continueUrl: ojsSubmitUrl(draft.journalSlug || 'index') })
         window.scrollTo(0, 0)
         return
       }
@@ -747,24 +753,6 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
                     <li key={e}>{e}</li>
                   ))}
                 </ul>
-              </div>
-            ) : null}
-            {submitNote === 'sign-in' ? (
-              <div
-                role="alert"
-                style={{
-                  border: '1px solid #EBCB98',
-                  background: '#FDF1DE',
-                  borderRadius: 3,
-                  padding: '12px 16px',
-                  marginBottom: 22,
-                  fontSize: 14,
-                  color: '#8A5300',
-                  lineHeight: 1.5,
-                }}
-              >
-                <Link href="/sign-in?next=/submit">Sign in</Link> to save your draft and submit the manuscript. Everything you have
-                entered stays on this page until you do.
               </div>
             ) : null}
             {submitNote === 'error' ? (
@@ -1503,8 +1491,8 @@ export function SubmitWizard({ journals, calls, subjects }: Props) {
                   />
                 </label>
                 <p style={{ margin: 0, fontSize: 13, color: 'var(--muted,#505C68)', lineHeight: 1.5 }}>
-                  Your files are listed here as part of the draft — nothing is uploaded yet. The files themselves are attached in the
-                  editorial system at final submission, so keep them to hand.
+                  This is a checklist, not an upload: listing a file here records what you intend to attach. You will attach the
+                  files themselves in the editorial system at the final step, so keep them to hand.
                 </p>
                 {(
                   [

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Nightly offsite backup. Run from cron on the VPS:
-#   15 2 * * * /home/nextgeniq/portal/current/scripts/backup.sh >> /var/log/ngiq-backup.log 2>&1
+#   15 2 * * * /home/nextgeniqpress/portal/current/scripts/backup.sh >> /var/log/ngiq-backup.log 2>&1
 #
 # Audit finding F-05: everything — accounts, submissions, peer reviews,
 # manuscript files — sat on one MySQL instance on one VPS, with manual weekly
@@ -25,9 +25,34 @@ set -euo pipefail
 : "${B2_BUCKET:?B2_BUCKET is not set}"
 : "${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is not set}"
 
-OJS_FILES_DIR="${OJS_FILES_DIR:-/home/nextgeniq/ojs-files}"
-OJS_CONFIG="${OJS_CONFIG:-/home/nextgeniq/ojs/config.inc.php}"
+# CloudPanel layout: the site user is `nextgeniqpress` and the document root is
+# ~/htdocs/www.nextgeniqpress.com, so OJS and its config sit under there.
+#
+# OJS_FILES_DIR must be the `files_dir` from config.inc.php — confirm it rather
+# than trusting this default. It holds the manuscripts themselves, so backing up
+# the wrong path means backing up no submissions while appearing to succeed:
+#   grep files_dir "$OJS_CONFIG"
+SITE_ROOT="${SITE_ROOT:-/home/nextgeniqpress/htdocs/www.nextgeniqpress.com}"
+OJS_CONFIG="${OJS_CONFIG:-$SITE_ROOT/ojs/config.inc.php}"
+# Confirmed on the server: ~/ojs_files (underscore), a sibling of htdocs, not
+# ojs-files and not inside the document root. Being outside htdocs is correct —
+# manuscripts must never be reachable over HTTP.
+OJS_FILES_DIR="${OJS_FILES_DIR:-/home/nextgeniqpress/ojs_files}"
 RETAIN_DAYS="${RETAIN_DAYS:-30}"
+
+if [ ! -f "$OJS_CONFIG" ]; then
+  echo "OJS_CONFIG does not exist: $OJS_CONFIG" >&2
+  echo "Set SITE_ROOT or OJS_CONFIG. Refusing to run a backup that would silently" >&2
+  echo "omit the OJS configuration." >&2
+  exit 1
+fi
+
+if [ ! -d "$OJS_FILES_DIR" ]; then
+  echo "OJS_FILES_DIR does not exist: $OJS_FILES_DIR" >&2
+  echo "Find the real path with: grep files_dir '$OJS_CONFIG'" >&2
+  echo "Refusing to run a backup that would contain no manuscripts." >&2
+  exit 1
+fi
 
 STAMP="$(date -u +%Y-%m-%dT%H%M%SZ)"
 WORK="$(mktemp -d)"

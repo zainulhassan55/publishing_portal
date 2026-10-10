@@ -11,12 +11,23 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
+/**
+ * In-portal credential sign-in is off until the OJS login relay is built and
+ * verified (`npm run spike` check 3). While it is off the page leads with the
+ * link out to OJS instead of a form that can only fail.
+ *
+ * Read here rather than in the client component because the flag is a server
+ * concern — it must not become NEXT_PUBLIC_, which would make it a build-time
+ * constant baked into the bundle.
+ */
+const nativeSignIn = process.env.PORTAL_NATIVE_SIGNIN === '1'
+
 export default function Page() {
   return (
     // SignInPage reads ?next= with useSearchParams, which needs a boundary
     // for the route itself to stay statically rendered.
     <Suspense fallback={null}>
-      <SignInPage />
+      <SignInPage nativeSignIn={nativeSignIn} />
     </Suspense>
   )
 }

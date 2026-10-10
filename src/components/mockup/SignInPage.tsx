@@ -7,8 +7,14 @@
  * - the form posts to POST /api/auth/sign-in — never localStorage;
  * - 200 → refresh the session and follow ?next= (same-origin paths only);
  * - 401 → the mockup's inline error style; 503 → OJS login link; 429 → retry;
- * - "Sign in with ORCID" / "Create an account" / "Forgot password?" go to the
- *   editorial system (OJS), which owns registration and password recovery.
+ * - "Create an account" / "Forgot password?" go to the editorial system (OJS),
+ *   which owns registration and password recovery.
+ *
+ * `nativeSignIn` reflects PORTAL_NATIVE_SIGNIN. While it is false the credential
+ * form is not rendered at all and the page leads with the link out to OJS: the
+ * endpoint returns 503 unconditionally, and showing a form that cannot succeed
+ * invites people to conclude their password is wrong. It is a prop rather than
+ * a client-side env read so the flag stays server-side.
  */
 
 import Link from 'next/link'
@@ -27,7 +33,7 @@ const safeNext = (value: string | null): string => {
 
 type Failure = 'credentials' | 'unavailable' | 'rate-limited' | 'generic'
 
-export function SignInPage() {
+export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean }) {
   const router = useRouter()
   const params = useSearchParams()
   const { refresh } = useSession()
@@ -76,13 +82,17 @@ export function SignInPage() {
         <section style={{ padding: '36px 40px', borderRight: '1px solid var(--line,#DCE1E6)', display: 'flex', flexDirection: 'column', gap: 18 }}>
           <h1 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Sign in</h1>
           <p style={{ margin: '-8px 0 0', fontSize: 14, color: 'var(--ink-3,#3C4854)', lineHeight: 1.5 }}>One account for submitting, reviewing and tracking manuscripts across all NextGenIQ Press journals.</p>
-          <a href={ojsLoginUrl} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 3, padding: 10, fontSize: 14, fontWeight: 500, color: 'var(--ink,#101B27)', textDecoration: 'none' }}>
-            <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#5A8A1F', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>iD</span>Sign in with ORCID
-          </a>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: 'var(--muted,#505C68)' }}>
-            <span style={{ flex: 1, height: 1, background: 'var(--line,#DCE1E6)' }}></span>or with email<span style={{ flex: 1, height: 1, background: 'var(--line,#DCE1E6)' }}></span>
+          {!nativeSignIn ? (
+            <>
+              <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-3,#3C4854)', lineHeight: 1.55 }}>Accounts are held in the editorial system, which is where signing in, registration and password recovery all happen.</p>
+              <a href={ojsLoginUrl} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, border: 0, background: 'var(--accent-dark,#0A685C)', color: '#fff', borderRadius: 3, padding: 11, fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>Continue to the editorial system</a>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--muted,#505C68)', lineHeight: 1.55 }}>You will return here to browse journals and articles. <a href={ojsLostPasswordUrl}>Forgot your password?</a></p>
+            </>
+          ) : null}
+          <div hidden={!nativeSignIn} style={{ display: nativeSignIn ? 'flex' : 'none', alignItems: 'center', gap: 12, fontSize: 12, color: 'var(--muted,#505C68)' }}>
+            <span style={{ flex: 1, height: 1, background: 'var(--line,#DCE1E6)' }}></span>sign in with email<span style={{ flex: 1, height: 1, background: 'var(--line,#DCE1E6)' }}></span>
           </div>
-          <form onSubmit={onSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <form onSubmit={onSubmit} noValidate hidden={!nativeSignIn} style={{ display: nativeSignIn ? 'flex' : 'none', flexDirection: 'column', gap: 14 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <label htmlFor="si-email" style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink,#101B27)' }}>Email address</label>
               <input id="si-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={eBad ? 'true' : 'false'} style={{ font: 'inherit', fontSize: 14, padding: '9px 12px', border: `1px solid ${eBad ? '#A52A2A' : 'var(--line-strong,#B9C1C9)'}`, borderRadius: 3 }} />
@@ -101,7 +111,7 @@ export function SignInPage() {
                 {failure === 'credentials' ? (
                   <>That email address and password do not match an account. Check both and try again.</>
                 ) : failure === 'unavailable' ? (
-                  <>Signing in through the portal is temporarily unavailable. <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>Sign in on the editorial system instead</a>.</>
+                  <>Signing in from the portal is not available. <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>Sign in on the editorial system instead</a> — your account works there.</>
                 ) : failure === 'rate-limited' ? (
                   <>Too many sign-in attempts. Wait a few minutes and try again.</>
                 ) : (

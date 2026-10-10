@@ -42,9 +42,9 @@ symlink, restarts the service, and **rolls back automatically** if
 Rollback by hand:
 
 ```bash
-ssh $HOST 'ls -1dt /home/nextgeniq/portal/releases/*/'   # pick one
-ssh $HOST 'ln -sfn <release> /home/nextgeniq/portal/current.new && \
-           mv -Tf /home/nextgeniq/portal/current.new /home/nextgeniq/portal/current && \
+ssh $HOST 'ls -1dt /home/nextgeniqpress/portal/releases/*/'   # pick one
+ssh $HOST 'ln -sfn <release> /home/nextgeniqpress/portal/current.new && \
+           mv -Tf /home/nextgeniqpress/portal/current.new /home/nextgeniqpress/portal/current && \
            sudo systemctl restart ngiq-portal'
 ```
 
@@ -55,17 +55,38 @@ back. **Nothing in the deploy path may ever touch a path outside
 `releases/`.** The old process was one mis-click away from destroying the
 editorial system.
 
-## Publishing an article (no developer required)
+## Publishing an article
 
-1. Publish it in OJS as normal.
-2. The harvest cron picks it up within the hour, or force it:
-   `cd /home/nextgeniq/portal/current && npm run harvest`
-3. The article page, its journal's listing, the issue TOC, the search index and
-   the sitemap all pick it up on the next revalidation.
+**Today this needs a redeploy.** The section below described an hourly cron and
+an on-server `npm run harvest`; neither works yet, and the steps are kept here
+only so the gap is not rediscovered the hard way:
 
-If a published article is not appearing, check in this order: is it
-`status=3` (published) in OJS; did the last harvest exit zero
-(`/api/health` reports `harvest.at` and counts); did the revalidation run.
+- `deploy.sh` stages the standalone output, `.next/static`, `public` and
+  `content` — **not `scripts/`** — so `npm run harvest` on the server cannot
+  find `scripts/harvest.ts`.
+- `readHarvest()` caches the snapshot per process, so rewriting
+  `content/harvest.json` under a running server has no effect until restart.
+- Listing pages, the search index and the sitemap are built statically with no
+  `revalidate`, so they would not show a new article even with a fresh
+  snapshot. Only `/articles/[slug]` (`dynamicParams = true`) renders on demand.
+
+### The working procedure
+
+1. Publish it in OJS as normal (`status=3`).
+2. Redeploy: `./scripts/deploy.sh production`. The script harvests immediately
+   before building, so the new article is included.
+3. Confirm with `/api/health` — `harvest.articles` should have incremented and
+   `harvest.ageHours` should be near zero.
+
+### Making it developer-free (Phase 2)
+
+Add `scripts/` to the deploy stage, restart the unit after a successful harvest,
+and set a `revalidate` on the listing pages. Gated on `OJS_API_KEY` existing,
+which needs `api_key_secret` set in OJS — see `docs/GO-LIVE.md` step 1.
+
+If a published article is not appearing, check in this order: is it `status=3`
+in OJS; did the last harvest exit zero (`/api/health` reports `harvest.at`,
+counts and `ageHours`); was there a deploy after it was published.
 
 ## Backups and restore
 
@@ -152,9 +173,12 @@ browser bundle.
   version outside the supported matrix with no pin at all.
 - **The OJS theme.** Until `dmpedia` is committed to this repo (F-16) it exists
   only as files on the server, and a rebuild loses it with no recovery path.
-- **OAI identity.** If `base_url` in `config.inc.php` is still a development
-  value, harvesters cache a broken repository identity (F-02). Fix it before the
-  first article is published; afterwards it requires re-registration with every
-  service that already harvested.
+- **OAI identity.** `[oai] repository_id` in `config.inc.php` — **not
+  `base_url`**, which is already correct and which this note previously blamed.
+  It is still `localhost:8000`, so records are advertised as
+  `oai:localhost:8000:article/1` and every harvester that reads one caches a
+  broken permanent identity (F-02). Fix it before the first article is
+  published; afterwards it requires re-registration with every service that
+  already harvested. `npm run spike` check 0a asserts it.
 - **ISSNs.** `src/data/issn.ts` is empty and every surface shows "Applied for".
   Add numbers only once assigned. An invented ISSN is checkable, and it fails.

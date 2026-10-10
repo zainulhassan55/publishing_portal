@@ -64,7 +64,13 @@ export const FILE_KINDS = [
 
 export type DraftFileKind = (typeof FILE_KINDS)[number]
 
-/** The two kinds the technical check rejects a submission for missing. */
+/**
+ * The two kinds the technical check rejects a submission for missing.
+ *
+ * Advisory in the portal: StepFiles shows them as a readiness checklist so the
+ * author knows what to have to hand, but the portal never receives the files
+ * and so cannot enforce the requirement. OJS does, at the point of attachment.
+ */
 export const REQUIRED_FILE_KINDS: DraftFileKind[] = ['Anonymised manuscript', 'Title page']
 
 /**
@@ -125,9 +131,15 @@ export type DraftAuthor = {
 }
 
 /**
- * File *metadata* only. There is no upload endpoint in the portal yet, so the
- * bytes are never sent anywhere — the draft records what the author intends to
- * attach and the UI says so plainly. See the note in StepFiles.
+ * File *metadata* only — and this is the permanent design, not a gap.
+ *
+ * The bytes are never sent anywhere: the draft records what the author intends
+ * to attach, and the files themselves are uploaded in OJS, which owns them.
+ * Relaying manuscripts through the portal would put unscreened, sometimes
+ * embargoed research data in a second location, inheriting backup, retention
+ * and disclosure obligations for a copy nothing needs.
+ *
+ * See docs/OJS-INTEGRATION.md and the note in StepFiles.
  */
 export type DraftFile = {
   id: string

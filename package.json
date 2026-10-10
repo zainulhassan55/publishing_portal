@@ -14,6 +14,7 @@
     "test": "node --test --experimental-strip-types src/lib/*.test.ts",
     "harvest": "node --experimental-strip-types scripts/harvest.ts",
     "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
+    "spike": "node --experimental-strip-types scripts/ojs-spike.ts",
     "verify": "npm run typecheck && npm run lint && npm run test"
   },
   "dependencies": {

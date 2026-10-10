@@ -10,14 +10,28 @@
  *
  *   OJS_BASE_URL=https://www.nextgeniqpress.com/ojs OJS_API_KEY=… npm run harvest
  *
- * Reads go through the REST API with an admin-scoped key rather than OAI-PMH
- * because the API returns the full galley, author and section detail the
- * article page needs; OAI-PMH Dublin Core would lose the affiliations, ORCIDs
- * and CRediT roles.
+ * Two passes, because the two OJS read paths fail in different ways:
+ *
+ *   1. OAI-PMH inventory — needs no credentials and is authoritative on *what
+ *      exists*. This is the oracle: if OAI lists N published records, N is the
+ *      truth, whatever the API says.
+ *   2. REST enrichment — needs an API key and is authoritative on *detail*.
+ *      OAI's Dublin Core would lose the affiliations, ORCIDs and CRediT roles
+ *      the article page and the Scholar citation tags need.
+ *
+ * The run fails only when the two **disagree** — OAI says records exist and the
+ * API returned fewer. That is the real partial-harvest signal. Previously any
+ * HTTP failure was fatal, which meant a missing or unusable API key took the
+ * whole deploy down (scripts/deploy.sh runs this before `next build` under
+ * `set -e`), even though an unauthenticated OJS is a configuration state and
+ * not a reason to refuse to publish the site.
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { loadLocalEnv } from './env.ts'
+
+loadLocalEnv()
 
 const here = dirname(fileURLToPath(import.meta.url))
 const outPath = join(here, '..', 'content', 'harvest.json')
@@ -44,6 +58,9 @@ const slugify = (title: string) =>
     .replace(/\s+/g, '-')
     .slice(0, 80)
 
+/** Set once the API answers 401/403, so 20 journals log one diagnosis, not 20. */
+let apiUnauthorised = false
+
 async function ojsGet<T>(context: string, path: string): Promise<T | null> {
   const url = `${baseUrl}/index.php/${context}/api/v1${path}`
   try {
@@ -51,7 +68,8 @@ async function ojsGet<T>(context: string, path: string): Promise<T | null> {
       headers: { Accept: 'application/json', ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}) },
     })
     if (!response.ok) {
-      console.warn(`  ${context}${path} → HTTP ${response.status}`)
+      if (response.status === 401 || response.status === 403) apiUnauthorised = true
+      else console.warn(`  ${context}${path} → HTTP ${response.status}`)
       return null
     }
     return (await response.json()) as T
@@ -59,6 +77,60 @@ async function ojsGet<T>(context: string, path: string): Promise<T | null> {
     console.warn(`  ${context}${path} → ${error instanceof Error ? error.message : 'failed'}`)
     return null
   }
+}
+
+/**
+ * OAI-PMH inventory: how many published records OJS says each journal has.
+ *
+ * Credential-free, so this works even when the REST API is locked out, and it
+ * is what turns "the API returned nothing" into a decidable question — no
+ * records at all, or records the API would not hand over.
+ *
+ * Returns null if OAI itself is unreachable, which is the one case where
+ * nothing can be concluded.
+ */
+async function oaiInventory(): Promise<Map<string, number> | null> {
+  const counts = new Map<string, number>(JOURNAL_SLUGS.map((slug) => [slug, 0]))
+  let resumptionToken: string | null = null
+  let pages = 0
+
+  do {
+    const url = resumptionToken
+      ? `${baseUrl}/index.php/index/oai?verb=ListIdentifiers&resumptionToken=${encodeURIComponent(resumptionToken)}`
+      : `${baseUrl}/index.php/index/oai?verb=ListIdentifiers&metadataPrefix=oai_dc`
+
+    let xml: string
+    try {
+      const response = await fetch(url, { headers: { Accept: 'application/xml' } })
+      xml = await response.text()
+    } catch (error) {
+      console.warn(`  OAI inventory → ${error instanceof Error ? error.message : 'failed'}`)
+      return null
+    }
+
+    // An empty repository is a valid answer, not an error.
+    if (/<error code="noRecordsMatch"/.test(xml)) return counts
+
+    if (/<error code=/.test(xml)) {
+      console.warn(`  OAI inventory → ${xml.match(/<error code="([^"]*)"/)?.[1] ?? 'error'}`)
+      return null
+    }
+
+    // Each <header> carries one <setSpec> per journal (plus section-level
+    // setSpecs like `ijdh:ART`, which the slug check below ignores).
+    for (const header of xml.match(/<header[^>]*>[\s\S]*?<\/header>/g) ?? []) {
+      if (/status="deleted"/.test(header)) continue
+      for (const spec of header.match(/<setSpec>([^<]*)<\/setSpec>/g) ?? []) {
+        const slug = spec.replace(/<\/?setSpec>/g, '')
+        if (counts.has(slug)) counts.set(slug, (counts.get(slug) ?? 0) + 1)
+      }
+    }
+
+    resumptionToken = xml.match(/<resumptionToken[^>]*>([^<]+)<\/resumptionToken>/)?.[1] ?? null
+    pages += 1
+  } while (resumptionToken && pages < 100)
+
+  return counts
 }
 
 type OjsAuthor = {
@@ -114,13 +186,23 @@ if (!baseUrl) {
 
 const articles: Record<string, unknown>[] = []
 const issues: Record<string, unknown>[] = []
-let failures = 0
 
+// Pass 1: what OJS says exists, before asking for any detail.
+console.log('taking the OAI inventory…')
+const inventory = await oaiInventory()
+const expectedTotal = inventory ? [...inventory.values()].reduce((sum, n) => sum + n, 0) : null
+
+if (inventory) {
+  console.log(`  OAI reports ${expectedTotal} published record(s) across ${JOURNAL_SLUGS.length} journal(s)\n`)
+} else {
+  console.log('  OAI inventory unavailable — cannot verify completeness this run\n')
+}
+
+// Pass 2: detail for each record, from the REST API.
 for (const slug of JOURNAL_SLUGS) {
   console.log(`harvesting ${slug}…`)
 
   const issueResult = await ojsGet<{ items?: OjsIssue[] }>(slug, '/issues?count=100')
-  if (issueResult === null) failures += 1
 
   const issueById = new Map<number, OjsIssue>()
   for (const issue of issueResult?.items ?? []) {
@@ -139,10 +221,7 @@ for (const slug of JOURNAL_SLUGS) {
 
   // status 3 is STATUS_PUBLISHED in OJS; anything else is not public.
   const submissionResult = await ojsGet<{ items?: OjsSubmission[] }>(slug, '/submissions?status=3&count=100')
-  if (submissionResult === null) {
-    failures += 1
-    continue
-  }
+  if (submissionResult === null) continue
 
   for (const submission of submissionResult.items ?? []) {
     const publication =
@@ -212,9 +291,33 @@ writeFileSync(
 
 console.log(`\nwrote ${articles.length} article(s) and ${issues.length} issue(s) to content/harvest.json`)
 
+if (apiUnauthorised) {
+  console.warn('\nThe OJS REST API rejected this run as unauthorised.')
+  console.warn(
+    apiKey
+      ? '  OJS_API_KEY is set but was refused. Check the key, and that api_key_secret'
+      : '  OJS_API_KEY is not set. Generate one for a service user, and check that api_key_secret',
+  )
+  console.warn('  is configured in config.inc.php — without it OJS cannot validate any token.')
+  console.warn('  Run `npm run spike` for a precise diagnosis.')
+}
+
 // A partial harvest must not silently become the published site: a journal that
-// errored would look like a journal with no articles.
-if (failures > 0) {
-  console.error(`\n${failures} OJS request(s) failed. The snapshot is incomplete — do not deploy it.`)
+// errored would look like a journal with no articles. But "incomplete" is only
+// decidable against the OAI inventory — counting HTTP failures made a missing
+// API key fatal to the deploy, which is a configuration state, not a reason to
+// refuse to publish.
+if (expectedTotal !== null && articles.length < expectedTotal) {
+  console.error(`\nOAI reports ${expectedTotal} published record(s) but only ${articles.length} were harvested.`)
+  console.error('The snapshot is incomplete — do not deploy it.')
+  for (const [slug, expected] of inventory ?? []) {
+    const got = articles.filter((a) => a.journalSlug === slug).length
+    if (got < expected) console.error(`  ${slug}: expected ${expected}, got ${got}`)
+  }
   process.exit(1)
+}
+
+if (expectedTotal === 0) {
+  console.log('\nOJS has no published records yet. An empty snapshot is the correct result;')
+  console.log('every listing page renders its launch-state copy from it.')
 }

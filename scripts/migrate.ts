@@ -11,6 +11,9 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import mysql from 'mysql2/promise'
+import { loadLocalEnv } from './env.ts'
+
+loadLocalEnv()
 
 const here = dirname(fileURLToPath(import.meta.url))
 const migrationsDir = join(here, '..', 'migrations')

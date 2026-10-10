@@ -18,7 +18,7 @@ open. To close it:
 
 ```bash
 # On the server
-cd /home/nextgeniq/ojs/plugins/themes
+cd /home/nextgeniqpress/htdocs/www.nextgeniqpress.com/ojs/plugins/themes
 tar -czf /tmp/dmpedia.tar.gz dmpedia
 
 # Locally
@@ -37,15 +37,24 @@ settings only, with database credentials, salt and API keys replaced by
 placeholders. The point is that the next person can see what settings the
 install depends on, not that the file can be used directly.
 
-Settings that matter, and why:
+Settings that matter, and why. `npm run spike` checks the first four against the
+live instance, so this table is verifiable rather than aspirational.
 
 | Setting | Required value | Why |
 | --- | --- | --- |
-| `base_url` | `https://www.nextgeniqpress.com/ojs` | **F-02.** A development value here makes the OAI repository identifier `oai:localhost:8000:article/1`, and every harvester that reads it caches a broken identity. Fix before the first article publishes; afterwards it needs re-registration with each service. |
-| `force_ssl` | `On` | **F-11.** Without it the session cookie ships without `Secure`. |
+| `[oai] repository_id` | `www.nextgeniqpress.com` | **F-02, open.** This — not `base_url` — is what makes the OAI repository identifier, and it is still `localhost:8000`, producing `oai:localhost:8000:article/1`. Every harvester that reads it caches a broken permanent identity. **Fix before the first article publishes;** afterwards it needs re-registration with each service that already harvested. |
+| `api_key_secret` | 64 random characters | **Open.** Unset, so OJS cannot validate *any* API token: every key is rejected with "the site administrator has not configured a secret key". Nothing API-based works for anyone until this exists — including the harvest. Set it once and never rotate it; rotating invalidates every key ever issued. |
+| `force_ssl` | `On` | **F-11, open.** Without it the session cookie ships with no `Secure` attribute, so one plaintext request to the origin leaks a live session. |
+| `base_url` | `https://www.nextgeniqpress.com/ojs` | Correct as of the last probe. Keep it that way: a development value here breaks every absolute URL OJS emits. |
 | `session_cookie_name` | `OJSSID` | The portal reads this cookie by name; see `OJS_SESSION_COOKIE` in `.env.example`. |
-| `restful_urls` | `On` | Required for the REST API paths the harvest and session check use. |
+| `restful_urls` | `On` | Required for the REST API paths the harvest uses. |
 | `scheduled_tasks` | `On` | Without it DOI deposits and review reminders never run. |
+
+Note the cookie OJS issues is scoped `path=/ojs/`, so the browser never sends it
+to portal routes. That is deliberate and the portal's session design works with
+it rather than against it — see `docs/OJS-INTEGRATION.md`. Do not widen the path
+in nginx to "fix" it; that spreads an un-`Secure` session cookie across the whole
+origin.
 
 ## Plugins that must be enabled
 
@@ -53,5 +62,6 @@ Settings that matter, and why:
   until this is configured with the publisher's Crossref credentials.
 - **PKP Preservation Network** (F-10) — required by DOAJ, and the only thing
   that keeps the content readable if this server disappears.
-- **OAI-PMH** — on by default; verify the repository identifier after fixing
-  `base_url`.
+- **OAI-PMH** — on by default. Verify with
+  `curl -s '.../index/oai?verb=Identify' | grep repositoryIdentifier` after
+  setting `repository_id`; check 0 of the spike asserts this.

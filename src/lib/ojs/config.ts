@@ -40,8 +40,48 @@ export const ojsLostPasswordUrl = ojsUrl('index', '/login/lostPassword')
 export const ojsJournalUrl = (slug: string) => ojsUrl(slug)
 export const ojsSubmitUrl = (slug: string) => ojsUrl(slug, '/submission/wizard')
 export const ojsJournalRegisterUrl = (slug: string) => ojsUrl(slug, '/user/register')
-export const ojsDashboardUrl = (slug: string) => ojsUrl(slug, '/submissions')
-export const ojsReviewUrl = (slug: string) => ojsUrl(slug, '/reviewer')
+
+/**
+ * Author and reviewer workspaces.
+ *
+ * These paths are verified against the live OJS 3.5.0.5 install — an
+ * unauthenticated GET must redirect to the journal login page, which is how a
+ * real route is distinguished from a 404 here. Re-check them after an OJS
+ * upgrade: 3.4 consolidated the old per-role pages into one dashboard and moved
+ * both of these.
+ *
+ * In particular the reviewer workspace is **not** `/reviewer`. That was the
+ * 3.1/3.2 route, it 404s on this install, and since every reviewer-facing
+ * surface in the portal is a link-out, pointing at it sent reviewers to a dead
+ * page with no other way through.
+ */
+export const ojsDashboardUrl = (slug: string) => ojsUrl(slug, '/dashboard/mySubmissions')
+export const ojsReviewUrl = (slug: string) => ojsUrl(slug, '/dashboard/reviewAssignments')
+
+/** Editorial queue, for editors and journal managers. */
+export const ojsEditorialUrl = (slug: string) => ojsUrl(slug, '/dashboard/editorial')
+
+/**
+ * Absolute equivalents of the page URLs above, for server-side use.
+ *
+ * The relative builders exist for links the browser follows; these exist for
+ * requests the portal makes on a user's behalf, which cannot resolve a relative
+ * path. Kept distinct so a server-side call can never accidentally be issued
+ * against the portal's own origin.
+ */
+export const ojsLoginPageUrl = () => `${requireOjsBaseUrl()}/index.php/index/login`
+export const ojsSignInUrl = () => `${requireOjsBaseUrl()}/index.php/index/login/signIn`
+export const ojsSignOutUrl = () => `${requireOjsBaseUrl()}/index.php/index/login/signOut`
+
+/**
+ * The OJS profile page, used as the identity oracle.
+ *
+ * OJS 3.5 has no `/api/v1/users/me` — the route does not exist, which is what
+ * the original session design was built on. This page is the substitute: it
+ * redirects (302) for an unauthenticated session and renders a prefilled form
+ * (200) for an authenticated one. See docs/OJS-INTEGRATION.md.
+ */
+export const ojsProfileUrl = () => `${requireOjsBaseUrl()}/index.php/index/user/profile`
 
 /** OJS REST API v1 endpoint for a journal context. */
 export const ojsApiPath = (context: string, path: string) =>

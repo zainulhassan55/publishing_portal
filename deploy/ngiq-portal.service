@@ -5,6 +5,15 @@
 # new release with no edit to this file.
 #
 #   sudo systemctl daemon-reload && sudo systemctl enable --now ngiq-portal
+#
+# User and paths match the CloudPanel site: the site user is `nextgeniqpress`
+# and its home is /home/nextgeniqpress. Note the portal lives at
+# /home/nextgeniqpress/portal — deliberately OUTSIDE
+# htdocs/www.nextgeniqpress.com, so nginx can never serve the application
+# source, the standalone bundle or .env files as static files.
+#
+# Confirm the site user before installing this:
+#   id nextgeniqpress
 
 [Unit]
 Description=NextGenIQ Press portal (Next.js)
@@ -13,9 +22,9 @@ Wants=mysql.service
 
 [Service]
 Type=simple
-User=nextgeniq
-Group=nextgeniq
-WorkingDirectory=/home/nextgeniq/portal/current
+User=nextgeniqpress
+Group=nextgeniqpress
+WorkingDirectory=/home/nextgeniqpress/portal/current
 ExecStart=/usr/bin/node server.js
 
 Environment=NODE_ENV=production
@@ -43,7 +52,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/home/nextgeniq/portal/current/.next/cache
+ReadWritePaths=/home/nextgeniqpress/portal/current/.next/cache
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true

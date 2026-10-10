@@ -7,16 +7,19 @@ import { news as curatedNews } from './news'
 /**
  * Content resolution.
  *
- * The site runs populated by default: the fixture articles, issues and
- * thematic calls (the same records as the mockups' data.js) are served on
- * every surface, merged with anything the OJS harvest has picked up. Real
- * harvested articles take precedence and will displace the fixtures as OJS
- * content accumulates.
+ * Harvested OJS content is the only thing served by default. The fixture
+ * articles, issues and thematic calls (the same records as the mockups' data.js)
+ * are **opt-in**: set NEXT_PUBLIC_DEMO_CONTENT=1 for local development and
+ * design review, and never in production.
  *
- * Set NEXT_PUBLIC_DEMO_CONTENT=0 to run from the OJS harvest alone (the
- * launch/empty state every listing page also supports).
+ * This default is deliberately fail-safe. It used to be `!== '0'`, which meant
+ * any environment that simply forgot the variable published invented articles,
+ * issues and calls for papers under a real publisher's name — the same class of
+ * credibility failure as audit finding F-03, and one missing env var away.
+ * Opt-in means the worst case is an empty site, which every listing page
+ * already renders a launch-state message for.
  */
-export const demoContentEnabled = process.env.NEXT_PUBLIC_DEMO_CONTENT !== '0'
+export const demoContentEnabled = process.env.NEXT_PUBLIC_DEMO_CONTENT === '1'
 
 export function getArticles(): Article[] {
   const harvested = readHarvest().articles
