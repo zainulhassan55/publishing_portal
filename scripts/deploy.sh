@@ -81,6 +81,13 @@ cp -R .next/static "$STAGE/.next/static"
 cp -R public "$STAGE/public"
 cp -R content "$STAGE/content"
 
+# Migrations ship with the release so the server applies them itself during
+# activation. migrate.ts records each file in schema_migrations, so re-running
+# on every deploy is a no-op.
+cp -R migrations "$STAGE/migrations"
+mkdir -p "$STAGE/scripts"
+cp scripts/migrate.ts scripts/env.ts "$STAGE/scripts/"
+
 echo "==> Uploading to $SSH_HOST:$RELEASES_DIR/$RELEASE"
 ssh "$SSH_HOST" "mkdir -p '$RELEASES_DIR/$RELEASE'"
 rsync -az --delete "$STAGE/" "$SSH_HOST:$RELEASES_DIR/$RELEASE/"
@@ -88,6 +95,18 @@ rsync -az --delete "$STAGE/" "$SSH_HOST:$RELEASES_DIR/$RELEASE/"
 echo "==> Activating"
 ssh "$SSH_HOST" bash -s <<REMOTE
 set -euo pipefail
+
+# Apply database migrations from the new release BEFORE it goes live. A
+# failing migration aborts the deploy here, with the symlink untouched and
+# the old release still serving. The env file supplies PORTAL_DATABASE_URL:
+# PM2 layouts keep it at \$APP_DIR/.env, systemd layouts at /etc/ngiq.
+cd '$RELEASES_DIR/$RELEASE'
+if [ -f '$APP_DIR/.env' ]; then
+  set -a; . '$APP_DIR/.env'; set +a
+elif [ -f /etc/ngiq/portal.env ]; then
+  set -a; . /etc/ngiq/portal.env; set +a
+fi
+node --experimental-strip-types scripts/migrate.ts
 
 # Restart through whichever supervisor this host actually has.
 #
