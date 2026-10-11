@@ -30,7 +30,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from '@/components/auth/SessionProvider'
 import { formatDate, formatDateShort } from '@/lib/format'
-import { ojsDashboardUrl, ojsHandoffUrl, ojsReviewUrl } from '@/lib/ojs/config'
+import { ojsDashboardUrl, ojsEditorialUrl, ojsHandoffUrl, ojsReviewUrl } from '@/lib/ojs/config'
+import { hasEditorialRole } from '@/lib/auth/roles'
 import type { Submission, SubmissionStatus } from '@/types/publishing'
 
 export type JournalRef = { slug: string; code: string; title: string }
@@ -193,7 +194,10 @@ export function DashboardPage({ journals }: Props) {
   const justSubmitted = submittedParam !== null
   const bannerRef = submittedParam ?? ''
 
-  const [tab, setTab] = useState<'author' | 'reviewer'>(sp.get('tab') === 'reviewer' ? 'reviewer' : 'author')
+  const requestedTab = sp.get('tab')
+  const [tab, setTab] = useState<'author' | 'reviewer' | 'editorial'>(
+    requestedTab === 'reviewer' || requestedTab === 'editorial' ? requestedTab : 'author',
+  )
   const [filter, setFilter] = useState<'all' | 'action' | 'progress' | 'closed'>('all')
   const [panel, setPanel] = useState<{ sel: string | null; count: number; letter: boolean }>({
     sel: null,
@@ -337,12 +341,18 @@ export function DashboardPage({ journals }: Props) {
     }).catch(() => {})
   }
 
+  // Shown only to accounts OJS reports an editorial role for. An author
+  // seeing an empty "As editor" tab would be reading it as a permission they
+  // do not have.
+  const editorial = hasEditorialRole(user?.roles)
+
   const roleTabs = (
     [
       ['author', 'As author', subs.length],
       // No count: OJS exposes no reviewer resource, so the portal cannot know
       // how many invitations there are. A "0" would be a claim, not a fact.
       ['reviewer', 'As reviewer', null],
+      ...(editorial ? ([['editorial', 'As editor', null]] as const) : []),
     ] as const
   ).map(([k, label, n]) => ({
     k,
@@ -948,6 +958,70 @@ export function DashboardPage({ journals }: Props) {
                       }}
                     ></span>
                   </button>
+                </div>
+              </div>
+            ) : null}
+
+            {tab === 'editorial' && editorial ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 20, maxWidth: 900 }}>
+                {/*
+                  Links out for the same reason the reviewer tab does: OJS 3.5
+                  exposes no editorial resource, so there is nothing for the
+                  portal to read a queue from. Assigning reviewers, recording
+                  decisions and moving a manuscript between stages all happen
+                  in OJS, and a portal screen that could only link to them
+                  would add a step without adding information.
+
+                  One list per journal, because OJS grants editorial roles per
+                  journal while the session carries a flat set of role names —
+                  it says this account edits *somewhere*, not where. Rather
+                  than guess a journal and land an editor on a permission
+                  error, the choice is theirs. Each link rides the sign-on
+                  hand-off, so the queue opens already authenticated.
+                */}
+                <div
+                  style={{
+                    background: 'var(--surface,#fff)',
+                    border: '1px solid var(--line,#DCE1E6)',
+                    borderRadius: 3,
+                    padding: '20px 22px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 10,
+                  }}
+                >
+                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 600, color: 'var(--ink,#101B27)' }}>
+                    Editorial work happens in the editorial system
+                  </span>
+                  <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-3,#3C4854)', lineHeight: 1.55 }}>
+                    Submission queues, reviewer assignment, decisions and production are all held there. Open the
+                    editorial queue for the journal you work on — you will arrive already signed in.
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 2 }}>
+                    {journals.map((j) => (
+                      <a
+                        key={j.slug}
+                        href={ojsHandoffUrl(ojsEditorialUrl(j.slug))}
+                        title={j.title}
+                        style={{
+                          border: '1px solid var(--line-strong,#B9C1C9)',
+                          background: 'var(--surface,#fff)',
+                          borderRadius: 3,
+                          padding: '6px 11px',
+                          fontSize: 13,
+                          fontFamily: 'var(--font-mono)',
+                          color: 'var(--ink,#101B27)',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        {j.code}
+                      </a>
+                    ))}
+                  </div>
+                  <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--muted,#505C68)', lineHeight: 1.5 }}>
+                    A journal you hold no role on will refuse the queue — that is OJS enforcing its own permissions,
+                    not an error here.
+                  </p>
                 </div>
               </div>
             ) : null}

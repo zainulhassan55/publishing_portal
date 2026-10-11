@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSession } from '@/components/auth/SessionProvider'
 import { useHydrated } from '@/lib/hooks/client-state'
 import { ojsRegisterUrl } from '@/lib/ojs/config'
+import { hasEditorialRole, roleLabel } from '@/lib/auth/roles'
 import { normalise } from '@/lib/search-core'
 import type { TypeaheadIndex } from '@/lib/search'
 
@@ -101,7 +102,9 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
   const signedIn = !!user
   const fullName = user?.fullName || ''
   const initials = initialsOf(fullName) || 'U'
-  const roleLine = (user?.roles ?? []).map((r) => r.charAt(0).toUpperCase() + r.slice(1)).join(' · ')
+  // Readable role names, not OJS's internal slugs: "Journal manager", not
+  // "Manager"; "Site administrator", not "Site-admin".
+  const roleLine = (user?.roles ?? []).map(roleLabel).join(' · ')
 
   const qn = normalise(q.trim())
   let groupsRaw: [string, SugItem[]][] = []
@@ -146,9 +149,24 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
     }
   }
 
+  /**
+   * Built from the roles OJS reports for this account, rather than shown to
+   * everyone. A reader who has never reviewed does not want an empty review
+   * queue in their menu, and — the reason this changed — an editor previously
+   * had no way into the editorial queue from the portal at all: the menu
+   * offered the same five author links to every signed-in person.
+   *
+   * Roles arrive in the session from the `currentUser` blob at sign-in and
+   * refresh on revalidation, so a reviewer invitation accepted in OJS shows
+   * up here within the revalidation window without signing out.
+   */
+  const roles = user?.roles ?? []
   const menuItems: { t: string; href: string; meta: string }[] = [
+    // Everyone holds the author surface: anyone may submit, and OJS grants the
+    // Author role on first submission rather than in advance.
     { t: 'My submissions', href: '/dashboard', meta: '' },
-    { t: 'Review invitations', href: '/dashboard?tab=reviewer', meta: '' },
+    ...(roles.includes('reviewer') ? [{ t: 'Review invitations', href: '/dashboard?tab=reviewer', meta: '' }] : []),
+    ...(hasEditorialRole(roles) ? [{ t: 'Editorial queues', href: '/dashboard?tab=editorial', meta: '' }] : []),
     { t: 'Edit profile', href: '/profile', meta: '' },
     { t: 'Notifications and alerts', href: '/profile#notifications', meta: '' },
     { t: 'Password and security', href: '/profile#security', meta: '' },
