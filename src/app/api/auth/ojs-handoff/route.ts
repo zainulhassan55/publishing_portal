@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { publicBaseUrl } from '@/lib/api'
 import { databaseConfigured } from '@/lib/db'
-import { OJS_SESSION_COOKIE } from '@/lib/auth/roles'
+import { ojsSessionCookie } from '@/lib/auth/ojs-cookie'
 import { PORTAL_SESSION_COOKIE, readSession } from '@/lib/auth/portal-session'
 import { ojsPathPrefix } from '@/lib/ojs/config'
 
@@ -75,18 +75,9 @@ export async function GET(request: Request) {
   try {
     const session = await readSession(token)
     if (session) {
-      // Same 7-day lifetime OJS puts on its own cookie, and the same one the
-      // sign-in route uses — so a browser restart does not strand the reader
-      // with a live portal session but no OJS one.
-      response.cookies.set({
-        name: OJS_SESSION_COOKIE,
-        value: session.ojsSid,
-        path: `${ojsPath}/`,
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60,
-      })
+      // OJS's own cookie attributes, shared with the sign-in route so the two
+      // can never disagree and leave two OJSSIDs in the jar. See ojsSessionCookie.
+      response.cookies.set(ojsSessionCookie(request, session.ojsSid))
     }
   } catch (error) {
     // The link must keep working even with the session store down; the worst
