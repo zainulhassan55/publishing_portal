@@ -96,7 +96,32 @@
 						</div>
 					</div>
 					<div class="pkp_navigation_user_wrapper" id="navigationUserWrapper">
-						{load_menu name="user" id="navigationUser" ulClass="pkp_navigation_user" liClass="profile"}
+						{* A signed-out visitor is sent to the portal to sign in, not to
+						   OJS's own login form — one account, one sign-in page, and the
+						   portal's sign-in hands the OJS session straight back (see
+						   src/app/api/auth/sign-in/route.ts).
+
+						   Done here rather than through OJS's Navigation Menus because
+						   those are configured per journal: ten journals meant ten
+						   identical edits, each a chance to nest the item inside
+						   Register and hide it. The theme is shared, so this is one
+						   edit for all of them.
+
+						   Registration stays in OJS, which owns accounts. Signed-in
+						   users keep OJS's own menu untouched — it carries the profile,
+						   dashboard and logout links this cannot reproduce. *}
+						{if $isUserLoggedIn}
+							{load_menu name="user" id="navigationUser" ulClass="pkp_navigation_user" liClass="profile"}
+						{else}
+							<ul id="navigationUser" class="pkp_navigation_user pkp_nav_list">
+								<li class="profile">
+									<a href="{$portalUrl|escape}/sign-in">Sign in</a>
+								</li>
+								<li class="profile">
+									<a href="{url page="user" op="register"}">Register</a>
+								</li>
+							</ul>
+						{/if}
 					</div>
 				</nav>
 			</div><!-- .pkp_head_wrapper -->
