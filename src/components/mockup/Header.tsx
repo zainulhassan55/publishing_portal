@@ -5,7 +5,6 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { useSession } from '@/components/auth/SessionProvider'
 import { useHydrated } from '@/lib/hooks/client-state'
-import { ojsRegisterUrl } from '@/lib/ojs/config'
 import { hasEditorialRole, roleLabel } from '@/lib/auth/roles'
 import { normalise } from '@/lib/search-core'
 import type { TypeaheadIndex } from '@/lib/search'
@@ -335,7 +334,7 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
           ) : (
             <>
               <Link href="/sign-in" style={{ fontSize: 14, color: 'var(--ink-2, #1F2A36)', fontWeight: 500 }}>Sign in</Link>
-              <a href={ojsRegisterUrl} style={{ fontSize: 14, color: 'var(--ink-2, #1F2A36)', fontWeight: 500 }}>Register</a>
+              <Link href="/register" style={{ fontSize: 14, color: 'var(--ink-2, #1F2A36)', fontWeight: 500 }}>Register</Link>
             </>
           )}
           <Link href="/submit" className="ngiqHdrSubmit" style={{ background: 'var(--accent, #1D5DA8)', color: '#fff', padding: '9px 16px', borderRadius: 3, fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>Submit manuscript</Link>

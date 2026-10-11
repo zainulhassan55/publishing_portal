@@ -91,6 +91,14 @@ export const ojsSignInUrl = () => `${requireOjsBaseUrl()}/index.php/index/login/
 export const ojsSignOutUrl = () => `${requireOjsBaseUrl()}/index.php/index/login/signOut`
 
 /**
+ * The site-level registration form, driven server-side by the registration
+ * relay. Site level rather than per journal on purpose: this one form offers
+ * every journal's enrolment checkboxes, so one submission can join a member
+ * to as many as they choose.
+ */
+export const ojsRegisterPageUrl = () => `${requireOjsBaseUrl()}/index.php/index/user/register`
+
+/**
  * The OJS profile page, used as the identity oracle.
  *
  * OJS 3.5 has no `/api/v1/users/me` — the route does not exist, which is what
