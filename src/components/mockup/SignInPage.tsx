@@ -22,7 +22,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useSession } from '@/components/auth/SessionProvider'
-import { ojsLoginUrl, ojsLostPasswordUrl, ojsRegisterUrl } from '@/lib/ojs/config'
+import { ojsLoginUrl, ojsLostPasswordUrl } from '@/lib/ojs/config'
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
@@ -160,7 +160,7 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
             <li>Track every submission’s status and decisions</li>
             <li>Link your ORCID iD to receive review recognition</li>
           </ul>
-          <a href={ojsRegisterUrl} style={{ marginTop: 6, border: '1px solid var(--line-strong,#B9C1C9)', background: 'var(--surface,#fff)', borderRadius: 3, padding: 10, textAlign: 'center', fontSize: 14, fontWeight: 500, color: 'var(--ink,#101B27)', textDecoration: 'none' }}>Create an account</a>
+          <Link href="/register" style={{ marginTop: 6, border: '1px solid var(--line-strong,#B9C1C9)', background: 'var(--surface,#fff)', borderRadius: 3, padding: 10, textAlign: 'center', fontSize: 14, fontWeight: 500, color: 'var(--ink,#101B27)', textDecoration: 'none' }}>Create an account</Link>
           <p style={{ margin: 'auto 0 0', fontSize: 12, color: 'var(--muted,#505C68)', lineHeight: 1.5 }}>By signing in you agree to the <Link href="/policies/terms">terms of use</Link> and <Link href="/policies/privacy">privacy policy</Link>.</p>
         </section>
       </div>
