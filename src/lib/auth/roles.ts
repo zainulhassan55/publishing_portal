@@ -44,3 +44,36 @@ export const ROLE_NAMES: Record<number, string> = {
 }
 
 export const hasRole = (session: Session, role: string) => session.user?.roles.includes(role) ?? false
+
+/**
+ * How a role is written for a reader.
+ *
+ * The raw names are OJS's internal slugs and leak its vocabulary — "manager"
+ * on its own reads like a job title rather than a journal role, and
+ * "site-admin" is not a phrase anyone outside the software uses.
+ */
+export const ROLE_LABELS: Record<string, string> = {
+  'site-admin': 'Site administrator',
+  manager: 'Journal manager',
+  editor: 'Editor',
+  assistant: 'Editorial assistant',
+  author: 'Author',
+  reviewer: 'Reviewer',
+  reader: 'Reader',
+  'subscription-manager': 'Subscription manager',
+}
+
+export const roleLabel = (role: string) => ROLE_LABELS[role] ?? role
+
+/**
+ * Roles that can act on other people's manuscripts.
+ *
+ * There is no "publisher" role in OJS. Running the press — creating journals,
+ * appointing editors, site-wide settings — is `site-admin`, and running one
+ * journal is `manager`. Anyone looking for a publisher workspace wants one of
+ * those two.
+ */
+export const EDITORIAL_ROLES = ['site-admin', 'manager', 'editor', 'assistant']
+
+export const hasEditorialRole = (roles: string[] | undefined) =>
+  (roles ?? []).some((role) => EDITORIAL_ROLES.includes(role))
