@@ -79,45 +79,6 @@ export const ojsReviewUrl = (slug: string) => ojsUrl(slug, '/dashboard/reviewAss
 export const ojsEditorialUrl = (slug: string) => ojsUrl(slug, '/dashboard/editorial')
 
 /**
- * The OJS submission wizard for one existing submission.
- *
- * Verified to resolve: `/{journal}/submission/wizard/{id}` → 302 to login when
- * signed out. This is what makes the metadata-first handoff worthwhile — the
- * author lands on *their* submission to attach files, rather than on a blank
- * wizard with everything to retype.
- */
-export const ojsSubmissionUrl = (slug: string, submissionId: number) =>
-  ojsUrl(slug, `/submission/wizard/${submissionId}`)
-
-/**
- * OJS section id per journal, required when creating a submission.
- *
- * This is a configured map rather than a lookup because OJS will not tell us:
- * `GET /{journal}/api/v1/sections` answers `roleBasedAccessDenied` for an
- * author, and the portal creates submissions with the author's own session.
- * A journal-manager-scoped service key could read it, but the current key is
- * scoped to one journal, so there is nothing to read it with.
- *
- * Deliberately NOT guessed. Section ids look sequential across journals, but
- * filing a manuscript into the wrong section is an editorial mistake that
- * surfaces late and confuses the editor rather than the author. A journal
- * absent from this map falls back to the plain hand-off, which is the previous
- * behaviour and costs the author a retype — annoying, never wrong.
- *
- * To add a journal: ask the OJS admin for the section id (Journal Settings →
- * Sections, it is in the edit URL), or grant the service key Journal Manager
- * there and read `/sections`. Then add it here.
- *
- * `ijdh: 1` is verified — a submission was created in it and came back with
- * `sectionId: 1`.
- */
-const SECTION_IDS: Record<string, number> = {
-  ijdh: 1,
-}
-
-export const ojsSectionId = (slug: string): number | null => SECTION_IDS[slug] ?? null
-
-/**
  * Absolute equivalents of the page URLs above, for server-side use.
  *
  * The relative builders exist for links the browser follows; these exist for

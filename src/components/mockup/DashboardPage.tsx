@@ -6,9 +6,11 @@
  * body is ported to React state below.
  *
  * All data is real. Submissions come from GET /api/submissions, which reads
- * them out of OJS on the signed-in author's behalf; drafts come from
- * GET /api/drafts, which is portal state because a draft has no OJS submission
- * yet. The fixture submissions, decision letters and review invitations that
+ * them out of OJS on the signed-in author's behalf — including incomplete
+ * ones, which OJS keeps and lets the author resume in its own wizard. The
+ * portal's own draft store was removed with the submission form; OJS is the
+ * single home for in-progress work. The fixture submissions, decision
+ * letters and review invitations that
  * used to populate this page are gone — they were useful while building the UI
  * and misleading the moment sign-in started working, because invented
  * manuscripts sat beside the author's real ones.
@@ -51,14 +53,6 @@ type ApiSubmission = {
   publishedUrl: string | null
 }
 
-type ApiDraft = {
-  id: number
-  journalSlug: string | null
-  currentStep: number
-  payload: Record<string, unknown> | null
-  updatedAt: string
-}
-
 type Letter = NonNullable<Submission['decisionLetter']>
 
 type Row = {
@@ -74,8 +68,6 @@ type Row = {
   action?: string
   co: string
   stage: number
-  draft?: boolean
-  draftDbId?: number
   letter?: Letter
   /** OJS's own per-submission author workflow URL. Where actions go. */
   ojsUrl?: string | null
@@ -208,7 +200,6 @@ export function DashboardPage({ journals }: Props) {
     count: 0,
     letter: false,
   })
-  const [drafts, setDrafts] = useState<ApiDraft[]>([])
   const [apiSubs, setApiSubs] = useState<ApiSubmission[]>([])
   const [avail, setAvail] = useState(true)
   const prefsRef = useRef<Record<string, unknown> | null>(null)
@@ -216,12 +207,6 @@ export function DashboardPage({ journals }: Props) {
   useEffect(() => {
     if (!user) return
     let cancelled = false
-    fetch('/api/drafts', { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data) => {
-        if (!cancelled && data?.ok && Array.isArray(data.drafts)) setDrafts(data.drafts)
-      })
-      .catch(() => {})
     // Real submissions, read from OJS on this author's behalf. Replaces the
     // fixtures that used to sit here, which were useful while building the UI
     // and misleading the moment sign-in worked.
@@ -273,31 +258,8 @@ export function DashboardPage({ journals }: Props) {
         publishedUrl: s.publishedUrl,
       }
     })
-    drafts.forEach((d) => {
-      const j = d.journalSlug ? bySlug.get(d.journalSlug) : undefined
-      const p = (d.payload ?? {}) as { articleType?: string; title?: string; authors?: { given?: string; family?: string }[] }
-      const names = (Array.isArray(p.authors) ? p.authors : [])
-        .map((a) => `${a.given ?? ''} ${a.family ?? ''}`.trim())
-        .filter(Boolean)
-      list.push({
-        id: `NGIQ-D-${new Date(d.updatedAt).getUTCFullYear()}-${String(d.id).padStart(4, '0')}`,
-        code: j?.code ?? '—',
-        jTitle: j?.title ?? 'No journal selected',
-        journalSlug: d.journalSlug,
-        type: p.articleType ?? '—',
-        title: typeof p.title === 'string' && p.title.trim() ? p.title : 'Untitled draft',
-        submitted: '—',
-        updated: formatDateShort(d.updatedAt),
-        status: 'Draft',
-        action: `Step ${d.currentStep} of 7 complete`,
-        co: names.length ? names.join(', ') : 'None added',
-        stage: 0,
-        draft: true,
-        draftDbId: d.id,
-      })
-    })
     return list
-  }, [apiSubs, drafts, journals])
+  }, [apiSubs, journals])
 
   const select = (id: string) => setPanel((p) => (p.sel === id ? p : { sel: id, count: p.count + 1, letter: false }))
   const toggleLetter = () => setPanel((p) => ({ ...p, letter: !p.letter }))
@@ -306,16 +268,6 @@ export function DashboardPage({ journals }: Props) {
   const cur = subs.find((s) => s.id === panel.sel) ?? subs[0]
   const flipA = panel.count % 2 === 0
   const timeline = cur ? buildTimeline(cur) : []
-
-  const deleteDraft = async (dbId: number) => {
-    try {
-      await fetch(`/api/drafts?id=${dbId}`, { method: 'DELETE' })
-    } catch {
-      /* the row removal below is optimistic either way */
-    }
-    setDrafts((ds) => ds.filter((d) => d.id !== dbId))
-    setPanel((p) => ({ ...p, sel: null }))
-  }
 
   /**
    * The split that makes this dashboard honest: **read here, act in OJS.**
@@ -337,12 +289,7 @@ export function DashboardPage({ journals }: Props) {
 
   const actions: ActionDef[] = !cur
     ? []
-    : cur.draft && cur.draftDbId
-      ? [
-          { label: 'Resume draft', href: `/submit?draft=${cur.draftDbId}`, primary: true },
-          { label: 'Delete draft', onClick: () => cur.draftDbId && void deleteDraft(cur.draftDbId) },
-        ]
-      : cur.status === 'Revisions requested'
+    : cur.status === 'Revisions requested'
         ? [
             { label: 'Submit revision in the editorial system', href: ojsHref, external: true, primary: true },
             { label: 'Message editorial office', href: '/contact' },
@@ -678,14 +625,9 @@ export function DashboardPage({ journals }: Props) {
                           )
                         })}
                         {list.length === 0 ? (
-                          // Drafts shown here are the portal's own; anything
-                          // already submitted is tracked in OJS, which the
-                          // portal cannot yet read per-user. Say so rather than
-                          // letting an empty table imply the author has nothing
-                          // in progress.
                           <tr>
                             <td colSpan={3} style={{ padding: '18px 14px', fontSize: 14, color: 'var(--muted,#505C68)', lineHeight: 1.6 }}>
-                              No drafts in progress. <Link href="/submit">Start a submission</Link>, or{' '}
+                              Nothing in progress. <Link href="/submit">Start a submission</Link>, or{' '}
                               <a href={ojsHandoffUrl(ojsDashboardUrl('index'))}>check submissions already with the editorial system</a>.
                             </td>
                           </tr>

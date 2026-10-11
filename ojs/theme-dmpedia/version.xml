@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE version SYSTEM "../../../lib/pkp/dtd/pluginVersion.dtd">
+
+<version>
+	<application>dmpedia</application>
+	<type>plugins.themes</type>
+	<release>1.0.1.0</release>
+	<date>2026-10-11</date>
+	<lazy-load>1</lazy-load>
+	<class>DmpediaThemePlugin</class>
+</version>

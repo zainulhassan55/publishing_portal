@@ -75,8 +75,9 @@ export async function GET(request: Request) {
   try {
     const session = await readSession(token)
     if (session) {
-      // No Max-Age: a browser-session cookie cannot outlive what OJS considers
-      // the session's end, and OJS re-issues its own cookie on arrival.
+      // Same 7-day lifetime OJS puts on its own cookie, and the same one the
+      // sign-in route uses — so a browser restart does not strand the reader
+      // with a live portal session but no OJS one.
       response.cookies.set({
         name: OJS_SESSION_COOKIE,
         value: session.ojsSid,
@@ -84,6 +85,7 @@ export async function GET(request: Request) {
         httpOnly: true,
         secure: true,
         sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60,
       })
     }
   } catch (error) {
