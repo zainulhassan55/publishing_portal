@@ -3,8 +3,9 @@ import { handler, enforceRateLimit, jsonError, readJson } from '@/lib/api'
 import { databaseConfigured } from '@/lib/db'
 import { isEmail } from '@/lib/validate'
 import { fetchLoginForm, fetchOjsIdentity, postSignIn } from '@/lib/auth/ojs-login'
+import { OJS_SESSION_COOKIE } from '@/lib/auth/roles'
 import { PORTAL_SESSION_COOKIE, SESSION_TTL_SECONDS, createSession } from '@/lib/auth/portal-session'
-import { ojsBaseUrl } from '@/lib/ojs/config'
+import { ojsBaseUrl, ojsPathPrefix } from '@/lib/ojs/config'
 
 export const dynamic = 'force-dynamic'
 
@@ -140,6 +141,25 @@ export const POST = handler(async (request) => {
     path: '/',
     maxAge: SESSION_TTL_SECONDS,
   })
+
+  // Hand the browser the OJS session too, with the attributes OJS itself
+  // uses (path=/ojs/, same 7-day lifetime). Without this, only links routed
+  // through /api/auth/ojs-handoff reached OJS signed in — a typed or
+  // bookmarked OJS URL still hit the login form, because the hand-off never
+  // ran. One sign-in must sign the reader into both halves of the site.
+  // Skipped when OJS lives on another origin (localhost development), where
+  // a cookie for it cannot be set from here.
+  if (ojsPathPrefix.startsWith('/')) {
+    response.cookies.set({
+      name: OJS_SESSION_COOKIE,
+      value: result.sid,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: `${ojsPathPrefix}/`,
+      maxAge: SESSION_TTL_SECONDS,
+    })
+  }
 
   return response
 })
