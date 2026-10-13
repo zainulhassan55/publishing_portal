@@ -135,6 +135,8 @@ export function parseRegisterContexts(html: string): RegisterContext[] {
   return contexts
 }
 
+const stripTags = (html: string) => html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+
 /**
  * OJS's own complaint when it re-renders the form instead of registering.
  *
@@ -142,13 +144,46 @@ export function parseRegisterContexts(html: string): RegisterContext[] {
  * "the password must be at least 6 characters" need different things from the
  * person, and collapsing them into one generic failure would leave them
  * guessing which.
+ *
+ * Which is exactly what this did until the structure of the rejected page was
+ * read properly. OJS 3.5 renders a `#formErrors` block holding *two* things:
+ *
+ *   <div id="formErrors">
+ *     <div class="pkp_form_error">There were errors processing this form…</div>
+ *     <ul class="pkp_form_error_list">
+ *       <li><a href="#username">This username is already in use.</a></li>
+ *     </ul>
+ *   </div>
+ *
+ * Taking the first `.pkp_form_error` therefore returned the generic banner
+ * every single time, and the specific reason sitting in the list right beneath
+ * it was thrown away. A taken username, a duplicate email address and a short
+ * password all reached the person as the same sentence — one that tells them
+ * nothing to change, so the next attempt fails the same way. The list is read
+ * first now, and the banner is kept only as a last resort.
+ *
+ * Both class names are checked against the live install's own stylesheet
+ * (`.page_register #formErrors .pkp_form_error_list`), not inferred.
  */
 export function parseRegisterError(html: string): string | null {
-  const errors = [...html.matchAll(/<(\w+)[^>]*class="[^"]*pkp_form_error[^"]*"[^>]*>([\s\S]*?)<\/\1>/g)]
-    .map((m) => m[2].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim())
+  const list = html.match(/class="[^"]*pkp_form_error_list[^"]*"[^>]*>([\s\S]*?)<\/(?:ul|ol)>/)?.[1]
+
+  // Every item, not just the first: OJS validates the whole form at once, and
+  // a person told only about their username will hit the password rule next.
+  const items = list ? [...list.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/g)].map((m) => stripTags(m[1])).filter(Boolean) : []
+  if (items.length) return items.join(' ')
+
+  // Field-level errors, which OJS renders beside the input as `.error` rather
+  // than in the list, and the generic banner behind them. Vague beats silent:
+  // reporting no reason at all sends the caller to its own "please try again",
+  // which is worse than OJS's wording however general.
+  const fallback = [
+    ...html.matchAll(/<(\w+)[^>]*class="[^"]*(?:pkp_form_error|\berror\b)[^"]*"[^>]*>([\s\S]*?)<\/\1>/g),
+  ]
+    .map((m) => stripTags(m[2]))
     .filter(Boolean)
 
-  return errors[0] ?? null
+  return fallback[0] ?? null
 }
 
 /* --------------------------------- steps ---------------------------------- */

@@ -118,6 +118,15 @@ export const POST = handler(async (request) => {
         { status: 502, headers: { 'Cache-Control': 'no-store' } },
       )
     }
+    // A rejected registration used to be the one failure that left no trace at
+    // all: nothing logged here, and the generic banner OJS puts above its error
+    // list was all the person saw. There was then no way to answer "why can't I
+    // register" from either end. The username identifies the attempt for
+    // support without putting an email address in the log.
+    console.warn(
+      `[register] OJS rejected registration for username=${JSON.stringify(username)}:`,
+      result.message ?? '(no message parsed from the OJS response)',
+    )
     // OJS's wording, passed through: "username already exists" and a password
     // rule need different corrections from the person.
     return jsonError('rejected', 422, result.message ? { message: result.message } : {})
