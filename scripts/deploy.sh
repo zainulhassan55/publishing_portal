@@ -68,7 +68,81 @@ npm run typecheck
 npm run lint
 npm test
 npm run harvest
+
+# The build must NOT inherit the developer's .env.local.
+#
+# Next.js inlines every NEXT_PUBLIC_* value at BUILD time — into the server
+# bundle as well as the client one. This build runs on a developer's machine,
+# where .env.local points at localhost and enables demo fixtures, because that
+# is what local development needs. Those values get compiled into the release
+# and shipped, and /etc/ngiq/portal.env cannot correct them afterwards: there
+# is no runtime lookup left to override.
+#
+# Exporting them as real environment variables is what fixes it — a real
+# variable takes precedence over .env.local, so production gets these values
+# and local development is untouched. See deploy/build-env.production for what
+# each one does and why it matters.
+BUILD_ENV="$(dirname "$0")/../deploy/build-env.$TARGET"
+if [ ! -f "$BUILD_ENV" ]; then
+  # Refusing is the point. Continuing would build $TARGET from whatever
+  # .env.local happens to hold, which is the bug this file exists to prevent;
+  # it fails silently and is only visible once the release is serving.
+  echo "Missing $BUILD_ENV." >&2
+  echo "Copy deploy/build-env.production and set the values for $TARGET." >&2
+  exit 1
+fi
+set -a
+. "$BUILD_ENV"
+set +a
 npm run build
+
+# Fail the deploy rather than ship a development value again. Every one of
+# these is invisible when wrong — the site builds, renders and serves 200s,
+# it just quietly points at the wrong place — so it has to be caught here
+# instead of by a reader hitting it in production.
+build_contains() { grep -rqsE "$1" .next/server --include="*.js"; }
+offenders() { grep -rlsE "$1" .next/server --include="*.js" >&2; }
+
+# A development origin compiled into any absolute URL the server emits:
+# redirects, canonical tags, the sitemap, the OJS session hand-off.
+if build_contains 'localhost:[0-9]+'; then
+  echo "Build has a localhost origin compiled in; NEXT_PUBLIC_SITE_URL is wrong." >&2
+  offenders 'localhost:[0-9]+'
+  exit 1
+fi
+
+# An absolute OJS prefix. The hand-off decides whether OJS shares the portal's
+# origin by asking whether this is relative, and only attaches the OJSSID
+# cookie when it is — so an absolute value silently signs every reader out.
+#
+# The pattern matches the INLINED ASSIGNMENT (`="https://host/ojs"`), not the
+# bare hostname. Searching for the hostname alone gives a false positive on
+# every build: requireOjsBaseUrl's "OJS_BASE_URL is not set … e.g.
+# https://www.nextgeniqpress.com/ojs" error message is a string literal in the
+# bundle, and the `="` prefix is what distinguishes a compiled-in value from
+# prose that merely mentions the URL. Maps are excluded for the same reason —
+# they embed config.ts's doc comment verbatim.
+#
+# OJS_BASE_URL is not checked: it has no NEXT_PUBLIC_ prefix, so it stays a
+# runtime lookup against /etc/ngiq/portal.env and is correctly absolute.
+if build_contains '="https?://[^"]+/ojs"'; then
+  echo "Build has an absolute OJS path compiled in; NEXT_PUBLIC_OJS_PATH must be /ojs." >&2
+  offenders '="https?://[^"]+/ojs"'
+  exit 1
+fi
+
+# Demo fixtures prerendered as real articles. Checked by artefact rather than
+# by grepping for the flag, because `"1"==="1"` is constant-folded away and
+# leaves nothing to match — the prerendered page is the durable evidence.
+#
+# `ls`, not `compgen -G`: compgen is a bash builtin and returns 0 under zsh
+# whatever the glob, so the same line silently inverts its meaning if this
+# logic is ever run or tested in an interactive zsh. `ls` behaves identically
+# in both.
+if ls .next/server/app/articles/*rppg-continuous-heart-rate* >/dev/null 2>&1; then
+  echo "Build has demo articles prerendered; NEXT_PUBLIC_DEMO_CONTENT must be 0." >&2
+  exit 1
+fi
 
 # `output: 'standalone'` emits a self-contained server; static and public assets
 # are copied in because the standalone output does not include them.
