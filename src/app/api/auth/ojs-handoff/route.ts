@@ -78,7 +78,8 @@ export async function GET(request: Request) {
       // OJS's own cookie attributes, shared with the sign-in route so the two
       // can never disagree and leave two OJSSIDs in the jar. Evicts the other
       // (domain, path) forms as it goes — a stale sibling is sent on the very
-      // request this redirect triggers, and PHP would keep it over ours.
+      // request this redirect triggers, and PHP keeps the first cookie in the
+      // header, which the browser orders oldest-created first. See ojs-cookie.ts.
       setOjsSessionCookie(response, request, session.ojsSid)
     }
   } catch (error) {

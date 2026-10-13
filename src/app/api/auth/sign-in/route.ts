@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { handler, enforceRateLimit, jsonError, readJson } from '@/lib/api'
 import { databaseConfigured } from '@/lib/db'
 import { isEmail } from '@/lib/validate'
-import { fetchLoginForm, fetchOjsIdentity, postSignIn } from '@/lib/auth/ojs-login'
+import { fetchLoginForm, fetchOjsIdentity, postSignIn, postSignOut } from '@/lib/auth/ojs-login'
 import { ojsIsSameOrigin, setOjsSessionCookie } from '@/lib/auth/ojs-cookie'
 import { PORTAL_SESSION_COOKIE, SESSION_TTL_SECONDS, createSession } from '@/lib/auth/portal-session'
 import { ojsBaseUrl } from '@/lib/ojs/config'
@@ -119,11 +119,37 @@ export const POST = handler(async (request) => {
     )
   }
 
-  const { token } = await createSession({
-    user: identity,
-    ojsSid: result.sid,
-    ojsCsrfToken: identity.csrfToken ?? null,
-  })
+  // The credentials were already accepted by OJS, so a failure here is
+  // infrastructure, not the user — and it must not surface as a bare 500.
+  //
+  // `databaseConfigured` above only proves `PORTAL_DATABASE_URL` is *set*, not
+  // that anything is listening on it. With the env var present and MySQL down,
+  // this insert threw ECONNREFUSED, the route 500'd, no session cookie was
+  // issued, and the browser went straight back to the sign-in form — looking
+  // for all the world like a rejected password that no number of retries could
+  // fix. The route already has the right wording for an outage; this routes the
+  // unreachable case into it.
+  let token: string
+  try {
+    ;({ token } = await createSession({
+      user: identity,
+      ojsSid: result.sid,
+      ojsCsrfToken: identity.csrfToken ?? null,
+    }))
+  } catch (error) {
+    console.error('[sign-in] session store unavailable, cannot complete sign-in:', error)
+
+    // The OJS session just minted is now orphaned — nothing will ever present
+    // it, and it stays valid for OJS's full session lifetime. Hand it back
+    // rather than leaving a live credential nobody owns.
+    try {
+      await postSignOut(result.sid, userAgent)
+    } catch {
+      /* best effort: the sign-in has already failed, and this is cleanup */
+    }
+
+    return unavailable('Sign-in is temporarily unavailable. Please try the journal system.')
+  }
 
   const response = NextResponse.json(
     { ok: true, user: { id: identity.id, fullName: identity.fullName, roles: identity.roles } },

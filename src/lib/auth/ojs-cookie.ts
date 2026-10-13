@@ -19,11 +19,16 @@ const OJS_SESSION_MAX_AGE = 7 * 24 * 60 * 60
  * browsers key the cookie jar on (name, domain, host-only flag, path) — so a
  * host-only `OJSSID` and OJS's own domain-scoped `OJSSID` are two distinct
  * entries that coexist. Both match a request to /ojs/, both are sent, and PHP
- * keeps whichever appears last in the header. The result is a browser holding
- * a perfectly good portal-issued session behind a stale one OJS planted
- * earlier, and a reader who is signed in on the portal yet sees the OJS login
- * form. Matching OJS exactly means there is only ever one OJSSID: ours
- * overwrites OJS's in place rather than sitting beside it.
+ * keeps whichever appears FIRST in the header — verified against the live
+ * instance: `OJSSID=dead; OJSSID=live` is signed out, the reverse is signed in.
+ * Browsers order same-path cookies by creation time, oldest first, and a
+ * cookie overwritten in place keeps its original creation time. So once OJS's
+ * own domain-scoped entry exists, a host-only copy set later can never win,
+ * however often it is re-set: the reader is signed in on the portal yet sees
+ * the OJS login form on every click, and only wiping cookies — which resets
+ * the creation order — makes it work again, until the next sign-out. Matching
+ * OJS exactly means there is only ever one OJSSID: ours overwrites OJS's in
+ * place rather than sitting beside it.
  *
  * This is the same class of bug the portal-owned session design was built to
  * avoid (see portal-session.ts) — reintroduced by an attribute, not by a path.
@@ -64,9 +69,11 @@ export const ojsIsSameOrigin = ojsPathPrefix.startsWith('/')
  * A browser keys its jar on (name, domain, host-only flag, path), so this one
  * name can occupy four entries: host-only and domain-scoped, at `${prefix}/`
  * and at the `/` the abandoned cookie-adoption design left behind. All four
- * match a request to `${prefix}/`, all four are sent on it, and PHP keeps
- * whichever arrives last — so a single stale copy is enough to shadow a good
- * session and drop the reader on the OJS login form.
+ * match a request to `${prefix}/`, all four are sent on it, and PHP keeps the
+ * first one in the header, which is the oldest-created — so a single stale
+ * copy is enough to shadow a good session and drop the reader on the OJS
+ * login form. Releases before this helper issued a host-only copy, so a
+ * browser that used them still holds one; the eviction is what retires it.
  */
 const sessionCookieForms = (request: Request) => {
   const host = requestHost(request)

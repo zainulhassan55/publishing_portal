@@ -192,13 +192,22 @@ export const GET = handler(async (request) => {
       const result = await ojsFetch<{ items?: OjsSubmission[] }>(slug, query, { auth })
       // 401 means the author holds no role in this journal, which is the normal
       // case for nine of ten journals. Not an error, nothing to report.
-      if (!result.ok) return []
-      return (result.data.items ?? []).map((item) => ({ slug, item }))
+      if (!result.ok) return { slug, items: [] as OjsSubmission[], enrolled: false }
+      return { slug, items: result.data.items ?? [], enrolled: true }
     }),
   )
 
+  // The journals that answered are the ones this account holds a role in. The
+  // dashboard needs that list for its link into the editorial system when
+  // there is no submission to anchor it on: OJS's dashboard exists only inside
+  // a journal, and the site-level `index` context answers every author with
+  // "The current role does not have access to this operation". Verified
+  // against the live 3.5.0.5 instance — index/dashboard/mySubmissions is
+  // refused for a user who can open ijdh/dashboard/mySubmissions fine.
+  const journals = perJournal.filter((j) => j.enrolled).map((j) => j.slug)
+
   const submissions = perJournal
-    .flat()
+    .flatMap(({ slug, items }) => items.map((item) => ({ slug, item })))
     .map(({ slug, item }) => {
       const publication =
         item.publications?.find((p) => p.id === item.currentPublicationId) ?? item.publications?.[0]
@@ -226,5 +235,5 @@ export const GET = handler(async (request) => {
 
   // The scope is echoed so the client can label the list honestly rather than
   // assuming it is looking at the reader's own work.
-  return jsonOk({ submissions, scope: resolved.scope })
+  return jsonOk({ submissions, journals, scope: resolved.scope })
 })

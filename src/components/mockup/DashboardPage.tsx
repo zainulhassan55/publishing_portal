@@ -30,7 +30,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from '@/components/auth/SessionProvider'
 import { formatDate, formatDateShort } from '@/lib/format'
-import { ojsDashboardUrl, ojsEditorialUrl, ojsHandoffUrl, ojsReviewUrl } from '@/lib/ojs/config'
+import { ojsDashboardUrl, ojsEditorialUrl, ojsHandoffUrl, ojsProfileUrlRelative, ojsReviewUrl } from '@/lib/ojs/config'
 import { hasEditorialRole } from '@/lib/auth/roles'
 import type { Submission, SubmissionStatus } from '@/types/publishing'
 
@@ -205,6 +205,8 @@ export function DashboardPage({ journals }: Props) {
     letter: false,
   })
   const [apiSubs, setApiSubs] = useState<ApiSubmission[]>([])
+  /** Journal slugs this account holds a role in, per OJS. See /api/submissions. */
+  const [roleJournals, setRoleJournals] = useState<string[]>([])
   const [avail, setAvail] = useState(true)
   const prefsRef = useRef<Record<string, unknown> | null>(null)
 
@@ -217,7 +219,9 @@ export function DashboardPage({ journals }: Props) {
     fetch('/api/submissions', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => {
-        if (!cancelled && data?.ok && Array.isArray(data.submissions)) setApiSubs(data.submissions)
+        if (cancelled || !data?.ok) return
+        if (Array.isArray(data.submissions)) setApiSubs(data.submissions)
+        if (Array.isArray(data.journals)) setRoleJournals(data.journals)
       })
       .catch(() => {})
     fetch('/api/profile/prefs', { cache: 'no-store' })
@@ -289,7 +293,15 @@ export function DashboardPage({ journals }: Props) {
    */
   // Wrapped in the hand-off so the reader arrives in OJS already signed in,
   // instead of being asked for credentials a second time.
-  const ojsHref = ojsHandoffUrl(cur?.ojsUrl ?? ojsDashboardUrl(cur?.journalSlug ?? 'index'))
+  //
+  // The fallback must name a journal the reader is enrolled in. OJS has no
+  // site-level dashboard: `index/dashboard/mySubmissions` answers every author
+  // with "The current role does not have access to this operation", which is
+  // the page a reader with nothing in progress used to land on from here. With
+  // no enrolment known at all, the profile page is the one OJS page every
+  // signed-in account can open.
+  const ojsHome = roleJournals[0] ? ojsDashboardUrl(roleJournals[0]) : ojsProfileUrlRelative
+  const ojsHref = ojsHandoffUrl(cur?.ojsUrl ?? (cur?.journalSlug ? ojsDashboardUrl(cur.journalSlug) : ojsHome))
 
   const actions: ActionDef[] = !cur
     ? []
@@ -638,7 +650,7 @@ export function DashboardPage({ journals }: Props) {
                           <tr>
                             <td colSpan={3} style={{ padding: '18px 14px', fontSize: 14, color: 'var(--muted,#505C68)', lineHeight: 1.6 }}>
                               Nothing in progress. <Link href="/submit">Start a submission</Link>, or{' '}
-                              <a href={ojsHandoffUrl(ojsDashboardUrl('index'))}>check submissions already with the editorial system</a>.
+                              <a href={ojsHandoffUrl(ojsHome)}>check submissions already with the editorial system</a>.
                             </td>
                           </tr>
                         ) : null}
