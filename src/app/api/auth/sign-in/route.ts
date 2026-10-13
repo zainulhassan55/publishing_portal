@@ -3,7 +3,7 @@ import { handler, enforceRateLimit, jsonError, readJson } from '@/lib/api'
 import { databaseConfigured } from '@/lib/db'
 import { isEmail } from '@/lib/validate'
 import { fetchLoginForm, fetchOjsIdentity, postSignIn } from '@/lib/auth/ojs-login'
-import { ojsIsSameOrigin, ojsSessionCookie } from '@/lib/auth/ojs-cookie'
+import { ojsIsSameOrigin, setOjsSessionCookie } from '@/lib/auth/ojs-cookie'
 import { PORTAL_SESSION_COOKIE, SESSION_TTL_SECONDS, createSession } from '@/lib/auth/portal-session'
 import { ojsBaseUrl } from '@/lib/ojs/config'
 
@@ -149,8 +149,11 @@ export const POST = handler(async (request) => {
   // sign-in must sign the reader into both halves of the site. Skipped when
   // OJS lives on another origin (localhost development), where a cookie for
   // it cannot be set from here.
+  //
+  // Must stay below the `response.cookies.set` above: that call rewrites the
+  // whole Set-Cookie header and would discard these. See ojs-cookie.ts.
   if (ojsIsSameOrigin) {
-    response.cookies.set(ojsSessionCookie(request, result.sid))
+    setOjsSessionCookie(response, request, result.sid)
   }
 
   return response

@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 import { publicBaseUrl } from '@/lib/api'
 import { databaseConfigured } from '@/lib/db'
-import { OJS_SESSION_COOKIE } from '@/lib/auth/roles'
+import { clearOjsSessionCookies } from '@/lib/auth/ojs-cookie'
 import { PORTAL_SESSION_COOKIE, destroySession, readSession } from '@/lib/auth/portal-session'
 import { postSignOut } from '@/lib/auth/ojs-login'
-import { ojsPathPrefix } from '@/lib/ojs/config'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,24 +45,15 @@ export async function POST(request: Request) {
 
   response.cookies.set({ name: PORTAL_SESSION_COOKIE, value: '', path: '/', maxAge: 0 })
 
-  // Clear every OJSSID this origin can reach, in both storage forms: the
-  // host-only cookie (no Domain) and the domain-scoped one OJS itself sets.
-  // A browser keys its jar on the domain and host-only flag as well as the
-  // path, so clearing one form leaves the other live — which is how a reader
-  // ends up signed out on the portal while a stale OJS session lingers.
-  // Paths cover the current layout and the `/` copies the abandoned
-  // cookie-adoption design left behind. Harmless where absent.
-  const host = (request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '')
-    .split(',')[0]
-    .trim()
-    .split(':')[0]
-
-  for (const path of ['/', `${ojsPathPrefix}/`]) {
-    response.cookies.set({ name: OJS_SESSION_COOKIE, value: '', path, maxAge: 0 })
-    if (host && host !== 'localhost') {
-      response.cookies.set({ name: OJS_SESSION_COOKIE, value: '', path, domain: host, maxAge: 0 })
-    }
-  }
+  // Must stay below the `response.cookies.set` above, which rewrites the whole
+  // Set-Cookie header and would discard these. See ojs-cookie.ts.
+  //
+  // Clear every OJSSID this origin can reach — host-only and domain-scoped, at
+  // both paths. See clearOjsSessionCookies: this was previously four
+  // `response.cookies.set` calls, which Next collapsed to one because its
+  // cookie map is keyed on name alone, so the host-only copy outlived every
+  // sign-out and shadowed the next session.
+  clearOjsSessionCookies(response, request)
 
   return response
 }

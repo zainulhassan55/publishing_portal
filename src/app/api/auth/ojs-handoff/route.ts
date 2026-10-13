@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { publicBaseUrl } from '@/lib/api'
 import { databaseConfigured } from '@/lib/db'
-import { ojsSessionCookie } from '@/lib/auth/ojs-cookie'
+import { setOjsSessionCookie } from '@/lib/auth/ojs-cookie'
 import { PORTAL_SESSION_COOKIE, readSession } from '@/lib/auth/portal-session'
 import { ojsPathPrefix } from '@/lib/ojs/config'
 
@@ -76,8 +76,10 @@ export async function GET(request: Request) {
     const session = await readSession(token)
     if (session) {
       // OJS's own cookie attributes, shared with the sign-in route so the two
-      // can never disagree and leave two OJSSIDs in the jar. See ojsSessionCookie.
-      response.cookies.set(ojsSessionCookie(request, session.ojsSid))
+      // can never disagree and leave two OJSSIDs in the jar. Evicts the other
+      // (domain, path) forms as it goes — a stale sibling is sent on the very
+      // request this redirect triggers, and PHP would keep it over ours.
+      setOjsSessionCookie(response, request, session.ojsSid)
     }
   } catch (error) {
     // The link must keep working even with the session store down; the worst
