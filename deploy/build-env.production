@@ -1,0 +1,42 @@
+# Build-time environment for a production release.
+#
+# WHY THIS FILE EXISTS
+#
+# deploy.sh builds on a developer's machine and rsyncs the output, so the build
+# reads that developer's .env.local — which points at localhost and turns on
+# demo fixtures, because that is what local development needs. Next.js inlines
+# every NEXT_PUBLIC_* value at BUILD time, into the server bundle as well as the
+# client one, so those development values are compiled into the release and
+# shipped. /etc/ngiq/portal.env cannot correct them afterwards: there is no
+# runtime lookup left to override.
+#
+# This went unnoticed for several releases. The symptoms were a live site
+# serving demo articles, and redirects pointing at http://localhost:3000.
+#
+# deploy.sh exports these before `npm run build`. A real environment variable
+# takes precedence over .env.local, so production gets these values and local
+# development is untouched.
+#
+# ONLY non-secret NEXT_PUBLIC_* values belong here — they are compiled into the
+# client bundle and served to every visitor, so this file is committed and must
+# never hold a credential. Secrets stay in /etc/ngiq/portal.env on the server,
+# read at runtime.
+#
+# Keep in sync with the production env table in docs/GO-LIVE.md.
+
+# The origin every absolute URL is built from: redirects, sitemap, canonical
+# tags, and the OJS session hand-off (see publicBaseUrl in src/lib/api.ts).
+NEXT_PUBLIC_SITE_URL=https://www.nextgeniqpress.com
+
+# Relative, and that is load-bearing. The hand-off decides whether OJS shares
+# the portal's origin by asking whether this is a relative path, and only
+# attaches the OJSSID cookie when it does. An absolute value here silently
+# disables the cookie, and every "Open in the editorial system" link lands the
+# reader in OJS logged out, at its front page, with no sign of why.
+NEXT_PUBLIC_OJS_PATH=/ojs
+
+# Off. With this on, the fixtures in src/data/content/demo-articles.ts are
+# served as real articles.
+NEXT_PUBLIC_DEMO_CONTENT=0
+
+NEXT_PUBLIC_DOI_PREFIX=10.63521
