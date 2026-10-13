@@ -68,7 +68,47 @@ npm run typecheck
 npm run lint
 npm test
 npm run harvest
-npm run build
+
+# NEXT_PUBLIC_OJS_PATH is pinned here, and the pin is load-bearing.
+#
+# Next.js inlines every NEXT_PUBLIC_* value at BUILD time — into the server
+# bundle as well as the client one. This build runs on a developer's machine,
+# where .env.local sets the variable to the absolute
+# https://www.nextgeniqpress.com/ojs so localhost can develop against the live
+# OJS. Without this override that absolute value is compiled into the release
+# and shipped, and /etc/ngiq/portal.env cannot undo it: there is no runtime
+# lookup left to override.
+#
+# The consequence is not cosmetic. src/lib/auth/ojs-cookie.ts decides whether
+# OJS shares the portal's origin by asking whether the prefix is relative, and
+# the session hand-off only attaches OJSSID when it does. An absolute value
+# silently turns the cookie off, so every "Open in the editorial system" link
+# lands the reader in OJS logged out — at its front page, with no sign of why.
+#
+# A real environment variable takes precedence over .env.local, so production
+# gets the same-origin path and local development is untouched.
+NEXT_PUBLIC_OJS_PATH=/ojs npm run build
+
+# Fail the deploy rather than ship that bug again. The hand-off is invisible
+# when it breaks — the link still works, it just quietly stops authenticating —
+# so it has to be caught here instead of by someone clicking it in production.
+#
+# The pattern matches the INLINED ASSIGNMENT (`="https://host/ojs"`), not the
+# bare hostname. Searching for the hostname alone gives a false positive on
+# every build: requireOjsBaseUrl's "OJS_BASE_URL is not set … e.g.
+# https://www.nextgeniqpress.com/ojs" error message is a string literal in the
+# bundle, and the `="` prefix is what distinguishes a compiled-in value from
+# prose that merely mentions the URL. Maps are excluded for the same reason —
+# they embed config.ts's doc comment verbatim.
+#
+# OJS_BASE_URL is not checked here: it has no NEXT_PUBLIC_ prefix, so it stays
+# a runtime lookup against /etc/ngiq/portal.env and is correctly absolute.
+if grep -rqsE '="https?://[^"]+/ojs"' .next/server --include="*.js"; then
+  echo "Build has an absolute OJS path compiled in; NEXT_PUBLIC_OJS_PATH must be /ojs." >&2
+  echo "Offending chunks:" >&2
+  grep -rlsE '="https?://[^"]+/ojs"' .next/server --include="*.js" >&2
+  exit 1
+fi
 
 # `output: 'standalone'` emits a self-contained server; static and public assets
 # are copied in because the standalone output does not include them.
