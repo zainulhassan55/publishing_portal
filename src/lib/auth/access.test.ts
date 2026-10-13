@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
-import { canReadAllSubmissions, resolveScope, widestScope } from './access.ts'
+import { canReadAllSubmissions, isSiteAdmin, resolveScope, widestScope } from './access.ts'
 
 /**
  * The role names are OJS's, lowercased by ROLE_NAMES in ./roles.ts. The
@@ -43,6 +43,17 @@ test('scope=all is granted to an administrator and refused to an author', () => 
   assert.deepEqual(resolveScope('all', ['manager']), { ok: true, scope: 'all' })
   assert.deepEqual(resolveScope('all', ['author']), { ok: false, reason: 'forbidden' })
   assert.deepEqual(resolveScope('all', ['editor', 'reviewer']), { ok: false, reason: 'forbidden' })
+})
+
+test('the admin panel is site-admin only — a journal manager is not an administrator', () => {
+  // The distinction the whole panel rests on. A manager runs one journal; the
+  // panel decides which journals the press shows at all. Widening this hands
+  // portfolio control to every journal manager on the site.
+  assert.equal(isSiteAdmin(['site-admin']), true)
+  assert.equal(isSiteAdmin(['manager']), false)
+  assert.equal(isSiteAdmin(['manager', 'editor', 'author', 'reviewer']), false)
+  assert.equal(isSiteAdmin([]), false)
+  assert.equal(isSiteAdmin(undefined), false)
 })
 
 test('an unrecognised scope is refused rather than quietly narrowed', () => {
