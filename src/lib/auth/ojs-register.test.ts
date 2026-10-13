@@ -76,9 +76,40 @@ test('parseRegisterContexts returns nothing when the form has no journals', () =
   assert.deepEqual(parseRegisterContexts('<form><input name="email"></form>'), [])
 })
 
+/**
+ * A rejected registration, as OJS 3.5.0.5 actually renders it: a generic
+ * banner above a list of the real reasons. Confirmed against the live
+ * install's stylesheet, which carries selectors for both
+ * (`.page_register #formErrors .pkp_form_error_list`).
+ *
+ * This is the shape that broke the first version of the parser — it read the
+ * banner and discarded the list, so every rejection reached the person as
+ * "there were errors processing this form" and none of them said what to fix.
+ */
+const REJECTED = `
+<div id="formErrors">
+  <div class="pkp_form_error">There were errors processing this form. Please check below for problems.</div>
+  <ul class="pkp_form_error_list">
+    <li><a href="#username">This username is already in use.</a></li>
+    <li><a href="#email">This email address is already registered.</a></li>
+  </ul>
+</div>`
+
+test('parseRegisterError reports the reasons, not the banner above them', () => {
+  assert.equal(
+    parseRegisterError(REJECTED),
+    'This username is already in use. This email address is already registered.',
+  )
+})
+
 test('parseRegisterError surfaces OJS wording so the fix is actionable', () => {
   const html = '<div class="pkp_form_error">This username is already in use.</div>'
   assert.equal(parseRegisterError(html), 'This username is already in use.')
+})
+
+test('parseRegisterError falls back to a field-level error when there is no list', () => {
+  const html = '<div class="fields"><div><span class="error">A password is required.</span></div></div>'
+  assert.equal(parseRegisterError(html), 'A password is required.')
 })
 
 test('parseRegisterError strips nested markup rather than truncating at it', () => {

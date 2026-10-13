@@ -182,6 +182,39 @@ out and back in makes it immediate.
 
 ---
 
+### ⚠️ Set the start date to today
+
+Every role has a **start date**, and OJS treats a role that has not started as
+though it does not exist. The person will not appear when an editor tries to
+assign them, and nothing anywhere explains why — the role is listed on their
+record, looking perfectly normal.
+
+OJS does **not** reliably default this to today. Check it every time.
+
+If somebody has a role but cannot be assigned, look at the date first. It is
+the most likely answer by a wide margin, and the symptom gives no hint of the
+cause.
+
+To correct one: **⋮ More Actions** on their row → **Edit User** → change the
+date on that role → save. If it cannot be edited in place, remove the role and
+add it again with today's date.
+
+### Use "Edit User", not "Invite to a role"
+
+The Users & Roles page offers both. **Prefer Edit User.**
+
+Inviting sends an email the person must receive, holding a link they must
+click, before any role is granted. Each of those can fail, and on this install
+all of them have. Until they click Accept, the role exists only inside the
+invitation — which is why it can look assigned while being impossible to use
+or to delete.
+
+Editing the user grants the role immediately, with nothing in between. The only
+thing you give up is the automatic notification email, which you can send
+yourself.
+
+---
+
 ## 7. Common jobs
 
 ### Appoint a Journal Manager (handing over a journal)
@@ -211,6 +244,22 @@ They get an email with a reset link.
 If no email arrives, check with your developer whether the site's email settings
 are finished — unverified email is a common cause and has nothing to do with the
 person's account.
+
+### An editor says somebody is missing from the list
+
+When an editor cannot find a person in **Assign Editor** or **Add Reviewer**,
+work through these in order. The first is the cause far more often than the
+rest combined.
+
+1. **Is the role's start date in the future?** See the warning in section 6.
+   This is the usual answer.
+2. **Do they hold that role in *this* journal?** Roles do not carry across
+   journals. Check the journal's own user list.
+3. **Was it an invitation they never accepted?** Pending invitations appear
+   under **Invitations** on the Users & Roles page, separately from current
+   users. An unaccepted invitation grants nothing. Cancel it and use Edit User
+   instead.
+4. **Does the account exist at all?** If not, create it — section 6.
 
 ### Somebody cannot sign in at all
 

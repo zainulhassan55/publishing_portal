@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { handler, jsonError, jsonOk } from '@/lib/api'
 import { getSession } from '@/lib/auth/session'
+import { resolveScope } from '@/lib/auth/access'
 import { PORTAL_SESSION_COOKIE, readSession } from '@/lib/auth/portal-session'
 import { ojsFetch } from '@/lib/ojs/client'
 import { ojsBaseUrl } from '@/lib/ojs/config'
@@ -31,6 +32,27 @@ export const dynamic = 'force-dynamic'
  * a manuscript stands; OJS remains the place things are done. Offering a
  * "Submit revision" button here that could not upload a file would be the dead
  * control of audit finding F-18 all over again.
+ *
+ * ## Scope
+ *
+ * This used to ask OJS for `/submissions?count=100` with no scope at all and
+ * render the answer under "My submissions". That is a question whose meaning
+ * depends on who is asking: OJS forces `assignedTo` to the caller for an
+ * ordinary author, but returns **the whole journal queue** to anyone holding
+ * `manager` or `site-admin` there — so a manager's dashboard presented every
+ * other author's manuscript as their own submission.
+ *
+ * The scope is now always explicit, and `assignedTo` carries it. `mine` is the
+ * default and means the same thing for every role: what OJS has assigned to
+ * this person — their own papers as an author, the papers they were assigned to
+ * handle as an editor, the ones they were invited to review as a reviewer. OJS
+ * models all three as an assignment, so one query serves all three and no role
+ * branch is needed to build it.
+ *
+ * `?scope=all` is the administrator's view and is refused to anyone without the
+ * roles for it. The check is in src/lib/auth/access.ts, which also explains why
+ * OJS remains the enforcement point and why the portal cannot add an ownership
+ * filter of its own.
  *
  * ## Fan-out
  *
@@ -126,13 +148,30 @@ export const GET = handler(async (request) => {
   const session = await getSession()
   if (!session.user) return jsonError('unauthenticated', 401)
 
-  if (!ojsBaseUrl) return jsonOk({ submissions: [], reason: 'ojs-not-configured' })
+  const requested = new URL(request.url).searchParams.get('scope')
+  const resolved = resolveScope(requested, session.user.roles)
+
+  if (!resolved.ok) {
+    if (resolved.reason === 'forbidden') {
+      // Logged: an account asking for a scope it does not hold is either a stale
+      // client or someone trying the URL by hand, and both are worth seeing.
+      console.warn(
+        `[submissions] refused scope=${JSON.stringify(requested)} for user ${session.user.id} with roles ${JSON.stringify(session.user.roles)}`,
+      )
+      return jsonError('forbidden', 403, {
+        message: 'Your account does not have access to all submissions.',
+      })
+    }
+    return jsonError('unknown-scope', 400, { message: `Unknown scope ${JSON.stringify(requested)}.` })
+  }
+
+  if (!ojsBaseUrl) return jsonOk({ submissions: [], scope: resolved.scope, reason: 'ojs-not-configured' })
 
   const store = await cookies()
   const token = store.get(PORTAL_SESSION_COOKIE)?.value
   const portalSession = token ? await readSession(token) : null
 
-  if (!portalSession?.ojsSid) return jsonOk({ submissions: [], reason: 'no-ojs-session' })
+  if (!portalSession?.ojsSid) return jsonOk({ submissions: [], scope: resolved.scope, reason: 'no-ojs-session' })
 
   const auth = {
     sid: portalSession.ojsSid,
@@ -140,9 +179,17 @@ export const GET = handler(async (request) => {
     userAgent: request.headers.get('user-agent'),
   }
 
+  // `assignedTo` is what makes "mine" mean the same thing for every role. It is
+  // the caller's own id, which OJS permits for everyone — a non-manager is
+  // forced to exactly this value anyway, and a manager is filtered down to it
+  // instead of receiving the whole queue. Asking for another user's id answers
+  // 403, so this is the only id the portal is ever in a position to send.
+  const query =
+    resolved.scope === 'all' ? '/submissions?count=100' : `/submissions?count=100&assignedTo[]=${session.user.id}`
+
   const perJournal = await Promise.all(
     journalSlugs.map(async (slug) => {
-      const result = await ojsFetch<{ items?: OjsSubmission[] }>(slug, '/submissions?count=100', { auth })
+      const result = await ojsFetch<{ items?: OjsSubmission[] }>(slug, query, { auth })
       // 401 means the author holds no role in this journal, which is the normal
       // case for nine of ten journals. Not an error, nothing to report.
       if (!result.ok) return []
@@ -177,5 +224,7 @@ export const GET = handler(async (request) => {
     })
     .sort((a, b) => b.updatedIso.localeCompare(a.updatedIso))
 
-  return jsonOk({ submissions })
+  // The scope is echoed so the client can label the list honestly rather than
+  // assuming it is looking at the reader's own work.
+  return jsonOk({ submissions, scope: resolved.scope })
 })

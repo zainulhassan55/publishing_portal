@@ -31,6 +31,44 @@ const label: React.CSSProperties = {
   gap: 5,
 }
 
+/**
+ * The required marker.
+ *
+ * Every field on this form bar the reviewer tick is required, but nothing said
+ * so: the inputs carried `required` for the browser and the route rejected a
+ * blank one, and neither fact is visible to someone reading the form. OJS's own
+ * registration form marks them, so the portal version losing the markers was a
+ * regression against the page it replaced.
+ *
+ * `aria-hidden` on the asterisk with the word beside it is how OJS does it too:
+ * a screen reader announcing "star" says nothing, and `required` on the input
+ * is what actually carries the state to assistive technology.
+ */
+const Req = () => (
+  <>
+    <span aria-hidden="true" style={{ color: '#A52A2A' }}>
+      {' '}
+      *
+    </span>
+    <span
+      style={{
+        position: 'absolute',
+        width: 1,
+        height: 1,
+        margin: -1,
+        padding: 0,
+        overflow: 'hidden',
+        clip: 'rect(0 0 0 0)',
+        whiteSpace: 'nowrap',
+        border: 0,
+      }}
+    >
+      {' '}
+      (required)
+    </span>
+  </>
+)
+
 const input: React.CSSProperties = {
   border: '1px solid var(--line-strong,#B9C1C9)',
   borderRadius: 3,
@@ -129,9 +167,19 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
         <h1 style={{ margin: '0 0 8px', fontSize: 28, lineHeight: 1.2, color: 'var(--ink,#101B27)' }}>
           Create an account
         </h1>
-        <p style={{ margin: '0 0 24px', fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>
+        <p style={{ margin: '0 0 10px', fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>
           One account submits manuscripts, tracks decisions and accepts review invitations across every NextGenIQ Press
           journal. Already have one? <Link href="/sign-in">Sign in</Link>.
+        </p>
+        <p style={{ margin: '0 0 24px', fontSize: 13, color: 'var(--muted,#505C68)' }}>
+          Fields marked{' '}
+          <span aria-hidden="true" style={{ color: '#A52A2A' }}>
+            *
+          </span>
+          <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>
+            with an asterisk
+          </span>{' '}
+          are required.
         </p>
 
         <form
@@ -167,19 +215,28 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <label style={label}>
-              First name
+              <span>
+                First name
+                <Req />
+              </span>
               <input style={input} value={f.givenName} onChange={set('givenName')} autoComplete="given-name" required />
               {errorFor('givenName') ? <Err>{errorFor('givenName')}</Err> : null}
             </label>
             <label style={label}>
-              Last name
+              <span>
+                Last name
+                <Req />
+              </span>
               <input style={input} value={f.familyName} onChange={set('familyName')} autoComplete="family-name" required />
               {errorFor('familyName') ? <Err>{errorFor('familyName')}</Err> : null}
             </label>
           </div>
 
           <label style={label}>
-            Email address
+            <span>
+              Email address
+              <Req />
+            </span>
             <input style={input} type="email" value={f.email} onChange={set('email')} autoComplete="email" required />
             {errorFor('email') ? <Err>{errorFor('email')}</Err> : null}
           </label>
@@ -191,7 +248,10 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
             reported back as an error on a field the person was told to skip.
           */}
           <label style={label}>
-            Affiliation
+            <span>
+              Affiliation
+              <Req />
+            </span>
             <input
               style={input}
               value={f.affiliation}
@@ -204,7 +264,10 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
           </label>
 
           <label style={label}>
-            Country
+            <span>
+              Country
+              <Req />
+            </span>
             <select
               style={{ ...input, appearance: 'auto' }}
               value={f.country}
@@ -227,27 +290,50 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <label style={label}>
-              Username
-              <input style={input} value={f.username} onChange={set('username')} autoComplete="username" required />
+              <span>
+                Username
+                <Req />
+              </span>
+              {/* OJS's own column is 32 characters; a longer one is rejected
+                  after the round trip rather than while typing. */}
+              <input
+                style={input}
+                value={f.username}
+                onChange={set('username')}
+                autoComplete="username"
+                maxLength={32}
+                required
+              />
               {errorFor('username') ? <Err>{errorFor('username')}</Err> : null}
             </label>
             <label style={label}>
-              Password
+              <span>
+                Password
+                <Req />
+              </span>
               <input
                 style={input}
                 type="password"
                 value={f.password}
                 onChange={set('password')}
                 autoComplete="new-password"
+                minLength={6}
                 required
               />
-              {errorFor('password') ? <Err>{errorFor('password')}</Err> : null}
+              {/* The rule stated up front rather than discovered by rejection.
+                  Six is OJS's own floor and the route's MIN_PASSWORD. */}
+              {errorFor('password') ? (
+                <Err>{errorFor('password')}</Err>
+              ) : (
+                <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>At least 6 characters.</span>
+              )}
             </label>
           </div>
 
           <fieldset style={{ border: 0, padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <legend style={{ padding: 0, fontSize: 13, fontWeight: 500, color: 'var(--ink-2,#1F2A36)' }}>
               Which journals would you like to register with?
+              <Req />
             </legend>
             <p style={{ margin: 0, fontSize: 12, color: 'var(--muted,#505C68)', lineHeight: 1.5 }}>
               You can submit to any of them later; this only sets where you are listed now.
