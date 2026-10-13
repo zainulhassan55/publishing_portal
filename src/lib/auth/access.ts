@@ -71,6 +71,22 @@
 export type SubmissionScope = 'mine' | 'all'
 
 /**
+ * Site administration.
+ *
+ * `site-admin` only, and `manager` deliberately not included. A journal manager
+ * runs one journal; the admin panel decides which journals the press shows at
+ * all, which proposals become journals and which papers reach the public site.
+ * Those are publisher-level decisions, and OJS's own role for them is
+ * `site-admin` (role id 1).
+ *
+ * This is also the one place the flat role list in `portal_sessions.roles` is
+ * exactly the right shape: `site-admin` in OJS *is* site-wide, so "holds it
+ * somewhere" and "holds it here" are the same statement. Every per-journal
+ * question the panel asks is still OJS's to answer.
+ */
+export const isSiteAdmin = (roles: string[] | undefined) => (roles ?? []).includes('site-admin')
+
+/**
  * Roles OJS lets see unassigned submissions in a journal.
  *
  * These two and no others, matching OJS's own test
