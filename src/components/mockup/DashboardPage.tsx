@@ -358,6 +358,14 @@ export function DashboardPage({ journals }: Props) {
   // do not have.
   const editorial = hasEditorialRole(user?.roles)
 
+  // OJS refuses the submission wizard and the author dashboard to an account
+  // that holds no Author role, with a bare "The current role does not have
+  // access to this operation" page. On this install author self-registration
+  // is off in every journal, so a newly registered member is a reader only —
+  // and would otherwise be handed from here straight to that page. Tell them
+  // instead. Editorial roles already carry the access.
+  const canAuthor = editorial || (user?.roles ?? []).includes('author')
+
   const roleTabs = (
     [
       ['author', 'As author', subs.length],
@@ -649,8 +657,19 @@ export function DashboardPage({ journals }: Props) {
                         {list.length === 0 ? (
                           <tr>
                             <td colSpan={3} style={{ padding: '18px 14px', fontSize: 14, color: 'var(--muted,#505C68)', lineHeight: 1.6 }}>
-                              Nothing in progress. <Link href="/submit">Start a submission</Link>, or{' '}
-                              <a href={ojsHandoffUrl(ojsHome)}>check submissions already with the editorial system</a>.
+                              {canAuthor ? (
+                                <>
+                                  Nothing in progress. <Link href="/submit">Start a submission</Link>, or{' '}
+                                  <a href={ojsHandoffUrl(ojsHome)}>check submissions already with the editorial system</a>.
+                                </>
+                              ) : (
+                                <>
+                                  Your account is registered as a reader, so the editorial system will not yet accept a
+                                  submission from it. Ask the <Link href="/contact">editorial office</Link> to add the
+                                  Author role for the journal you want to submit to; once that is done, submissions start
+                                  from <Link href="/submit">here</Link>.
+                                </>
+                              )}
                             </td>
                           </tr>
                         ) : null}

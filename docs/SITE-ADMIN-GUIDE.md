@@ -71,11 +71,34 @@ delete → reload.
 | Role | What this person does |
 | --- | --- |
 | **Reader** | Nothing special. Everyone who registers is one. |
-| **Author** | Submits manuscripts. Self-service — anyone can choose it when registering. |
+| **Author** | Submits manuscripts. Self-service **only if** the journal permits it — see "Letting authors register themselves" below. Today no journal does, so every new account is a Reader until an editor adds the role. |
 | **Reviewer** | Reviews other people's manuscripts when invited. Also self-service at registration, and editors can enroll people. |
 | **Editor** | Runs peer review for a journal: assigns reviewers, records accept/reject decisions, moves manuscripts through to publication. |
 | **Journal Manager** | Owns one journal. Does everything an editor does, plus appoints that journal's editors and reviewers and changes its settings. |
 | **Site Administrator** | You. Creates journals, site-wide settings, appoints Journal Managers. |
+
+### Letting authors register themselves
+
+Checked on 14 October 2026: the registration form offers **Reader** and
+**Reviewer** for every journal and never **Author**. OJS only offers Author
+when a journal's Author role permits self-registration, and none of the ten do.
+The consequence is that anyone who creates an account — on the portal or in
+OJS — lands on "The current role does not have access to this operation" the
+moment they try to submit or open their author dashboard, because they are a
+Reader and nothing else.
+
+To fix it, once per journal, as Site Administrator or that journal's manager:
+
+1. Open the journal's dashboard in OJS → **Settings** → **Users & Roles** →
+   **Roles** tab.
+2. Click the **Author** role to edit it.
+3. Tick **Permit user self-registration** and save.
+
+From then on the registration form offers Author for that journal, and the
+portal's own registration requests it automatically. Accounts created before
+the change are still Readers: add the Author role to each by hand (**Users &
+Roles** → **Users** → the person → **Edit User** → tick Author), which is also
+the only way to grant it for a journal that keeps self-registration off.
 
 ### There is no "Publisher" role
 

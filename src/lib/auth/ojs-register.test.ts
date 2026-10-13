@@ -21,6 +21,7 @@ const FORM = `
             <fieldset class="roles">
               <legend> Request the following roles. </legend>
               <label> <input type="checkbox" name="readerGroup[17]"> Reader </label>
+              <label> <input type="checkbox" name="authorGroup[14]"> Author </label>
               <label> <input type="checkbox" name="reviewerGroup[16]"> Reviewer </label>
             </fieldset>
             <div class="context_privacy ">
@@ -61,12 +62,15 @@ test('parseRegisterContexts keeps each journal with its own group ids', () => {
   assert.deepEqual(contexts[0], {
     name: 'International Journal of Digital Health',
     readerGroup: 'readerGroup[17]',
+    authorGroup: 'authorGroup[14]',
     reviewerGroup: 'reviewerGroup[16]',
     privacyConsent: 'privacyConsent[1]',
   })
   assert.deepEqual(contexts[1], {
     name: 'International Journal of Quantum Technologies',
     readerGroup: 'readerGroup[179]',
+    // No Author checkbox: this journal does not permit author self-registration.
+    authorGroup: undefined,
     reviewerGroup: 'reviewerGroup[178]',
     privacyConsent: 'privacyConsent[10]',
   })

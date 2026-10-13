@@ -53,6 +53,18 @@ export type RegisterContext = {
   name: string
   /** Checkbox field name granting the Reader role, if offered. */
   readerGroup?: string
+  /**
+   * Checkbox field name granting the Author role, if offered.
+   *
+   * OJS only renders this when the journal's Author group has "Permit user
+   * self-registration" switched on (Settings → Users & Roles → Roles → Author).
+   * On the live install it is off for every journal, so the form offers
+   * Reader and Reviewer only and every account registered here is a reader —
+   * which OJS then turns away from the submission wizard and the author
+   * dashboard with "The current role does not have access to this operation".
+   * See docs/SITE-ADMIN-GUIDE.md, "Letting authors register themselves".
+   */
+  authorGroup?: string
   /** Checkbox field name granting the Reviewer role, if offered. */
   reviewerGroup?: string
   /** Per-journal privacy consent checkbox, required when enrolling. */
@@ -127,6 +139,7 @@ export function parseRegisterContexts(html: string): RegisterContext[] {
     contexts.push({
       name,
       readerGroup: block.match(/name="(readerGroup\[\d+\])"/)?.[1],
+      authorGroup: block.match(/name="(authorGroup\[\d+\])"/)?.[1],
       reviewerGroup: block.match(/name="(reviewerGroup\[\d+\])"/)?.[1],
       privacyConsent: block.match(/name="(privacyConsent\[\d+\])"/)?.[1],
     })
@@ -242,6 +255,11 @@ export async function postRegister(
     // Reader is what makes the person a member of the journal at all; without
     // it OJS records the registration but enrols them nowhere.
     if (context.readerGroup) body.append(context.readerGroup, 'on')
+    // Author is requested whenever the journal offers it: the register page
+    // promises that one account submits manuscripts, and a reader-only account
+    // cannot. Absent from the form means the journal does not permit author
+    // self-registration, and only an editor can grant the role.
+    if (context.authorGroup) body.append(context.authorGroup, 'on')
     if (input.asReviewer && context.reviewerGroup) body.append(context.reviewerGroup, 'on')
     // Required by OJS for every journal being joined, and separately per
     // journal because each may publish its own privacy statement.
