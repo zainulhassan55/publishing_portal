@@ -29,6 +29,16 @@ export type OjsRequirement = {
   journal: string
   /** The role family the page is gated on. */
   needs: 'author' | 'reviewer' | 'editorial' | 'member'
+  /**
+   * True for the submission wizard, the one page OJS opens to an account that
+   * holds no submitting role *provided the journal's Author role permits
+   * self-registration*: `getSubmitUserGroups()` falls back to that group and
+   * the account is enrolled as an author on its first submission. The
+   * hand-off checks the journal's registration form for that permission
+   * before refusing (see authorSelfRegistrationOffered in ojs-register.ts).
+   * The dashboard is not like this — it is Author-only regardless.
+   */
+  selfEnrolable?: boolean
 }
 
 /**
@@ -46,6 +56,7 @@ export function ojsPageRequirement(pathname: string, ojsPath: string): OjsRequir
 
   switch (page) {
     case 'submission':
+      return { journal, needs: 'author', selfEnrolable: true }
     case 'submissions':
     case 'authorDashboard':
       return { journal, needs: 'author' }

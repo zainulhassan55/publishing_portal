@@ -294,3 +294,31 @@ export async function postRegister(
 
   return { ok: false, reason: 'rejected', ...(message ? { message } : {}) }
 }
+
+/* ------------------------- author self-registration ------------------------ */
+
+const OFFER_CACHE_MS = 5 * 60 * 1000
+let offerCache: { at: number; byName: Map<string, boolean> } | null = null
+
+/**
+ * Whether a journal's registration form offers the Author role — the visible
+ * side of "Permit user self-registration" on that journal's Author group.
+ *
+ * Read from the live form rather than a setting the portal cannot see, and
+ * cached briefly because the hand-off asks on every click a Reader makes
+ * towards the submission wizard. A journal that switches the permission on
+ * is picked up within five minutes; a journal that switches it off is too,
+ * and in between OJS itself is the backstop.
+ *
+ * `null` means the form could not be read — the caller should fall back to
+ * what the session's roles say rather than treat the outage as a refusal or
+ * as permission.
+ */
+export async function authorSelfRegistrationOffered(journalName: string, userAgent?: string | null): Promise<boolean | null> {
+  if (!offerCache || Date.now() - offerCache.at > OFFER_CACHE_MS) {
+    const form = await fetchRegisterForm(userAgent)
+    if (!form) return offerCache?.byName.get(journalName) ?? null
+    offerCache = { at: Date.now(), byName: new Map(form.contexts.map((c) => [c.name, Boolean(c.authorGroup)])) }
+  }
+  return offerCache.byName.get(journalName) ?? false
+}

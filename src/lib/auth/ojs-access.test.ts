@@ -12,8 +12,8 @@ import { canOpenOjsPage, ojsPageRequirement } from './ojs-access.ts'
 const req = (path: string) => ojsPageRequirement(path, '/ojs')
 
 test('workspace pages are gated on the role OJS checks', () => {
-  assert.deepEqual(req('/ojs/index.php/ijdh/submission/wizard'), { journal: 'ijdh', needs: 'author' })
-  assert.deepEqual(req('/ojs/index.php/ijdh/submission'), { journal: 'ijdh', needs: 'author' })
+  assert.deepEqual(req('/ojs/index.php/ijdh/submission/wizard'), { journal: 'ijdh', needs: 'author', selfEnrolable: true })
+  assert.deepEqual(req('/ojs/index.php/ijdh/submission'), { journal: 'ijdh', needs: 'author', selfEnrolable: true })
   assert.deepEqual(req('/ojs/index.php/ijdh/submissions'), { journal: 'ijdh', needs: 'author' })
   assert.deepEqual(req('/ojs/index.php/ijdh/dashboard'), { journal: 'ijdh', needs: 'author' })
   assert.deepEqual(req('/ojs/index.php/ijdh/dashboard/mySubmissions'), { journal: 'ijdh', needs: 'author' })
@@ -34,8 +34,8 @@ test('pages every signed-in account may open are not gated', () => {
 })
 
 test('honours whatever prefix OJS is mounted at', () => {
-  assert.deepEqual(ojsPageRequirement('/index.php/ijdh/submission/wizard', '/'), { journal: 'ijdh', needs: 'author' })
-  assert.deepEqual(ojsPageRequirement('/ojs/index.php/ijdh/submission', '/ojs/'), { journal: 'ijdh', needs: 'author' })
+  assert.deepEqual(ojsPageRequirement('/index.php/ijdh/submission/wizard', '/'), { journal: 'ijdh', needs: 'author', selfEnrolable: true })
+  assert.deepEqual(ojsPageRequirement('/ojs/index.php/ijdh/submission', '/ojs/'), { journal: 'ijdh', needs: 'author', selfEnrolable: true })
 })
 
 test('a reader-only account is kept off every workspace page', () => {
@@ -64,4 +64,10 @@ test('the site level has no dashboard for anyone', () => {
 
 test('an empty role list is treated as a reader', () => {
   assert.equal(canOpenOjsPage([], req('/ojs/index.php/ijdh/submission/wizard')), false)
+})
+
+test('only the submission wizard is self-enrolable; the dashboard never is', () => {
+  assert.equal(req('/ojs/index.php/ijdh/submission/wizard')?.selfEnrolable, true)
+  assert.equal(req('/ojs/index.php/ijdh/dashboard/mySubmissions')?.selfEnrolable, undefined)
+  assert.equal(req('/ojs/index.php/ijdh/submissions')?.selfEnrolable, undefined)
 })

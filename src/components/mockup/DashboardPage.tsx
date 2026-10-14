@@ -710,11 +710,13 @@ export function DashboardPage({ journals }: Props) {
                                   <a href={ojsHandoffUrl(ojsHome)}>check submissions already with the editorial system</a>.
                                 </>
                               ) : (
+                                // A reader-only account is still offered the link: where the
+                                // journal permits author self-registration, OJS enrols the
+                                // account on its first submission. The hand-off decides, and
+                                // explains above when it has to say no.
                                 <>
-                                  Your account is registered as a reader, so the editorial system will not yet accept a
-                                  submission from it. Ask the <Link href="/contact">editorial office</Link> to add the
-                                  Author role for the journal you want to submit to; once that is done, submissions start
-                                  from <Link href="/submit">here</Link>.
+                                  Nothing in progress. <Link href="/submit">Start a submission</Link> — your first
+                                  submission to a journal also registers you with it as an author.
                                 </>
                               )}
                             </td>
