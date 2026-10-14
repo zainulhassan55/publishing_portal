@@ -24,10 +24,17 @@ import { absoluteUrl, siteName } from '@/lib/site'
 
 export const dynamicParams = true
 
-export function generateStaticParams() {
+/**
+ * Refreshed on the server rather than fixed at build. Published papers reach
+ * this page through the scheduled harvest and the admin show/hide gate, both of
+ * which purge the page cache (src/lib/articles/purge.ts); the hour here is the
+ * safety net for when that purge is missed, not the normal delay.
+ */
+export const revalidate = 3600
+export async function generateStaticParams() {
   // Empty in production until the first manuscript is accepted and harvested
   // from OJS. An empty list is a valid build, not a failure.
-  return getArticles().map((article) => ({ slug: article.slug }))
+  return (await getArticles()).map((article) => ({ slug: article.slug }))
 }
 
 const truncate = (text: string, max: number) => {
@@ -39,7 +46,7 @@ const truncate = (text: string, max: number) => {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const article = getArticle(slug)
+  const article = await getArticle(slug)
   const journal = article ? getJournal(article.journalSlug) : undefined
 
   if (!article || !journal) {
@@ -79,7 +86,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ArticleRoute({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const article = getArticle(slug)
+  const article = await getArticle(slug)
   if (!article) notFound()
 
   const journal = getJournal(article.journalSlug)
@@ -102,7 +109,7 @@ export default async function ArticleRoute({ params }: { params: Promise<{ slug:
   }
 
   // The mockup's related rail: the next three articles across the portfolio.
-  const related = getArticles()
+  const related = (await getArticles())
     .filter((other) => other.id !== article.id)
     .slice(0, 3)
     .map((other) => {

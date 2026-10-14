@@ -262,8 +262,40 @@ indicators are advisory now; OJS enforces the real requirement at attachment.
 OJS_BASE_URL=https://www.nextgeniqpress.com/ojs OJS_API_KEY=… npm run harvest
 ```
 
-Writes `content/harvest.json`. Run it **before `next build`** in CI, and on a
-cron afterwards so publishing in OJS reaches the site without a developer.
+Writes `content/harvest.json`, or the file named by `HARVEST_PATH`. The deploy
+runs it **before `next build`**; the server runs it **every fifteen minutes**
+from cron (`deploy/harvest.sh`, docs/GO-LIVE.md B10), which is what makes
+publishing in OJS reach the site without a developer.
+
+### How a published paper reaches the site (2026-10-14)
+
+Until this date a paper published in OJS appeared on the website at the next
+deploy and not before (docs/ADMIN-PANEL-PLAN.md, P3a). The pipeline is now:
+
+1. An editor publishes the issue in OJS. The paper's status becomes
+   `STATUS_PUBLISHED` and OAI lists it.
+2. Cron runs `deploy/harvest.sh`: the harvest writes a new snapshot to
+   `HARVEST_PATH` (atomically — temp file plus rename), then calls
+   `POST /api/revalidate` with `PORTAL_REVALIDATE_SECRET`.
+3. The route drops the parsed-snapshot cache, the hidden-article cache and
+   Next's page cache (`revalidatePath('/', 'layout')`). The next request to any
+   public page renders from the new snapshot.
+4. The article, journal, home, search and sitemap routes carry
+   `revalidate = 3600` as a safety net: if the purge is ever missed, they
+   refresh themselves within the hour. `readHarvest()` re-parses whenever the
+   file's mtime or size changes, so a restart is never needed either.
+
+The admin panel's **Published papers** screen (`/admin/publishing`) is the
+portal half of the same decision: a paper OJS has published is shown by
+default, and an administrator can hold it back (`article_display`, migration
+004). Hiding purges the same caches, so it takes effect on the next request.
+Publishing itself is never offered from the portal — see Phase 4 of the plan
+for why.
+
+`HARVEST_PATH` matters on the server. A release directory is replaced on every
+deploy; the snapshot must live outside it, or each deploy would reset the site
+to whatever the developer's machine harvested at build time. The deploy seeds
+the file on the first run and never overwrites it afterwards.
 
 Two passes, because the two read paths fail differently:
 
@@ -286,6 +318,10 @@ Notes:
   unauthenticated OJS is a configuration state, not a reason to refuse to
   publish the site, so the run now warns, diagnoses, and completes at OAI
   fidelity.
+- **An incomplete snapshot is never written.** The completeness check runs
+  before the write, and a run that cannot reach OAI at all leaves a non-empty
+  snapshot untouched. Both matter on a cron, where nothing reads the exit
+  code: an OJS outage during a run must change nothing, not empty the site.
 - The snapshot is disposable. Deleting it loses nothing a re-run cannot rebuild,
   which is why it is a file and not a database table.
 

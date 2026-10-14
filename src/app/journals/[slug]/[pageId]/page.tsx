@@ -33,6 +33,13 @@ export function generateStaticParams() {
   )
 }
 
+/**
+ * Refreshed on the server rather than fixed at build. Published papers reach
+ * this page through the scheduled harvest and the admin show/hide gate, both of
+ * which purge the page cache (src/lib/articles/purge.ts); the hour here is the
+ * safety net for when that purge is missed, not the normal delay.
+ */
+export const revalidate = 3600
 export async function generateMetadata({
   params,
 }: {
@@ -71,7 +78,7 @@ export default async function JournalContentPage({
 
   const code = journalCode(journal)
   const subject = subjectFor(slug)
-  const own = getArticles().filter((a) => a.journalSlug === slug)
+  const own = (await getArticles()).filter((a) => a.journalSlug === slug)
   const menuGroups = journalMenuGroups(slug)
 
   const masthead = {

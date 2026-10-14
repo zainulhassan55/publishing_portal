@@ -160,7 +160,13 @@ cp -R content "$STAGE/content"
 # on every deploy is a no-op.
 cp -R migrations "$STAGE/migrations"
 mkdir -p "$STAGE/scripts"
-cp scripts/migrate.ts scripts/env.ts "$STAGE/scripts/"
+# harvest.ts ships too: the server runs it on a schedule (deploy/harvest.sh),
+# which is how a paper published in OJS reaches the site without a deploy.
+cp scripts/migrate.ts scripts/harvest.ts scripts/env.ts "$STAGE/scripts/"
+# The cron wrapper ships alongside so the server-side install is a copy from
+# the live release (docs/GO-LIVE.md B10), not a download.
+mkdir -p "$STAGE/deploy"
+cp deploy/harvest.sh "$STAGE/deploy/"
 
 # migrate.ts needs mysql2 as a resolvable package, and the release bundle
 # cannot provide it: Next compiles server dependencies into its own chunks
@@ -188,6 +194,17 @@ elif [ -f /etc/ngiq/portal.env ]; then
   set -a; . /etc/ngiq/portal.env; set +a
 fi
 node --experimental-strip-types scripts/migrate.ts
+
+# The server reads its snapshot from HARVEST_PATH, outside the release, so the
+# scheduled harvest's work survives a deploy. On the very first deploy that
+# file does not exist yet; seed it from the build's own harvest so the site is
+# not empty until the first cron run. Never overwrite it — it is newer than
+# anything the developer's machine harvested.
+if [ -n "\${HARVEST_PATH:-}" ] && [ ! -f "\$HARVEST_PATH" ]; then
+  mkdir -p "\$(dirname "\$HARVEST_PATH")"
+  cp content/harvest.json "\$HARVEST_PATH"
+  echo "seeded \$HARVEST_PATH from the build"
+fi
 
 # Restart through whichever supervisor this host actually has.
 #
@@ -220,6 +237,20 @@ restart_app
 for i in \$(seq 1 30); do
   if curl -fsS -o /dev/null http://127.0.0.1:3000/api/health; then
     echo "healthy after \${i}s"
+    # The release was built on a machine with no database, so its prerendered
+    # pages do not know which papers an administrator has hidden, and they
+    # carry whatever snapshot the build harvested. Purging makes the first
+    # request to each page re-read both. Without the secret this still
+    # converges — the ISR timer is an hour — so it warns rather than fails.
+    if [ -n "\${PORTAL_REVALIDATE_SECRET:-}" ]; then
+      if curl -fsS -o /dev/null -X POST -H "Authorization: Bearer \$PORTAL_REVALIDATE_SECRET" http://127.0.0.1:3000/api/revalidate; then
+        echo "purged the page cache"
+      else
+        echo "WARNING: cache purge failed; pages refresh within the hour" >&2
+      fi
+    else
+      echo "WARNING: PORTAL_REVALIDATE_SECRET is not set; pages refresh within the hour" >&2
+    fi
     exit 0
   fi
   sleep 1

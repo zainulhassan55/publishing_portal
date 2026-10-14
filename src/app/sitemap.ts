@@ -12,9 +12,16 @@ import { siteUrl } from '@/lib/site'
  * articles and journal homes are what we want indexed first, boilerplate
  * policy pages last.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+/**
+ * Refreshed on the server rather than fixed at build. Published papers reach
+ * this page through the scheduled harvest and the admin show/hide gate, both of
+ * which purge the page cache (src/lib/articles/purge.ts); the hour here is the
+ * safety net for when that purge is missed, not the normal delay.
+ */
+export const revalidate = 3600
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const url = (path: string) => `${siteUrl}${path}`
-  const articles = getArticles()
+  const articles = await getArticles()
 
   // Build date rather than `new Date()` scattered through the entries, so every
   // static entry shares one coherent timestamp.

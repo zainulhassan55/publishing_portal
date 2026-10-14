@@ -13,6 +13,13 @@ export function generateStaticParams() {
   return journalSlugs.map((slug) => ({ slug }))
 }
 
+/**
+ * Refreshed on the server rather than fixed at build. Published papers reach
+ * this page through the scheduled harvest and the admin show/hide gate, both of
+ * which purge the page cache (src/lib/articles/purge.ts); the hour here is the
+ * safety net for when that purge is missed, not the normal delay.
+ */
+export const revalidate = 3600
 /** Trims to a whole word so a meta description never ends mid-term. */
 function clamp(text: string, max = 155): string {
   if (text.length <= max) return text
@@ -53,7 +60,7 @@ export default async function JournalHomePage({ params }: { params: Promise<{ sl
 
   const code = journalCode(journal)
   const subject = subjectFor(slug)
-  const articles = getArticles()
+  const articles = await getArticles()
   const own = articles.filter((a) => a.journalSlug === slug)
 
   const masthead = {

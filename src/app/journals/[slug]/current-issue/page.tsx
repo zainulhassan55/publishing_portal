@@ -11,6 +11,13 @@ export function generateStaticParams() {
   return journalSlugs.map((slug) => ({ slug }))
 }
 
+/**
+ * Refreshed on the server rather than fixed at build. Published papers reach
+ * this page through the scheduled harvest and the admin show/hide gate, both of
+ * which purge the page cache (src/lib/articles/purge.ts); the hour here is the
+ * safety net for when that purge is missed, not the normal delay.
+ */
+export const revalidate = 3600
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   const journal = getJournal(slug)
@@ -54,7 +61,7 @@ export default async function CurrentIssuePage({ params }: { params: Promise<{ s
 
   const code = journalCode(journal)
   const subject = subjectFor(slug)
-  const articles = getArticles()
+  const articles = await getArticles()
   const own = articles.filter((a) => a.journalSlug === slug)
 
   const masthead = {
