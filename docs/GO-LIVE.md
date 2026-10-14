@@ -602,7 +602,19 @@ chmod +x ~/portal/harvest.sh
 ~/portal/harvest.sh            # run it once by hand; it prints what it wrote
 ```
 
-Then **CloudPanel → Sites → www.nextgeniqpress.com → Cron Jobs → Add**:
+Then **CloudPanel → Sites → www.nextgeniqpress.com → Cron Jobs → Add**. The
+form has a **schedule** part and a **command** part; do not paste the whole
+crontab line into the command box, or cron will try to run a program called
+`*/15` every minute (that is exactly what happened on 2026-10-14).
+
+- Schedule: the *every 15 minutes* preset, or the five fields `*/15` `*` `*` `*` `*`
+- Command:
+
+```
+/home/nextgeniqpress/portal/harvest.sh >> /home/nextgeniqpress/portal/harvest.log 2>&1
+```
+
+For a plain crontab (`crontab -e`) the one-line form is:
 
 ```
 */15 * * * * /home/nextgeniqpress/portal/harvest.sh >> /home/nextgeniqpress/portal/harvest.log 2>&1

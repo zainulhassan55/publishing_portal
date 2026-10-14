@@ -18,7 +18,16 @@ export const licenceName = 'Creative Commons Attribution 4.0 International'
 export const licenceShort = 'CC BY 4.0'
 export const licenceUrl = 'https://creativecommons.org/licenses/by/4.0/'
 
-export const absoluteUrl = (path: string) => `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`
+/**
+ * Absolute form of a site path. A URL that is already absolute — the PDF
+ * galley OJS reports lives on the OJS origin — is returned untouched; the
+ * first real paper shipped a `citation_pdf_url` of `https://site/https://…`
+ * because this prefixed unconditionally.
+ */
+export const absoluteUrl = (path: string) => {
+  if (/^https?:\/\//i.test(path)) return path
+  return `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`
+}
 
 export const mainNav = [
   { label: 'Journals', href: '/journals' },
