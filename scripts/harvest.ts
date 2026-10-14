@@ -168,12 +168,17 @@ async function oaiInventory(): Promise<Map<string, number> | null> {
 }
 
 type OjsAuthor = {
+  id?: number
   givenName?: Localised
   familyName?: Localised
+  /** OJS ≤ 3.4: one free-text affiliation. */
   affiliation?: Localised
-  orcid?: string
+  /** OJS 3.5: structured affiliations, optionally ROR-matched. */
+  affiliations?: { name?: Localised; ror?: string | null }[]
+  orcid?: string | null
   email?: string
   country?: string
+  /** OJS ≤ 3.4; 3.5 moved this to `publication.primaryContactId`. */
   primaryContact?: boolean
 }
 
@@ -181,7 +186,9 @@ type OjsPublication = {
   id?: number
   title?: Localised
   abstract?: Localised
-  keywords?: Record<string, string[]>
+  /** OJS ≤ 3.4: `{ en: ['a', 'b'] }`; 3.5: `{ en: [{ name: 'a' }, …] }`. */
+  keywords?: Record<string, (string | { name?: string })[]>
+  primaryContactId?: number
   pub_id_doi?: string
   pages?: string
   datePublished?: string
@@ -264,33 +271,56 @@ for (const slug of JOURNAL_SLUGS) {
   if (submissionResult === null) continue
 
   for (const submission of submissionResult.items ?? []) {
-    const publication =
+    const summary =
       submission.publications?.find((p) => p.id === submission.currentPublicationId) ?? submission.publications?.[0]
-    if (!publication) continue
+    if (!summary?.id) continue
+
+    // The list endpoint returns a SUMMARY publication: title and dates, but no
+    // authors, no galleys and no issue. Found the hard way on 2026-10-14, when
+    // the first real paper reached the site with no author, no PDF and volume
+    // 1 instead of 12. The full record is one more request per paper.
+    const publication =
+      (await ojsGet<OjsPublication>(slug, `/submissions/${submission.id}/publications/${summary.id}`)) ?? summary
 
     const title = text(publication.title)
     if (!title) continue
 
-    const affiliations = new Map<string, { id: string; name: string; country?: string }>()
+    const affiliations = new Map<string, { id: string; name: string; ror?: string; country?: string }>()
     const authors = (publication.authors ?? []).map((author, index) => {
       const name = [text(author.givenName), text(author.familyName)].filter(Boolean).join(' ')
-      const affiliationName = text(author.affiliation)
       const affiliationIds: string[] = []
 
-      if (affiliationName) {
-        const existing = [...affiliations.values()].find((a) => a.name === affiliationName)
+      // 3.5 gives a structured list; 3.4 gave one string. Read whichever is
+      // present so an OJS upgrade in either direction does not blank the
+      // affiliations.
+      const named = (author.affiliations ?? [])
+        .map((a) => ({ name: text(a.name), ror: a.ror || undefined }))
+        .filter((a) => a.name)
+      const legacy = text(author.affiliation)
+      const entries = named.length > 0 ? named : legacy ? [{ name: legacy, ror: undefined }] : []
+
+      for (const entry of entries) {
+        const existing = [...affiliations.values()].find((a) => a.name === entry.name)
         const id = existing?.id ?? `af${affiliations.size + 1}`
-        if (!existing) affiliations.set(id, { id, name: affiliationName, country: author.country })
+        if (!existing) affiliations.set(id, { id, name: entry.name, ror: entry.ror, country: author.country })
         affiliationIds.push(id)
       }
+
+      const corresponding =
+        author.primaryContact ||
+        (publication.primaryContactId !== undefined && author.id !== undefined && author.id === publication.primaryContactId)
 
       return {
         name: name || `Author ${index + 1}`,
         affiliationIds,
         orcid: author.orcid?.replace(/^https?:\/\/orcid\.org\//, '') || undefined,
-        corresponding: author.primaryContact || undefined,
+        corresponding: corresponding || undefined,
       }
     })
+
+    const keywords = (publication.keywords?.en ?? [])
+      .map((k) => (typeof k === 'string' ? k : (k?.name ?? '')))
+      .filter(Boolean)
 
     const issue = publication.issueId ? issueById.get(publication.issueId) : undefined
     const published = publication.datePublished?.slice(0, 10) ?? issue?.datePublished?.slice(0, 10)
@@ -309,7 +339,7 @@ for (const slug of JOURNAL_SLUGS) {
       authors,
       affiliations: [...affiliations.values()],
       abstract: text(publication.abstract).replace(/<[^>]+>/g, '').trim(),
-      keywords: publication.keywords?.en ?? [],
+      keywords,
       doi: publication.pub_id_doi ?? '',
       volume: issue?.volume ?? 1,
       issue: Number(issue?.number ?? 1),
@@ -356,7 +386,7 @@ if (expectedTotal !== null && articles.length < expectedTotal) {
 writeSnapshot({ articles, issues })
 console.log(`\nwrote ${articles.length} article(s) and ${issues.length} issue(s) to ${outPath}`)
 
-if (expectedTotal === 0) {
+if (expectedTotal === 0 && articles.length === 0) {
   console.log('\nOJS has no published records yet. An empty snapshot is the correct result;')
   console.log('every listing page renders its launch-state copy from it.')
 }
