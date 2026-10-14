@@ -113,6 +113,10 @@ export const ojsRegisterPageUrl = () => `${requireOjsBaseUrl()}/index.php/index/
  * the original session design was built on. This page is the substitute: it
  * redirects (302) for an unauthenticated session and renders a prefilled form
  * (200) for an authenticated one. See docs/OJS-INTEGRATION.md.
+ *
+ * With one exception: for an account that holds a role in exactly one journal
+ * it redirects (302) to that journal's own profile page, which then renders.
+ * The relay follows that one hop — see profileRedirectTarget in ojs-login.ts.
  */
 export const ojsProfileUrl = () => `${requireOjsBaseUrl()}/index.php/index/user/profile`
 

@@ -292,7 +292,48 @@ rest combined.
 
 ### Somebody cannot sign in at all
 
-In order:
+The message on the sign-in page tells you which of these it is, so ask them
+to read it to you word for word.
+
+**"That email address and password do not match an account."** The editorial
+system checked the password and it was wrong. Two causes are far more common
+than a forgotten password:
+
+- They mistyped the password when they registered. Until October 2026 the
+  portal's registration form asked for the password only once, so a typo
+  became the password. The form now asks twice. For an account already
+  created this way, set them a new password (section 6, Edit User) — and
+  **untick "require the user to change their password on next login"** before
+  saving, or they hit the next problem.
+- Their browser filled in a saved password from a different account.
+
+**"The editorial system requires a new password for this account."** Their
+password was right. Somebody set the account to require a new password at
+next sign-in — that box is ticked by default when an administrator sets a
+password through Edit User. They must sign in **once on the editorial
+system**, at `https://www.nextgeniqpress.com/ojs/index.php/index/login`, set the
+new password it asks for, and then use the portal as normal.
+
+**"The editorial system did not respond" for one person while you can sign
+in fine.** On portal builds before 14 October 2026 this was a portal bug, not
+an outage: it affected every account that belonged to **exactly one journal**
+— which is what a new member who ticked a single journal at registration is —
+and never the administrator, who belongs to all of them. The same bug made
+registration say "sign in to continue" instead of landing on the dashboard,
+and signed those members out again within the hour. It is fixed; if the
+wording still appears, the fixed build has not been deployed. The person can
+still sign in at the editorial system's own login page meanwhile.
+
+**"The editorial system did not respond" / "returned an error".** Nothing to
+do with the person's account. Try it yourself; if it fails for you too, the
+editorial system is down or erroring — section 10.
+
+**"The editorial system accepted your details, but the portal could not read
+your account."** Call your developer and give them the person's username and
+the time; the portal keeps a record of exactly what happened.
+
+Then, if the message was about the password and the two causes above do not
+apply:
 
 1. Are they using the right address? It must be `/sign-in` on the portal.
 2. Have them clear their browser's saved site data (section 2).

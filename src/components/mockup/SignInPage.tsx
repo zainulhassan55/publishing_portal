@@ -46,7 +46,22 @@ const safeNext = (value: string | null): string => {
   return value
 }
 
-type Failure = 'credentials' | 'password-change' | 'unavailable' | 'ojs-down' | 'rate-limited' | 'generic'
+/**
+ * The three 502s are kept apart on purpose. They used to share one line —
+ * "did not respond" — which was true of the first and false of the other two,
+ * and a person told the system did not respond retries; a person told the
+ * system accepted their password but the portal could not finish has
+ * somewhere else to go and something to report.
+ */
+type Failure =
+  | 'credentials'
+  | 'password-change'
+  | 'unavailable'
+  | 'ojs-down'
+  | 'ojs-error'
+  | 'identity'
+  | 'rate-limited'
+  | 'generic'
 
 export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean }) {
   const router = useRouter()
@@ -96,7 +111,12 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
         setFailure(body?.error === 'password-change-required' ? 'password-change' : 'credentials')
       } else if (res.status === 503) setFailure('unavailable')
       else if (res.status === 429) setFailure('rate-limited')
-      else if (res.status === 502) setFailure('ojs-down')
+      else if (res.status === 502) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null
+        setFailure(
+          body?.error === 'session-not-accepted' ? 'identity' : body?.error === 'ojs-error' ? 'ojs-error' : 'ojs-down',
+        )
+      }
       else setFailure('generic')
     } catch {
       setFailure('generic')
@@ -147,6 +167,10 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
                   <>The editorial system requires a new password for this account before it can sign in. <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>Sign in on the editorial system</a> to set one — it will ask you straight away — then sign in here again.</>
                 ) : failure === 'ojs-down' ? (
                   <>The editorial system did not respond. Wait a moment and try again.</>
+                ) : failure === 'ojs-error' ? (
+                  <>The editorial system returned an error instead of signing you in. Wait a moment and try again, or <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>sign in on the editorial system</a>.</>
+                ) : failure === 'identity' ? (
+                  <>The editorial system accepted your details, but the portal could not read your account from it. <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>Sign in on the editorial system</a> for now — if it asks you to set a new password, do that, then sign in here again.</>
                 ) : failure === 'unavailable' ? (
                   <>Signing in from the portal is not available. <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>Sign in on the editorial system instead</a> — your account works there.</>
                 ) : failure === 'rate-limited' ? (

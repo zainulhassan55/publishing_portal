@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { handler, enforceRateLimit, jsonError, readJson } from '@/lib/api'
 import { databaseConfigured } from '@/lib/db'
 import { isEmail } from '@/lib/validate'
-import { fetchLoginForm, fetchOjsIdentity, postSignIn, postSignOut } from '@/lib/auth/ojs-login'
+import { createHash } from 'node:crypto'
+import { fetchLoginForm, postSignIn, postSignOut, probeOjsIdentity } from '@/lib/auth/ojs-login'
 import { ojsIsSameOrigin, setOjsSessionCookie } from '@/lib/auth/ojs-cookie'
 import { PORTAL_SESSION_COOKIE, SESSION_TTL_SECONDS, createSession } from '@/lib/auth/portal-session'
 import { ojsBaseUrl } from '@/lib/ojs/config'
@@ -33,6 +34,17 @@ export const dynamic = 'force-dynamic'
 type Body = { email?: string; password?: string }
 
 const nativeSignInEnabled = process.env.PORTAL_NATIVE_SIGNIN === '1'
+
+/**
+ * A short, stable, pseudonymous handle for an account in the logs.
+ *
+ * Support needs to see that the same account failed five times in a row, and
+ * which failure it was each time; the log must not hold the address itself
+ * (see the register route, which logs the username for the same reason). The
+ * first ten hex characters of a hash are enough to correlate and nothing else.
+ */
+const accountRef = (identifier: string) =>
+  createHash('sha256').update(identifier.trim().toLowerCase()).digest('hex').slice(0, 10)
 
 const unavailable = (message: string) =>
   NextResponse.json(
@@ -96,8 +108,20 @@ export const POST = handler(async (request) => {
 
   if (!result.ok) {
     if (result.reason === 'ojs-unreachable') {
+      console.error(`[sign-in] OJS did not answer the sign-in post (account ${accountRef(identifier)})`)
       return NextResponse.json(
         { ok: false, error: 'ojs-unreachable' },
+        { status: 502, headers: { 'Cache-Control': 'no-store' } },
+      )
+    }
+    if (result.reason === 'ojs-error') {
+      // OJS failed on the request rather than ruling on the credentials. The
+      // status is the lead for whoever reads the log; the page says only that
+      // the editorial system errored, which is true and is all the person can
+      // act on.
+      console.error(`[sign-in] OJS answered HTTP ${result.status} to the sign-in post (account ${accountRef(identifier)})`)
+      return NextResponse.json(
+        { ok: false, error: 'ojs-error', status: result.status },
         { status: 502, headers: { 'Cache-Control': 'no-store' } },
       )
     }
@@ -105,6 +129,7 @@ export const POST = handler(async (request) => {
       // The password was right; OJS wants a new one before it will open a
       // session. That has to happen on OJS's own change-password page, which
       // the sign-in page links to. See passwordChangeRequired in ojs-login.ts.
+      console.warn(`[sign-in] OJS requires a password change before sign-in (account ${accountRef(identifier)})`)
       return jsonError('password-change-required', 401, {
         message:
           'The editorial system requires a new password for this account before it can sign in. Set one there, then sign in here again.',
@@ -116,12 +141,23 @@ export const POST = handler(async (request) => {
     return jsonError('invalid-credentials', 401, result.message ? { message: result.message } : {})
   }
 
-  const identity = await fetchOjsIdentity(result.sid, userAgent)
+  const probe = await probeOjsIdentity(result.sid, userAgent)
+  const identity = probe.identity
   if (!identity) {
     // OJS accepted the credentials but the session does not resolve to a user.
     // Reporting success here would hand out a session with no identity behind
-    // it, so this fails loudly instead.
-    console.error('[sign-in] OJS accepted credentials but the session did not resolve to a user')
+    // it, so this fails loudly instead — and with its working shown. The
+    // one-line version of this message was all the log held the last time it
+    // fired for a single account while every other account signed in, and it
+    // took a day to learn that OJS had been redirecting that account to its
+    // change-password page. Status and locations are what settle that in a
+    // minute: a 302 to login is a session OJS would not keep, a 500 is the
+    // profile page failing for this account, a 200 is the markup changing.
+    console.error(
+      `[sign-in] OJS accepted credentials but the session did not resolve to a user ` +
+        `(account ${accountRef(identifier)}; sign-in redirected to ${result.redirectedTo ?? 'nowhere'}; ` +
+        `profile answered ${probe.status || 'no response'}${probe.location ? ` → ${probe.location}` : ''})`,
+    )
     return NextResponse.json(
       { ok: false, error: 'session-not-accepted' },
       { status: 502, headers: { 'Cache-Control': 'no-store' } },

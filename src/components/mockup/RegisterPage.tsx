@@ -89,6 +89,7 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
     email: '',
     username: '',
     password: '',
+    passwordConfirm: '',
     affiliation: '',
     country: '',
   })
@@ -111,9 +112,17 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setBusy(true)
     setErrors([])
     setFailure(null)
+
+    // Checked before anything is sent, because a mismatch means one of the two
+    // is a typo and the whole point is to stop that typo becoming the password.
+    if (f.password !== f.passwordConfirm) {
+      setErrors([{ field: 'passwordConfirm', message: 'The two passwords do not match. Type the same password in both boxes.' }])
+      return
+    }
+
+    setBusy(true)
 
     try {
       const response = await fetch('/api/auth/register', {
@@ -329,6 +338,33 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
               )}
             </label>
           </div>
+
+          {/* OJS's own form asks for the password twice, and this one did not.
+              The relay filled OJS's second box with a copy of the first, so a
+              password mistyped here was accepted without question — and the
+              person then could not sign in with the password they thought
+              they had chosen. With site email not yet configured there is no
+              reset to fall back on, so the typo had to be caught here. */}
+          <label style={label}>
+            <span>
+              Confirm password
+              <Req />
+            </span>
+            <input
+              style={input}
+              type="password"
+              value={f.passwordConfirm}
+              onChange={set('passwordConfirm')}
+              autoComplete="new-password"
+              minLength={6}
+              required
+            />
+            {errorFor('passwordConfirm') ? (
+              <Err>{errorFor('passwordConfirm')}</Err>
+            ) : (
+              <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>Type the same password again.</span>
+            )}
+          </label>
 
           <fieldset style={{ border: 0, padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <legend style={{ padding: 0, fontSize: 13, fontWeight: 500, color: 'var(--ink-2,#1F2A36)' }}>
