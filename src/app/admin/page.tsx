@@ -73,9 +73,11 @@ export default async function AdminOverview() {
         <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>Journals in the portfolio</span>
         <strong style={{ fontSize: 30, lineHeight: 1.1, color: 'var(--ink,#101B27)' }}>{journals.length}</strong>
         <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>
-          Defined in source code — visibility control is not built yet
+          Each one opens straight into its editorial system, signed in
         </span>
-        <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>See docs/ADMIN-PANEL-PLAN.md §P1</span>
+        <Link href="/admin/journals" style={{ fontSize: 13, marginTop: 2 }}>
+          Open a journal in OJS
+        </Link>
       </div>
 
       <div style={card}>
