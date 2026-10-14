@@ -23,6 +23,12 @@ export const metadata: Metadata = {
  * Every link goes through the OJSSID hand-off, so a signed-in author lands in
  * the wizard already authenticated. Signed out, OJS asks them to sign in or
  * register and then continues to the wizard itself.
+ *
+ * The hand-off also refuses to forward an account OJS would turn away: a
+ * Reader-only account (what the portal's register page produces until the
+ * journals permit Author self-registration) is sent back to the dashboard
+ * with an explanation instead of to OJS's "The current role does not have
+ * access to this operation" page. See src/lib/auth/ojs-access.ts.
  */
 export default function Submit() {
   return (

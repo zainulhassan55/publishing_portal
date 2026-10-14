@@ -194,6 +194,14 @@ export function DashboardPage({ journals }: Props) {
   const justSubmitted = submittedParam !== null
   const bannerRef = submittedParam ?? ''
 
+  // `?ojs=role-needed` is set by /api/auth/ojs-handoff when it declines to
+  // forward this account to an OJS page its roles cannot open — the reader
+  // would otherwise have met OJS's own "The current role does not have access
+  // to this operation" page. The explanation belongs here, where the fix can
+  // be named.
+  const roleNeeded = sp.get('ojs') === 'role-needed' ? sp.get('needs') ?? 'author' : null
+  const roleNeededJournal = sp.get('journal') ?? ''
+
   const requestedTab = sp.get('tab')
   const [tab, setTab] = useState<'author' | 'reviewer' | 'editorial'>(
     requestedTab === 'reviewer' || requestedTab === 'editorial' ? requestedTab : 'author',
@@ -494,6 +502,45 @@ export function DashboardPage({ journals }: Props) {
                 }}
               >
                 Submission {bannerRef} received. A receipt has been emailed to you and your co-authors.
+              </div>
+            ) : null}
+            {roleNeeded ? (
+              <div
+                role="alert"
+                style={{
+                  marginTop: 18,
+                  border: '1px solid #F0D9A8',
+                  background: '#FFF7E6',
+                  color: '#6B4A00',
+                  borderRadius: 3,
+                  padding: '12px 16px',
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                }}
+              >
+                {roleNeeded === 'author' ? (
+                  <>
+                    Your account is registered with{' '}
+                    {journals.find((j) => j.slug === roleNeededJournal)?.title ?? 'that journal'} as a reader, so the
+                    editorial system will not accept a submission from it yet. Ask the{' '}
+                    <Link href="/contact">editorial office</Link> to add the Author role to your account; once that is
+                    done, <Link href="/submit">start the submission</Link> again and it will open in the editorial
+                    system straight away.
+                  </>
+                ) : roleNeeded === 'reviewer' ? (
+                  <>
+                    Your account does not hold the Reviewer role with{' '}
+                    {journals.find((j) => j.slug === roleNeededJournal)?.title ?? 'that journal'}, so the editorial
+                    system has no review queue to show you. Review invitations arrive by email from the editorial
+                    office.
+                  </>
+                ) : (
+                  <>
+                    That page of the editorial system is for editors of{' '}
+                    {journals.find((j) => j.slug === roleNeededJournal)?.title ?? 'that journal'}. Your account does
+                    not hold an editorial role there.
+                  </>
+                )}
               </div>
             ) : null}
             <div role="tablist" style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--line,#DCE1E6)', marginTop: 20 }}>

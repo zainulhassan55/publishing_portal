@@ -87,10 +87,21 @@ OJS — lands on "The current role does not have access to this operation" the
 moment they try to submit or open their author dashboard, because they are a
 Reader and nothing else.
 
+Until it is fixed the portal does not send such an account into OJS at all:
+"Start submission" and "Open in the editorial system" bring the reader back to
+the portal dashboard with a notice that names this step, and OJS's own
+"does not have access" page is redirected there too (nginx, see
+`deploy/cloudpanel-vhost.conf`). Nothing on the portal side can grant the
+role: OJS 3.5 has no API for it, and the portal's API key is not an
+administrator's.
+
 To fix it, once per journal, as Site Administrator or that journal's manager:
 
 1. Open the journal's dashboard in OJS → **Settings** → **Users & Roles** →
-   **Roles** tab.
+   **Roles** tab. Signed in as an administrator, this is
+   `https://www.nextgeniqpress.com/ojs/index.php/<journal>/management/settings/access`
+   for `ijdh`, `ijdm`, `ijds`, `ijei`, `ijic`, `ijis`, `ijmc`, `ijmr`,
+   `ijqt` and `ijse`.
 2. Click the **Author** role to edit it.
 3. Tick **Permit user self-registration** and save.
 

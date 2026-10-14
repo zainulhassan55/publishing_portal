@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 import { publicBaseUrl } from '@/lib/api'
 import { databaseConfigured } from '@/lib/db'
+import { canOpenOjsPage, ojsPageRequirement } from '@/lib/auth/ojs-access'
 import { setOjsSessionCookie } from '@/lib/auth/ojs-cookie'
-import { PORTAL_SESSION_COOKIE, readSession } from '@/lib/auth/portal-session'
+import { fetchOjsIdentity } from '@/lib/auth/ojs-login'
+import { PORTAL_SESSION_COOKIE, readSession, touchSession } from '@/lib/auth/portal-session'
 import { ojsPathPrefix } from '@/lib/ojs/config'
 
 export const dynamic = 'force-dynamic'
@@ -26,6 +28,15 @@ export const dynamic = 'force-dynamic'
  *
  * Signed-out and expired visitors are redirected without a cookie and land on
  * the OJS login form — exactly where the link went before this route existed.
+ *
+ * A signed-in account is only forwarded to a page OJS will let it open. OJS
+ * answers a Reader on the submission wizard or the author dashboard with a
+ * redirect to its own "The current role does not have access to this
+ * operation" page, and the portal registers new accounts as Readers because
+ * the journals do not yet permit Author self-registration. Rather than let OJS
+ * deliver that news in its own interface, the reader stays on the portal
+ * dashboard, which says what has to happen (an editor grants the role). See
+ * ojs-access.ts for the page-to-role table.
  */
 export async function GET(request: Request) {
   const requested = new URL(request.url).searchParams.get('to') ?? ''
@@ -75,6 +86,24 @@ export async function GET(request: Request) {
   try {
     const session = await readSession(token)
     if (session) {
+      const requirement = ojsPageRequirement(target.pathname, ojsPath)
+      if (!canOpenOjsPage(session.user.roles, requirement)) {
+        // The cached roles may be minutes old, and the one thing that fixes a
+        // refusal is an editor granting a role in OJS. Ask OJS before saying
+        // no, so a role granted a moment ago works on the very next click
+        // rather than after the session's next scheduled revalidation.
+        const userAgent = request.headers.get('user-agent')
+        const fresh = await fetchOjsIdentity(session.ojsSid, userAgent)
+        if (fresh) await touchSession(token, fresh, fresh.csrfToken ?? null)
+
+        if (!fresh || !canOpenOjsPage(fresh.roles, requirement)) {
+          const explain = new URL('/dashboard', base)
+          explain.searchParams.set('ojs', 'role-needed')
+          explain.searchParams.set('needs', requirement!.needs)
+          explain.searchParams.set('journal', requirement!.journal)
+          return NextResponse.redirect(explain, { status: 302 })
+        }
+      }
       // OJS's own cookie attributes, shared with the sign-in route so the two
       // can never disagree and leave two OJSSIDs in the jar. Evicts the other
       // (domain, path) forms as it goes — a stale sibling is sent on the very
