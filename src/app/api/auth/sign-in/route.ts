@@ -101,6 +101,15 @@ export const POST = handler(async (request) => {
         { status: 502, headers: { 'Cache-Control': 'no-store' } },
       )
     }
+    if (result.reason === 'password-change-required') {
+      // The password was right; OJS wants a new one before it will open a
+      // session. That has to happen on OJS's own change-password page, which
+      // the sign-in page links to. See passwordChangeRequired in ojs-login.ts.
+      return jsonError('password-change-required', 401, {
+        message:
+          'The editorial system requires a new password for this account before it can sign in. Set one there, then sign in here again.',
+      })
+    }
     // OJS's own wording is passed through: "not been validated" and "disabled"
     // are both reported as invalid credentials otherwise, and the user has no
     // way to tell that the fix is in their inbox.

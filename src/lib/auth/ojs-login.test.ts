@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { parseCurrentUser, parseLoginError, parseLoginForm } from './ojs-login.ts'
+import { parseCurrentUser, parseLoginError, parseLoginForm, passwordChangeRequired } from './ojs-login.ts'
 
 /**
  * These tests exist for one reason: the login relay depends on another
@@ -163,4 +163,12 @@ test('parseCurrentUser is not confused by other JSON on the page', () => {
   </script>`
   assert.equal(parseCurrentUser(html)?.id, 31)
   assert.equal(parseCurrentUser(html)?.userName, 'picked')
+})
+
+test('passwordChangeRequired recognises the must-change-password redirect and nothing else', () => {
+  assert.equal(passwordChangeRequired('https://www.nextgeniqpress.com/ojs/index.php/index/login/changePassword/dhruv9911'), true)
+  assert.equal(passwordChangeRequired('/ojs/index.php/index/login/changePassword?x=1'), true)
+  assert.equal(passwordChangeRequired('https://www.nextgeniqpress.com/ojs/index.php/index/index'), false)
+  assert.equal(passwordChangeRequired('https://www.nextgeniqpress.com/ojs/index.php/ijdh/dashboard'), false)
+  assert.equal(passwordChangeRequired(null), false)
 })

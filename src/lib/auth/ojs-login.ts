@@ -181,7 +181,23 @@ export async function fetchLoginForm(userAgent?: string | null): Promise<LoginFo
 
 export type SignInResult =
   | { ok: true; sid: string }
-  | { ok: false; reason: 'invalid-credentials' | 'ojs-unreachable'; message?: string }
+  | { ok: false; reason: 'invalid-credentials' | 'ojs-unreachable' | 'password-change-required'; message?: string }
+
+/**
+ * OJS's "must change password" flag, read off the login redirect.
+ *
+ * An account carrying the flag — set by an administrator editing the user and
+ * leaving "user must change password on next login" ticked, or by a password
+ * reset — is *not* signed in by a correct password. `LoginHandler::signIn`
+ * (stable-3_5_0) logs the session straight back out and redirects to
+ * `login/changePassword/<username>`. That is a 3xx like a success, and the
+ * relay once read it as one: the identity fetch that followed found no user,
+ * the route answered 502, and the page said "something went wrong" to a
+ * person whose password was right. The redirect target is the only tell.
+ */
+export function passwordChangeRequired(location: string | null): boolean {
+  return /\/login\/changePassword(?:\/|\?|$)/.test(location ?? '')
+}
 
 /**
  * Step 2: post the credentials.
@@ -232,6 +248,10 @@ export async function postSignIn(
 
   const rotated = firstCookie(response)
   const redirected = response.status >= 300 && response.status < 400
+
+  if (redirected && passwordChangeRequired(response.headers.get('location'))) {
+    return { ok: false, reason: 'password-change-required' }
+  }
 
   if (!redirected && !rotated) return { ok: false, reason: 'invalid-credentials' }
 

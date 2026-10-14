@@ -46,7 +46,7 @@ const safeNext = (value: string | null): string => {
   return value
 }
 
-type Failure = 'credentials' | 'unavailable' | 'rate-limited' | 'generic'
+type Failure = 'credentials' | 'password-change' | 'unavailable' | 'ojs-down' | 'rate-limited' | 'generic'
 
 export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean }) {
   const router = useRouter()
@@ -88,12 +88,15 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
         // than "wrong password" — an account awaiting email validation, or a
         // disabled one. Collapsing those into "check your details" sends
         // people round in circles retyping a password that was never wrong.
-        const body = (await res.json().catch(() => null)) as { message?: string } | null
+        const body = (await res.json().catch(() => null)) as { error?: string; message?: string } | null
         const detail = body?.message?.trim()
         setServerMessage(detail && !/invalid username\/email or password/i.test(detail) ? detail : null)
-        setFailure('credentials')
+        // A right password OJS will not accept until it is changed. Named
+        // separately so the page can point at where to change it.
+        setFailure(body?.error === 'password-change-required' ? 'password-change' : 'credentials')
       } else if (res.status === 503) setFailure('unavailable')
       else if (res.status === 429) setFailure('rate-limited')
+      else if (res.status === 502) setFailure('ojs-down')
       else setFailure('generic')
     } catch {
       setFailure('generic')
@@ -140,6 +143,10 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
                   ) : (
                     <>That email address and password do not match an account. Check both and try again.</>
                   )
+                ) : failure === 'password-change' ? (
+                  <>The editorial system requires a new password for this account before it can sign in. <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>Sign in on the editorial system</a> to set one — it will ask you straight away — then sign in here again.</>
+                ) : failure === 'ojs-down' ? (
+                  <>The editorial system did not respond. Wait a moment and try again.</>
                 ) : failure === 'unavailable' ? (
                   <>Signing in from the portal is not available. <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>Sign in on the editorial system instead</a> — your account works there.</>
                 ) : failure === 'rate-limited' ? (
