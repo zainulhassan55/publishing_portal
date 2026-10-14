@@ -24,7 +24,7 @@
 
 // Explicit .ts extensions and a dependency-free import target, so this module
 // loads under `node --test` without pulling in next/headers or mysql2.
-import { ojsLoginPageUrl, ojsProfileUrl, ojsSignInUrl, ojsSignOutUrl } from '../ojs/config.ts'
+import { ojsLoginPageUrl, ojsProfileUrl, ojsSignInUrl, ojsSignOutUrl, requireOjsBaseUrl } from '../ojs/config.ts'
 import { OJS_SESSION_COOKIE, ROLE_NAMES, type SessionUser } from './roles.ts'
 
 /** OJS's own CSRF token for an authenticated session, plus who it belongs to. */
@@ -285,4 +285,45 @@ export async function postSignOut(sid: string, userAgent?: string | null): Promi
   } catch {
     /* ignored — see above */
   }
+}
+
+/**
+ * Whether OJS would let this session start a submission in `journal`.
+ *
+ * Asked of OJS itself rather than inferred from roles, because OJS's own rule
+ * is wider than "holds the Author role": its start page (`<journal>/submission`)
+ * offers the form to any signed-in account that holds a submitting role *or*
+ * for which the journal's Author role permits self-registration — in which
+ * case the account is enrolled as an author on its first submission
+ * (`PKPSubmissionHandler::getSubmitUserGroups`, `PKPSubmissionController::add`,
+ * both stable-3_5_0). An account outside both gets a "not able to make a
+ * submission" error page instead, with the same 200 status.
+ *
+ * The form is what is looked for: its config is inlined into the page as the
+ * `startSubmission` form posting to the submissions API. Anything other than
+ * a 200 — a redirect to login for a dead session, a timeout — is `unknown`,
+ * and the caller falls back to the roles it already holds.
+ */
+export async function wizardOpenTo(
+  journal: string,
+  sid: string,
+  userAgent?: string | null,
+): Promise<'open' | 'closed' | 'unknown'> {
+  try {
+    const response = await fetch(`${requireOjsBaseUrl()}/index.php/${encodeURIComponent(journal)}/submission`, {
+      headers: withUserAgent({ Cookie: `${OJS_SESSION_COOKIE}=${sid}`, Accept: 'text/html' }, userAgent),
+      redirect: 'manual',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(COOKIE_TIMEOUT_MS),
+    })
+    if (response.status !== 200) return 'unknown'
+    return wizardPageOffersForm(await response.text()) ? 'open' : 'closed'
+  } catch {
+    return 'unknown'
+  }
+}
+
+/** Pure half of wizardOpenTo, for tests: does the start page carry the form? */
+export function wizardPageOffersForm(html: string): boolean {
+  return html.includes('"StartSubmissionPage"') && /"id":"startSubmission"/.test(html) && /api\\?\/v1\\?\/submissions"/.test(html)
 }

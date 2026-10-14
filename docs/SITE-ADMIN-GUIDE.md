@@ -71,7 +71,7 @@ delete → reload.
 | Role | What this person does |
 | --- | --- |
 | **Reader** | Nothing special. Everyone who registers is one. |
-| **Author** | Submits manuscripts. Self-service **only if** the journal permits it — see "Letting authors register themselves" below. Today no journal does, so every new account is a Reader until an editor adds the role. |
+| **Author** | Submits manuscripts. Granted automatically on a person's first submission when the journal allows it — see "Letting authors register themselves" below. |
 | **Reviewer** | Reviews other people's manuscripts when invited. Also self-service at registration, and editors can enroll people. |
 | **Editor** | Runs peer review for a journal: assigns reviewers, records accept/reject decisions, moves manuscripts through to publication. |
 | **Journal Manager** | Owns one journal. Does everything an editor does, plus appoints that journal's editors and reviewers and changes its settings. |
@@ -79,37 +79,32 @@ delete → reload.
 
 ### Letting authors register themselves
 
-Checked on 14 October 2026: the registration form offers **Reader** and
-**Reviewer** for every journal and never **Author**. OJS only offers Author
-when a journal's Author role permits self-registration, and none of the ten do.
-The consequence is that anyone who creates an account — on the portal or in
-OJS — lands on "The current role does not have access to this operation" the
-moment they try to submit or open their author dashboard, because they are a
-Reader and nothing else.
+Every new account is a **Reader** at first, however it was created. That is
+how OJS 3.5 works: its registration form grants Reader and Reviewer only, and
+the Author role is granted automatically the first time a person starts a
+submission — provided the journal allows it. The switch is per journal:
 
-Until it is fixed the portal does not send such an account into OJS at all:
-"Start submission" and "Open in the editorial system" bring the reader back to
-the portal dashboard with a notice that names this step, and OJS's own
-"does not have access" page is redirected there too (nginx, see
-`deploy/cloudpanel-vhost.conf`). Nothing on the portal side can grant the
-role: OJS 3.5 has no API for it, and the portal's API key is not an
-administrator's.
-
-To fix it, once per journal, as Site Administrator or that journal's manager:
-
-1. Open the journal's dashboard in OJS → **Settings** → **Users & Roles** →
-   **Roles** tab. Signed in as an administrator, this is
+1. In the journal, open **Settings → Users & Roles → Roles**. Signed in as an
+   administrator this is
    `https://www.nextgeniqpress.com/ojs/index.php/<journal>/management/settings/access`
    for `ijdh`, `ijdm`, `ijds`, `ijei`, `ijic`, `ijis`, `ijmc`, `ijmr`,
    `ijqt` and `ijse`.
-2. Click the **Author** role to edit it.
-3. Tick **Permit user self-registration** and save.
+2. Click the small arrow beside **Author**, then **Edit**.
+3. Under **Role Options**, tick **Allow user self-registration**. Check that
+   **Submission** is ticked under **Stage Assignment** too. Save.
 
-From then on the registration form offers Author for that journal, and the
-portal's own registration requests it automatically. Accounts created before
-the change are still Readers: add the Author role to each by hand (**Users &
-Roles** → **Users** → the person → **Edit User** → tick Author), which is also
-the only way to grant it for a journal that keeps self-registration off.
+With that on, "Start submission" on the portal opens the OJS wizard for any
+signed-in account, and the account becomes an author of that journal on its
+first submission. With it off, OJS refuses the wizard, and the portal keeps
+the person on its dashboard with a notice that says so instead of showing
+OJS's refusal page (the portal asks OJS before every hand-off, so a change
+here takes effect on the next click). Nothing on the portal side can grant
+the role: OJS 3.5 has no API for it, and the portal's API key is not an
+administrator's.
+
+To make someone an author without them submitting first, or in a journal
+that keeps self-registration off: **Users & Roles → Users** → the person →
+**Edit User** → tick Author.
 
 ### There is no "Publisher" role
 

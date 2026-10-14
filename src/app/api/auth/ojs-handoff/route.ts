@@ -3,9 +3,7 @@ import { publicBaseUrl } from '@/lib/api'
 import { databaseConfigured } from '@/lib/db'
 import { canOpenOjsPage, ojsPageRequirement } from '@/lib/auth/ojs-access'
 import { setOjsSessionCookie } from '@/lib/auth/ojs-cookie'
-import { fetchOjsIdentity } from '@/lib/auth/ojs-login'
-import { authorSelfRegistrationOffered } from '@/lib/auth/ojs-register'
-import { journals } from '@/data/registry'
+import { fetchOjsIdentity, wizardOpenTo } from '@/lib/auth/ojs-login'
 import { PORTAL_SESSION_COOKIE, readSession, touchSession } from '@/lib/auth/portal-session'
 import { ojsPathPrefix } from '@/lib/ojs/config'
 
@@ -102,11 +100,11 @@ export async function GET(request: Request) {
 
         // The wizard enrols a Reader as an author on first submission when
         // the journal permits Author self-registration — OJS's own rule, so
-        // the portal must not be stricter than OJS here. Asked only after the
-        // roles have said no; a role-holder never pays for this lookup.
+        // the portal must not be stricter than OJS. Rather than guess at the
+        // setting, OJS is asked whether it would show this session the form.
+        // Only after the roles have said no; a role-holder never pays for it.
         if (!allowed && requirement?.selfEnrolable) {
-          const name = journals.find((j) => j.slug === requirement.journal)?.title
-          if (name && (await authorSelfRegistrationOffered(name, userAgent)) === true) allowed = true
+          allowed = (await wizardOpenTo(requirement.journal, session.ojsSid, userAgent)) === 'open'
         }
 
         if (!allowed) {

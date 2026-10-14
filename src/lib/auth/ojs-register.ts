@@ -54,17 +54,15 @@ export type RegisterContext = {
   /** Checkbox field name granting the Reader role, if offered. */
   readerGroup?: string
   /**
-   * Checkbox field name granting the Author role, if offered.
-   *
-   * OJS only renders this when the journal's Author group has "Permit user
-   * self-registration" switched on (Settings → Users & Roles → Roles → Author).
-   * On the live install it is off for every journal, so the form offers
-   * Reader and Reviewer only and every account registered here is a reader —
-   * which OJS then turns away from the submission wizard and the author
-   * dashboard with "The current role does not have access to this operation".
-   * See docs/SITE-ADMIN-GUIDE.md, "Letting authors register themselves".
+   * There is no Author checkbox, and that is OJS's design rather than a
+   * setting: the site-level form (`RegistrationForm.php`, stable-3_5_0) reads
+   * `readerGroup` and `reviewerGroup` only. Authorship is granted on first
+   * submission instead — the wizard opens to any account for which the
+   * journal's Author role permits self-registration, and enrols it then.
+   * So a freshly registered account is a Reader, and that is normal; what
+   * matters is that each journal's Author role has "Allow user
+   * self-registration" ticked. See docs/SITE-ADMIN-GUIDE.md.
    */
-  authorGroup?: string
   /** Checkbox field name granting the Reviewer role, if offered. */
   reviewerGroup?: string
   /** Per-journal privacy consent checkbox, required when enrolling. */
@@ -139,7 +137,6 @@ export function parseRegisterContexts(html: string): RegisterContext[] {
     contexts.push({
       name,
       readerGroup: block.match(/name="(readerGroup\[\d+\])"/)?.[1],
-      authorGroup: block.match(/name="(authorGroup\[\d+\])"/)?.[1],
       reviewerGroup: block.match(/name="(reviewerGroup\[\d+\])"/)?.[1],
       privacyConsent: block.match(/name="(privacyConsent\[\d+\])"/)?.[1],
     })
@@ -255,11 +252,6 @@ export async function postRegister(
     // Reader is what makes the person a member of the journal at all; without
     // it OJS records the registration but enrols them nowhere.
     if (context.readerGroup) body.append(context.readerGroup, 'on')
-    // Author is requested whenever the journal offers it: the register page
-    // promises that one account submits manuscripts, and a reader-only account
-    // cannot. Absent from the form means the journal does not permit author
-    // self-registration, and only an editor can grant the role.
-    if (context.authorGroup) body.append(context.authorGroup, 'on')
     if (input.asReviewer && context.reviewerGroup) body.append(context.reviewerGroup, 'on')
     // Required by OJS for every journal being joined, and separately per
     // journal because each may publish its own privacy statement.
@@ -295,30 +287,3 @@ export async function postRegister(
   return { ok: false, reason: 'rejected', ...(message ? { message } : {}) }
 }
 
-/* ------------------------- author self-registration ------------------------ */
-
-const OFFER_CACHE_MS = 5 * 60 * 1000
-let offerCache: { at: number; byName: Map<string, boolean> } | null = null
-
-/**
- * Whether a journal's registration form offers the Author role — the visible
- * side of "Permit user self-registration" on that journal's Author group.
- *
- * Read from the live form rather than a setting the portal cannot see, and
- * cached briefly because the hand-off asks on every click a Reader makes
- * towards the submission wizard. A journal that switches the permission on
- * is picked up within five minutes; a journal that switches it off is too,
- * and in between OJS itself is the backstop.
- *
- * `null` means the form could not be read — the caller should fall back to
- * what the session's roles say rather than treat the outage as a refusal or
- * as permission.
- */
-export async function authorSelfRegistrationOffered(journalName: string, userAgent?: string | null): Promise<boolean | null> {
-  if (!offerCache || Date.now() - offerCache.at > OFFER_CACHE_MS) {
-    const form = await fetchRegisterForm(userAgent)
-    if (!form) return offerCache?.byName.get(journalName) ?? null
-    offerCache = { at: Date.now(), byName: new Map(form.contexts.map((c) => [c.name, Boolean(c.authorGroup)])) }
-  }
-  return offerCache.byName.get(journalName) ?? false
-}

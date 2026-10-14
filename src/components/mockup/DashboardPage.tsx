@@ -520,12 +520,11 @@ export function DashboardPage({ journals }: Props) {
               >
                 {roleNeeded === 'author' ? (
                   <>
-                    Your account is registered with{' '}
-                    {journals.find((j) => j.slug === roleNeededJournal)?.title ?? 'that journal'} as a reader, so the
-                    editorial system will not accept a submission from it yet. Ask the{' '}
-                    <Link href="/contact">editorial office</Link> to add the Author role to your account; once that is
-                    done, <Link href="/submit">start the submission</Link> again and it will open in the editorial
-                    system straight away.
+                    The editorial system will not let your account start a submission with{' '}
+                    {journals.find((j) => j.slug === roleNeededJournal)?.title ?? 'that journal'} yet. Ask the{' '}
+                    <Link href="/contact">editorial office</Link> to allow author registration for that journal, or to
+                    add the Author role to your account; once that is done,{' '}
+                    <Link href="/submit">start the submission</Link> again and it will open straight away.
                   </>
                 ) : roleNeeded === 'reviewer' ? (
                   <>
