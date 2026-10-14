@@ -355,6 +355,31 @@ pages on the portal and a web-address rule, neither of which happens
 automatically. The journal will exist in the editorial system but not appear
 properly on the public site until that is done.
 
+### Publish a paper and put it on the website
+
+Two systems are involved, and each has one job. The **editorial system** (OJS)
+decides whether a paper is published. The **portal website** decides whether a
+published paper is displayed. You will usually only touch the first.
+
+In OJS, as the journal's editor, once the paper has reached **Production**:
+
+1. Open the paper, Production stage, and add the final PDF under **Galleys**.
+2. Open the **Publication** tab. Under **Issue**, assign it to an issue. If
+   there is no issue yet, create one first under **Issues** in the left menu.
+3. Click **Publish** at the top right of the Publication tab and confirm.
+4. If the issue is still under **Future Issues**, open **Issues**, find it, and
+   choose **Publish Issue**. Until the issue is published, the paper shows as
+   *Scheduled* and is not public.
+
+That is publication. The website picks the paper up on its own within fifteen
+minutes; nothing else is needed, and there is no button to press on the portal.
+
+If a published paper should **not** appear on the website — a correction is
+pending, say — go to the administration page, **Published papers**, find it,
+and choose **Hide from the site**. Give a reason; it is recorded. **Show on
+the site** reverses it. Hiding only affects the website: the paper stays
+published in OJS, where it remains readable.
+
 ---
 
 ## 8. Things to avoid

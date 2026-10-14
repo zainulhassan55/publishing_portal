@@ -16,8 +16,8 @@ import { normalise, type ArticleHit, type GuidanceHit, type JournalHit, type Sea
  * which at zero published articles is a long way off.
  */
 
-export function buildSearchIndex(): SearchIndex {
-  const articleHits: ArticleHit[] = getArticles().map((article) => {
+export async function buildSearchIndex(): Promise<SearchIndex> {
+  const articleHits: ArticleHit[] = (await getArticles()).map((article) => {
     const journal = journals.find((j) => j.slug === article.journalSlug)
     const authors = article.authors.map((a) => a.name)
     const journalTitle = journal?.title ?? article.journalSlug
@@ -121,8 +121,8 @@ export type TypeaheadIndex = {
  * as a bug rather than a feature. So the haystack here is the label and its
  * identifiers only, and full-text matching stays on /search.
  */
-export function buildTypeaheadIndex(): TypeaheadIndex {
-  const index = buildSearchIndex()
+export async function buildTypeaheadIndex(): Promise<TypeaheadIndex> {
+  const index = await buildSearchIndex()
 
   return {
     journals: index.journals.map((j) => ({

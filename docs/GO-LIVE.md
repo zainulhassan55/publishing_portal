@@ -350,11 +350,13 @@ The step where the new site becomes visible.
 
 ### 9a. 💻 Deploy the application
 
-From the project folder on your laptop:
+Merging into `main` on GitHub deploys automatically: the "Deploy portal"
+workflow tags the release and runs the deploy script. Watch it under the
+repository's **Actions** tab. To deploy from your laptop instead:
 
 ```bash
 git tag -a v1.0.0 -m "First portal release"
-git push --tags
+git push origin v1.0.0
 DEPLOY_PRODUCTION_HOST=nextgeniqpress@201.18.214.5 \
 DEPLOY_APP_DIR=/home/nextgeniqpress/portal \
 ./scripts/deploy.sh production
@@ -577,6 +579,42 @@ Put those two variables in your shell profile so you cannot forget them:
 echo 'export DEPLOY_PRODUCTION_HOST=nextgeniqpress@201.18.214.5' >> ~/.zshrc
 echo 'export DEPLOY_APP_DIR=/home/nextgeniqpress/portal'          >> ~/.zshrc
 ```
+
+### B10 — Scheduled harvest, so publishing needs no deploy
+
+Without this step a paper published in OJS reaches the website only at the
+next deploy. With it, within fifteen minutes.
+
+Add three lines to `~/portal/.env` (the deploy and the cron both read them):
+
+```bash
+HARVEST_PATH=/home/nextgeniqpress/portal/shared/harvest.json
+PORTAL_REVALIDATE_SECRET=$(openssl rand -hex 32)    # paste the value, not the command
+OJS_API_KEY=…                                        # already there if the harvest has ever run at full fidelity
+```
+
+Install the script, which ships inside every release from v1.3.9 on (deploy
+first, then copy):
+
+```bash
+cp ~/portal/current/deploy/harvest.sh ~/portal/harvest.sh
+chmod +x ~/portal/harvest.sh
+~/portal/harvest.sh            # run it once by hand; it prints what it wrote
+```
+
+Then **CloudPanel → Sites → www.nextgeniqpress.com → Cron Jobs → Add**:
+
+```
+*/15 * * * * /home/nextgeniqpress/portal/harvest.sh >> /home/nextgeniqpress/portal/harvest.log 2>&1
+```
+
+✅ **Check:** `tail ~/portal/harvest.log` shows `wrote N article(s)` and a JSON
+line from `/api/revalidate` with `"ok":true`. `curl -s http://127.0.0.1:3000/api/health`
+shows `harvest.ageHours` under 1 once the job has run.
+
+Restart the portal once after adding the variables (`pm2 restart ngiq-portal`)
+so the running process sees `HARVEST_PATH`. After that, deploys pick it up on
+their own.
 
 ### B — what still needs root, and the way round it
 

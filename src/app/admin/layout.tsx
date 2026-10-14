@@ -28,6 +28,7 @@ export const dynamic = 'force-dynamic'
 const NAV = [
   { href: '/admin', label: 'Overview' },
   { href: '/admin/journals', label: 'Journals' },
+  { href: '/admin/publishing', label: 'Published papers' },
   { href: '/admin/proposals', label: 'Journal proposals' },
   { href: '/admin/submissions', label: 'All submissions' },
   { href: '/admin/activity', label: 'Activity' },

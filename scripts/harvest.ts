@@ -26,15 +26,49 @@
  * `set -e`), even though an unauthenticated OJS is a configuration state and
  * not a reason to refuse to publish the site.
  */
-import { mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { dirname, isAbsolute, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loadLocalEnv } from './env.ts'
 
 loadLocalEnv()
 
 const here = dirname(fileURLToPath(import.meta.url))
-const outPath = join(here, '..', 'content', 'harvest.json')
+
+// HARVEST_PATH is how the server keeps one snapshot across releases: the cron
+// writes it there and every release reads it (src/lib/ojs/harvest-cache.ts
+// resolves the same variable). Unset, it is the repo's content/harvest.json,
+// which is what the build reads.
+const configuredPath = process.env.HARVEST_PATH
+const outPath = configuredPath
+  ? isAbsolute(configuredPath)
+    ? configuredPath
+    : join(process.cwd(), configuredPath)
+  : join(here, '..', 'content', 'harvest.json')
+
+/**
+ * Writes the snapshot atomically: to a sibling temp file, then a rename, which
+ * on POSIX replaces the old file in one step. The server reads this file on a
+ * timer while this script may be writing it; a plain write would let a render
+ * land on a half-written file.
+ */
+function writeSnapshot(data: { articles: unknown[]; issues: unknown[] }) {
+  mkdirSync(dirname(outPath), { recursive: true })
+  const tmp = `${outPath}.tmp`
+  writeFileSync(tmp, `${JSON.stringify({ harvestedAt: new Date().toISOString(), ...data }, null, 2)}\n`)
+  renameSync(tmp, outPath)
+}
+
+/** How many articles the snapshot on disk already holds, for the guards below. */
+function existingArticleCount(): number {
+  if (!existsSync(outPath)) return 0
+  try {
+    const parsed = JSON.parse(readFileSync(outPath, 'utf8')) as { articles?: unknown[] }
+    return Array.isArray(parsed.articles) ? parsed.articles.length : 0
+  } catch {
+    return 0
+  }
+}
 
 const baseUrl = (process.env.OJS_BASE_URL || '').replace(/\/$/, '')
 const apiKey = process.env.OJS_API_KEY || ''
@@ -179,8 +213,7 @@ if (!baseUrl) {
   console.log('OJS_BASE_URL is not set — writing an empty snapshot.')
   console.log('This is the expected state before the first article is published; every')
   console.log('listing page renders its launch-state copy from it.')
-  mkdirSync(dirname(outPath), { recursive: true })
-  writeFileSync(outPath, `${JSON.stringify({ harvestedAt: new Date().toISOString(), articles: [], issues: [] }, null, 2)}\n`)
+  writeSnapshot({ articles: [], issues: [] })
   process.exit(0)
 }
 
@@ -194,6 +227,13 @@ const expectedTotal = inventory ? [...inventory.values()].reduce((sum, n) => sum
 
 if (inventory) {
   console.log(`  OAI reports ${expectedTotal} published record(s) across ${JOURNAL_SLUGS.length} journal(s)\n`)
+} else if (existingArticleCount() > 0) {
+  // On a cron this is the dangerous case: OJS unreachable, the REST pass about
+  // to return nothing, and a snapshot of zero articles about to replace a good
+  // one — the whole site would go empty until OJS came back. Leave the file
+  // alone and let the next run try again.
+  console.error('  OAI inventory unavailable and a non-empty snapshot already exists — leaving it untouched.')
+  process.exit(1)
 } else {
   console.log('  OAI inventory unavailable — cannot verify completeness this run\n')
 }
@@ -283,14 +323,6 @@ for (const slug of JOURNAL_SLUGS) {
   }
 }
 
-mkdirSync(dirname(outPath), { recursive: true })
-writeFileSync(
-  outPath,
-  `${JSON.stringify({ harvestedAt: new Date().toISOString(), articles, issues }, null, 2)}\n`,
-)
-
-console.log(`\nwrote ${articles.length} article(s) and ${issues.length} issue(s) to content/harvest.json`)
-
 if (apiUnauthorised) {
   console.warn('\nThe OJS REST API rejected this run as unauthorised.')
   console.warn(
@@ -307,15 +339,22 @@ if (apiUnauthorised) {
 // decidable against the OAI inventory — counting HTTP failures made a missing
 // API key fatal to the deploy, which is a configuration state, not a reason to
 // refuse to publish.
+//
+// Checked BEFORE writing. This used to write first and exit 1 afterwards, which
+// was fine under the deploy's `set -e` and wrong on a cron, where nothing reads
+// the exit code and the half-harvest would simply have become the site.
 if (expectedTotal !== null && articles.length < expectedTotal) {
   console.error(`\nOAI reports ${expectedTotal} published record(s) but only ${articles.length} were harvested.`)
-  console.error('The snapshot is incomplete — do not deploy it.')
+  console.error('The snapshot is incomplete — not written.')
   for (const [slug, expected] of inventory ?? []) {
     const got = articles.filter((a) => a.journalSlug === slug).length
     if (got < expected) console.error(`  ${slug}: expected ${expected}, got ${got}`)
   }
   process.exit(1)
 }
+
+writeSnapshot({ articles, issues })
+console.log(`\nwrote ${articles.length} article(s) and ${issues.length} issue(s) to ${outPath}`)
 
 if (expectedTotal === 0) {
   console.log('\nOJS has no published records yet. An empty snapshot is the correct result;')

@@ -12,8 +12,8 @@ the assumed ones must be settled before the phase that depends on them starts.
 | **1 — Journal proposals** | **Built.** `/admin/proposals`, list + decide API, audited. Decision email deferred — SMTP is unconfigured |
 | **3 — Cross-journal submissions** | **Built.** `/admin/submissions` over `?scope=all`, filter + staleness sort, read-only |
 | **6 — Activity log** | **Built** (the audit-reading half). `/admin/activity` |
-| 2 — Journal portfolio control | **Not built.** Blocked on D1 *and* P3a — see below |
-| 4 — Publish-to-public gate | **Not built.** Blocked on P3a |
+| **4 — Publish-to-public gate** | **Built (2026-10-14).** `/admin/publishing`, `article_display` (migration `004`), show/hide API, audited. P3a resolved by option B: scheduled harvest on the server + `POST /api/revalidate` purge + hourly ISR safety net. Default is mirror OJS (D2) |
+| 2 — Journal portfolio control | **Not built.** Blocked on D1. P3a no longer blocks it |
 | 5 — Calls for papers | **Not built.** Blocked on D3 |
 | 6 — Users | **Not built** |
 
@@ -24,8 +24,13 @@ D1–D3 in §6 were taken as the recommended defaults (hybrid registry, mirror
 OJS, portal CFPs) so the built phases could proceed; none of the built code
 depends on them.
 
-Phases 2 and 4 are both blocked on the **same** thing, which is the finding
-worth carrying forward: P3a below. Neither is a UI problem.
+P3a — the finding that blocked Phases 2 and 4 — is resolved: the content layer
+is no longer fixed at build time. The route taken was option B below rather
+than C (harvest into the database): the snapshot stays a file, but the server
+re-reads it when it changes, a cron rewrites it every fifteen minutes, and a
+purge route makes the pages re-render on the next request. Option C remains
+the right move if the snapshot ever outgrows a file; nothing built here
+prevents it, because the pages read through `getArticles()` either way.
 
 ---
 

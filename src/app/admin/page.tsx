@@ -3,6 +3,7 @@ import { query } from '@/lib/db'
 import { databaseConfigured } from '@/lib/db'
 import { requireAdminPage } from '@/lib/admin/guard'
 import { journals } from '@/data/registry'
+import { readHarvest } from '@/lib/ojs/harvest-cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,6 +39,23 @@ async function proposalCounts() {
   }
 }
 
+/**
+ * Published papers: what OJS has published against what the portal is showing.
+ * The harvest count needs no database; the hidden count does, and reports
+ * "unavailable" rather than zero when it cannot be read — zero would be a claim.
+ */
+async function publishingCounts() {
+  const published = readHarvest().articles.length
+  if (!databaseConfigured) return { published, hidden: null }
+  try {
+    const [row] = await query<{ n: number }>('SELECT COUNT(*) AS n FROM article_display WHERE hidden = 1')
+    return { published, hidden: Number(row?.n ?? 0) }
+  } catch (error) {
+    console.error('[admin] publishing counts failed:', error)
+    return { published, hidden: null }
+  }
+}
+
 const card: React.CSSProperties = {
   background: 'var(--surface,#fff)',
   border: '1px solid var(--line,#DCE1E6)',
@@ -50,7 +68,7 @@ const card: React.CSSProperties = {
 
 export default async function AdminOverview() {
   await requireAdminPage()
-  const proposals = await proposalCounts()
+  const [proposals, publishing] = await Promise.all([proposalCounts(), publishingCounts()])
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
@@ -69,6 +87,20 @@ export default async function AdminOverview() {
         </Link>
       </div>
 
+      <div style={card}>
+        <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>Published papers</span>
+        <strong style={{ fontSize: 30, lineHeight: 1.1, color: 'var(--ink,#101B27)' }}>{publishing.published}</strong>
+        <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>
+          {publishing.hidden === null
+            ? 'Hidden count unavailable — the database did not answer'
+            : publishing.hidden === 0
+              ? 'All shown on the site'
+              : `${publishing.hidden} held back from the site`}
+        </span>
+        <Link href="/admin/publishing" style={{ fontSize: 13, marginTop: 2 }}>
+          Show or hide papers
+        </Link>
+      </div>
       <div style={card}>
         <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>Journals in the portfolio</span>
         <strong style={{ fontSize: 30, lineHeight: 1.1, color: 'var(--ink,#101B27)' }}>{journals.length}</strong>

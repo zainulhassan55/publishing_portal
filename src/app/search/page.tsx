@@ -22,13 +22,20 @@ export const metadata: Metadata = {
  * facet click, tab switch and sort change is local state with no round trip.
  * There is no search service to run, back up or keep in sync.
  */
-export default function SearchRoute() {
-  const index = buildSearchIndex()
+/**
+ * Refreshed on the server rather than fixed at build. Published papers reach
+ * this page through the scheduled harvest and the admin show/hide gate, both of
+ * which purge the page cache (src/lib/articles/purge.ts); the hour here is the
+ * safety net for when that purge is missed, not the normal delay.
+ */
+export const revalidate = 3600
+export default async function SearchRoute() {
+  const index = await buildSearchIndex()
 
   // Volume/issue/pages and the PDF link render in each result row but are not
   // part of the search index, so they travel alongside it keyed by article id.
   const extras: ArticleExtras = {}
-  for (const article of getArticles()) {
+  for (const article of await getArticles()) {
     extras[article.id] = {
       vol: article.volume,
       issue: article.issue,

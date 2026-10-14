@@ -7,7 +7,7 @@ import {
   type HomeMetric,
   type HomeNews,
 } from '@/components/mockup/HomePage'
-import { articleHrefById, getArticles, getCalls, getNews } from '@/data/content'
+import { getArticles, getCalls, getNews } from '@/data/content'
 import { isStanding } from '@/data/content/cfps'
 import { getJournal, journalCode, journals } from '@/data/registry'
 import { subjectFor } from '@/data/subjects'
@@ -24,8 +24,15 @@ export const metadata: Metadata = {
 /** Mockup's mature-mode indexing badges (Home.dc.html `idx` map). */
 const INDEXING: Record<string, string> = { ijic: 'DOAJ', ijdh: 'DOAJ', ijqt: 'DOAJ', ijdm: 'DOAJ' }
 
-export default function Page() {
-  const articles = getArticles()
+/**
+ * Refreshed on the server rather than fixed at build. Published papers reach
+ * this page through the scheduled harvest and the admin show/hide gate, both of
+ * which purge the page cache (src/lib/articles/purge.ts); the hour here is the
+ * safety net for when that purge is missed, not the normal delay.
+ */
+export const revalidate = 3600
+export default async function Page() {
+  const articles = await getArticles()
 
   /* Metric strip — the mockup's mature labels, derived from the real records
      where the mockup derived them. */
@@ -44,7 +51,7 @@ export default function Page() {
     const journal = getJournal(a.journalSlug)
     return {
       id: a.id,
-      href: articleHrefById(a.id),
+      href: `/articles/${a.slug}`,
       thumb: `/images/thumb-${i + 1}.png`,
       code: journal ? journalCode(journal) : a.journalSlug.toUpperCase(),
       type: a.type,

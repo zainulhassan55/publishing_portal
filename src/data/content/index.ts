@@ -1,5 +1,6 @@
 import type { Article, CallForPapers, Issue, NewsItem } from '@/types/publishing'
 import { readHarvest } from '@/lib/ojs/harvest-cache'
+import { hiddenArticleIds, withoutHidden } from '@/lib/articles/display'
 import { demoArticles, demoIssues } from './demo-articles'
 import { demoThematicCalls, standingCalls } from './cfps'
 import { news as curatedNews } from './news'
@@ -18,13 +19,21 @@ import { news as curatedNews } from './news'
  * credibility failure as audit finding F-03, and one missing env var away.
  * Opt-in means the worst case is an empty site, which every listing page
  * already renders a launch-state message for.
+ *
+ * ## Why the article readers are async
+ *
+ * A published paper can be held back from the site by an administrator
+ * (`article_display`, migration 004). That set lives in the database, so
+ * `getArticles()` and everything derived from it await it. Issues, calls and
+ * news have no gate and stay synchronous. The fixtures are not gated either:
+ * they are not real papers, and the admin screen lists the harvest only.
  */
 export const demoContentEnabled = process.env.NEXT_PUBLIC_DEMO_CONTENT === '1'
 
-export function getArticles(): Article[] {
+export async function getArticles(): Promise<Article[]> {
   const harvested = readHarvest().articles
-  if (!demoContentEnabled) return harvested
-  return harvested.length > 0 ? harvested : demoArticles
+  if (demoContentEnabled && harvested.length === 0) return demoArticles
+  return withoutHidden(harvested, await hiddenArticleIds())
 }
 
 export function getIssues(): Issue[] {
@@ -43,29 +52,29 @@ export function getNews(): NewsItem[] {
 
 /* ------------------------------ derived views ----------------------------- */
 
-export const getArticle = (slug: string) => getArticles().find((a) => a.slug === slug)
+export const getArticle = async (slug: string) => (await getArticles()).find((a) => a.slug === slug)
 
-export const getArticleById = (id: string) => getArticles().find((a) => a.id === id)
+export const getArticleById = async (id: string) => (await getArticles()).find((a) => a.id === id)
 
 /** The mockups link articles by id (`Article.dc.html?id=a1`); routes use slugs. */
-export const articleHrefById = (id: string) => {
-  const article = getArticleById(id)
+export const articleHrefById = async (id: string) => {
+  const article = await getArticleById(id)
   return article ? `/articles/${article.slug}` : '/search?tab=articles'
 }
 
-export const articlesForJournal = (journalSlug: string) =>
-  getArticles()
+export const articlesForJournal = async (journalSlug: string) =>
+  (await getArticles())
     .filter((a) => a.journalSlug === journalSlug)
     .sort((a, b) => b.publishedIso.localeCompare(a.publishedIso))
 
-export const latestArticles = (limit = 9) =>
-  [...getArticles()].sort((a, b) => b.publishedIso.localeCompare(a.publishedIso)).slice(0, limit)
+export const latestArticles = async (limit = 9) =>
+  [...(await getArticles())].sort((a, b) => b.publishedIso.localeCompare(a.publishedIso)).slice(0, limit)
 
-export const mostDownloaded = (limit = 9) =>
-  [...getArticles()].sort((a, b) => (b.metrics?.downloads ?? 0) - (a.metrics?.downloads ?? 0)).slice(0, limit)
+export const mostDownloaded = async (limit = 9) =>
+  [...(await getArticles())].sort((a, b) => (b.metrics?.downloads ?? 0) - (a.metrics?.downloads ?? 0)).slice(0, limit)
 
-export const mostCited = (limit = 9) =>
-  [...getArticles()].sort((a, b) => (b.metrics?.citations ?? 0) - (a.metrics?.citations ?? 0)).slice(0, limit)
+export const mostCited = async (limit = 9) =>
+  [...(await getArticles())].sort((a, b) => (b.metrics?.citations ?? 0) - (a.metrics?.citations ?? 0)).slice(0, limit)
 
 export const currentIssue = (journalSlug: string) =>
   getIssues().find((i) => i.journalSlug === journalSlug && i.current) ??
@@ -81,8 +90,8 @@ export const issueArchive = (journalSlug: string) =>
 export const callsForJournal = (journalSlug: string) => getCalls().filter((c) => c.journalSlug === journalSlug)
 
 /** Aggregate counts used by the homepage metric strip and journal insights. */
-export const portfolioStats = () => {
-  const articles = getArticles()
+export const portfolioStats = async () => {
+  const articles = await getArticles()
   return {
     articles: articles.length,
     downloads: articles.reduce((sum, a) => sum + (a.metrics?.downloads ?? 0), 0),
