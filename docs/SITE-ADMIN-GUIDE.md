@@ -71,11 +71,40 @@ delete → reload.
 | Role | What this person does |
 | --- | --- |
 | **Reader** | Nothing special. Everyone who registers is one. |
-| **Author** | Submits manuscripts. Self-service — anyone can choose it when registering. |
+| **Author** | Submits manuscripts. Granted automatically on a person's first submission when the journal allows it — see "Letting authors register themselves" below. |
 | **Reviewer** | Reviews other people's manuscripts when invited. Also self-service at registration, and editors can enroll people. |
 | **Editor** | Runs peer review for a journal: assigns reviewers, records accept/reject decisions, moves manuscripts through to publication. |
 | **Journal Manager** | Owns one journal. Does everything an editor does, plus appoints that journal's editors and reviewers and changes its settings. |
 | **Site Administrator** | You. Creates journals, site-wide settings, appoints Journal Managers. |
+
+### Letting authors register themselves
+
+Every new account is a **Reader** at first, however it was created. That is
+how OJS 3.5 works: its registration form grants Reader and Reviewer only, and
+the Author role is granted automatically the first time a person starts a
+submission — provided the journal allows it. The switch is per journal:
+
+1. In the journal, open **Settings → Users & Roles → Roles**. Signed in as an
+   administrator this is
+   `https://www.nextgeniqpress.com/ojs/index.php/<journal>/management/settings/access`
+   for `ijdh`, `ijdm`, `ijds`, `ijei`, `ijic`, `ijis`, `ijmc`, `ijmr`,
+   `ijqt` and `ijse`.
+2. Click the small arrow beside **Author**, then **Edit**.
+3. Under **Role Options**, tick **Allow user self-registration**. Check that
+   **Submission** is ticked under **Stage Assignment** too. Save.
+
+With that on, "Start submission" on the portal opens the OJS wizard for any
+signed-in account, and the account becomes an author of that journal on its
+first submission. With it off, OJS refuses the wizard, and the portal keeps
+the person on its dashboard with a notice that says so instead of showing
+OJS's refusal page (the portal asks OJS before every hand-off, so a change
+here takes effect on the next click). Nothing on the portal side can grant
+the role: OJS 3.5 has no API for it, and the portal's API key is not an
+administrator's.
+
+To make someone an author without them submitting first, or in a journal
+that keeps self-registration off: **Users & Roles → Users** → the person →
+**Edit User** → tick Author.
 
 ### There is no "Publisher" role
 
@@ -263,7 +292,48 @@ rest combined.
 
 ### Somebody cannot sign in at all
 
-In order:
+The message on the sign-in page tells you which of these it is, so ask them
+to read it to you word for word.
+
+**"That email address and password do not match an account."** The editorial
+system checked the password and it was wrong. Two causes are far more common
+than a forgotten password:
+
+- They mistyped the password when they registered. Until October 2026 the
+  portal's registration form asked for the password only once, so a typo
+  became the password. The form now asks twice. For an account already
+  created this way, set them a new password (section 6, Edit User) — and
+  **untick "require the user to change their password on next login"** before
+  saving, or they hit the next problem.
+- Their browser filled in a saved password from a different account.
+
+**"The editorial system requires a new password for this account."** Their
+password was right. Somebody set the account to require a new password at
+next sign-in — that box is ticked by default when an administrator sets a
+password through Edit User. They must sign in **once on the editorial
+system**, at `https://www.nextgeniqpress.com/ojs/index.php/index/login`, set the
+new password it asks for, and then use the portal as normal.
+
+**"The editorial system did not respond" for one person while you can sign
+in fine.** On portal builds before 14 October 2026 this was a portal bug, not
+an outage: it affected every account that belonged to **exactly one journal**
+— which is what a new member who ticked a single journal at registration is —
+and never the administrator, who belongs to all of them. The same bug made
+registration say "sign in to continue" instead of landing on the dashboard,
+and signed those members out again within the hour. It is fixed; if the
+wording still appears, the fixed build has not been deployed. The person can
+still sign in at the editorial system's own login page meanwhile.
+
+**"The editorial system did not respond" / "returned an error".** Nothing to
+do with the person's account. Try it yourself; if it fails for you too, the
+editorial system is down or erroring — section 10.
+
+**"The editorial system accepted your details, but the portal could not read
+your account."** Call your developer and give them the person's username and
+the time; the portal keeps a record of exactly what happened.
+
+Then, if the message was about the password and the two causes above do not
+apply:
 
 1. Are they using the right address? It must be `/sign-in` on the portal.
 2. Have them clear their browser's saved site data (section 2).

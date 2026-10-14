@@ -38,6 +38,7 @@ type Body = {
   email?: string
   username?: string
   password?: string
+  passwordConfirm?: string
   affiliation?: string
   country?: string
   journals?: unknown
@@ -83,6 +84,15 @@ export const POST = handler(async (request) => {
   const password = typeof body.password === 'string' ? body.password : ''
   if (password.length < MIN_PASSWORD) {
     v.add({ field: 'password', message: `Password must be at least ${MIN_PASSWORD} characters` })
+  }
+  // OJS's form requires the password twice and the relay used to satisfy that
+  // by copying the first box into the second, which turned OJS's typo check
+  // into a formality. A mistyped password was accepted, and the person could
+  // not sign in with the one they believed they had set. The check is OJS's;
+  // it is enforced here so the form can mark the right field, and so a client
+  // that does not confirm cannot create an account the person cannot open.
+  else if (body.passwordConfirm !== password) {
+    v.add({ field: 'passwordConfirm', message: 'The two passwords do not match. Type the same password in both boxes.' })
   }
 
   const journals = Array.isArray(body.journals) ? body.journals.filter((j): j is string => typeof j === 'string') : []

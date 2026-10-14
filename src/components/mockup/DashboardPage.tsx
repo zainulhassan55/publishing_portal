@@ -30,7 +30,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from '@/components/auth/SessionProvider'
 import { formatDate, formatDateShort } from '@/lib/format'
-import { ojsDashboardUrl, ojsEditorialUrl, ojsHandoffUrl, ojsReviewUrl } from '@/lib/ojs/config'
+import { ojsDashboardUrl, ojsEditorialUrl, ojsHandoffUrl, ojsProfileUrlRelative, ojsReviewUrl } from '@/lib/ojs/config'
 import { hasEditorialRole } from '@/lib/auth/roles'
 import type { Submission, SubmissionStatus } from '@/types/publishing'
 
@@ -194,6 +194,14 @@ export function DashboardPage({ journals }: Props) {
   const justSubmitted = submittedParam !== null
   const bannerRef = submittedParam ?? ''
 
+  // `?ojs=role-needed` is set by /api/auth/ojs-handoff when it declines to
+  // forward this account to an OJS page its roles cannot open — the reader
+  // would otherwise have met OJS's own "The current role does not have access
+  // to this operation" page. The explanation belongs here, where the fix can
+  // be named.
+  const roleNeeded = sp.get('ojs') === 'role-needed' ? sp.get('needs') ?? 'author' : null
+  const roleNeededJournal = sp.get('journal') ?? ''
+
   const requestedTab = sp.get('tab')
   const [tab, setTab] = useState<'author' | 'reviewer' | 'editorial'>(
     requestedTab === 'reviewer' || requestedTab === 'editorial' ? requestedTab : 'author',
@@ -205,6 +213,8 @@ export function DashboardPage({ journals }: Props) {
     letter: false,
   })
   const [apiSubs, setApiSubs] = useState<ApiSubmission[]>([])
+  /** Journal slugs this account holds a role in, per OJS. See /api/submissions. */
+  const [roleJournals, setRoleJournals] = useState<string[]>([])
   const [avail, setAvail] = useState(true)
   const prefsRef = useRef<Record<string, unknown> | null>(null)
 
@@ -217,7 +227,9 @@ export function DashboardPage({ journals }: Props) {
     fetch('/api/submissions', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => {
-        if (!cancelled && data?.ok && Array.isArray(data.submissions)) setApiSubs(data.submissions)
+        if (cancelled || !data?.ok) return
+        if (Array.isArray(data.submissions)) setApiSubs(data.submissions)
+        if (Array.isArray(data.journals)) setRoleJournals(data.journals)
       })
       .catch(() => {})
     fetch('/api/profile/prefs', { cache: 'no-store' })
@@ -289,7 +301,15 @@ export function DashboardPage({ journals }: Props) {
    */
   // Wrapped in the hand-off so the reader arrives in OJS already signed in,
   // instead of being asked for credentials a second time.
-  const ojsHref = ojsHandoffUrl(cur?.ojsUrl ?? ojsDashboardUrl(cur?.journalSlug ?? 'index'))
+  //
+  // The fallback must name a journal the reader is enrolled in. OJS has no
+  // site-level dashboard: `index/dashboard/mySubmissions` answers every author
+  // with "The current role does not have access to this operation", which is
+  // the page a reader with nothing in progress used to land on from here. With
+  // no enrolment known at all, the profile page is the one OJS page every
+  // signed-in account can open.
+  const ojsHome = roleJournals[0] ? ojsDashboardUrl(roleJournals[0]) : ojsProfileUrlRelative
+  const ojsHref = ojsHandoffUrl(cur?.ojsUrl ?? (cur?.journalSlug ? ojsDashboardUrl(cur.journalSlug) : ojsHome))
 
   const actions: ActionDef[] = !cur
     ? []
@@ -345,6 +365,14 @@ export function DashboardPage({ journals }: Props) {
   // seeing an empty "As editor" tab would be reading it as a permission they
   // do not have.
   const editorial = hasEditorialRole(user?.roles)
+
+  // OJS refuses the submission wizard and the author dashboard to an account
+  // that holds no Author role, with a bare "The current role does not have
+  // access to this operation" page. On this install author self-registration
+  // is off in every journal, so a newly registered member is a reader only —
+  // and would otherwise be handed from here straight to that page. Tell them
+  // instead. Editorial roles already carry the access.
+  const canAuthor = editorial || (user?.roles ?? []).includes('author')
 
   const roleTabs = (
     [
@@ -474,6 +502,44 @@ export function DashboardPage({ journals }: Props) {
                 }}
               >
                 Submission {bannerRef} received. A receipt has been emailed to you and your co-authors.
+              </div>
+            ) : null}
+            {roleNeeded ? (
+              <div
+                role="alert"
+                style={{
+                  marginTop: 18,
+                  border: '1px solid #F0D9A8',
+                  background: '#FFF7E6',
+                  color: '#6B4A00',
+                  borderRadius: 3,
+                  padding: '12px 16px',
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                }}
+              >
+                {roleNeeded === 'author' ? (
+                  <>
+                    The editorial system will not let your account start a submission with{' '}
+                    {journals.find((j) => j.slug === roleNeededJournal)?.title ?? 'that journal'} yet. Ask the{' '}
+                    <Link href="/contact">editorial office</Link> to allow author registration for that journal, or to
+                    add the Author role to your account; once that is done,{' '}
+                    <Link href="/submit">start the submission</Link> again and it will open straight away.
+                  </>
+                ) : roleNeeded === 'reviewer' ? (
+                  <>
+                    Your account does not hold the Reviewer role with{' '}
+                    {journals.find((j) => j.slug === roleNeededJournal)?.title ?? 'that journal'}, so the editorial
+                    system has no review queue to show you. Review invitations arrive by email from the editorial
+                    office.
+                  </>
+                ) : (
+                  <>
+                    That page of the editorial system is for editors of{' '}
+                    {journals.find((j) => j.slug === roleNeededJournal)?.title ?? 'that journal'}. Your account does
+                    not hold an editorial role there.
+                  </>
+                )}
               </div>
             ) : null}
             <div role="tablist" style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--line,#DCE1E6)', marginTop: 20 }}>
@@ -637,8 +703,21 @@ export function DashboardPage({ journals }: Props) {
                         {list.length === 0 ? (
                           <tr>
                             <td colSpan={3} style={{ padding: '18px 14px', fontSize: 14, color: 'var(--muted,#505C68)', lineHeight: 1.6 }}>
-                              Nothing in progress. <Link href="/submit">Start a submission</Link>, or{' '}
-                              <a href={ojsHandoffUrl(ojsDashboardUrl('index'))}>check submissions already with the editorial system</a>.
+                              {canAuthor ? (
+                                <>
+                                  Nothing in progress. <Link href="/submit">Start a submission</Link>, or{' '}
+                                  <a href={ojsHandoffUrl(ojsHome)}>check submissions already with the editorial system</a>.
+                                </>
+                              ) : (
+                                // A reader-only account is still offered the link: where the
+                                // journal permits author self-registration, OJS enrols the
+                                // account on its first submission. The hand-off decides, and
+                                // explains above when it has to say no.
+                                <>
+                                  Nothing in progress. <Link href="/submit">Start a submission</Link> — your first
+                                  submission to a journal also registers you with it as an author.
+                                </>
+                              )}
                             </td>
                           </tr>
                         ) : null}

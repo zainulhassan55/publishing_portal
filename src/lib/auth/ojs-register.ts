@@ -53,6 +53,16 @@ export type RegisterContext = {
   name: string
   /** Checkbox field name granting the Reader role, if offered. */
   readerGroup?: string
+  /**
+   * There is no Author checkbox, and that is OJS's design rather than a
+   * setting: the site-level form (`RegistrationForm.php`, stable-3_5_0) reads
+   * `readerGroup` and `reviewerGroup` only. Authorship is granted on first
+   * submission instead — the wizard opens to any account for which the
+   * journal's Author role permits self-registration, and enrols it then.
+   * So a freshly registered account is a Reader, and that is normal; what
+   * matters is that each journal's Author role has "Allow user
+   * self-registration" ticked. See docs/SITE-ADMIN-GUIDE.md.
+   */
   /** Checkbox field name granting the Reviewer role, if offered. */
   reviewerGroup?: string
   /** Per-journal privacy consent checkbox, required when enrolling. */
@@ -276,3 +286,4 @@ export async function postRegister(
 
   return { ok: false, reason: 'rejected', ...(message ? { message } : {}) }
 }
+

@@ -24,7 +24,7 @@
 
 // Explicit .ts extensions and a dependency-free import target, so this module
 // loads under `node --test` without pulling in next/headers or mysql2.
-import { ojsLoginPageUrl, ojsProfileUrl, ojsSignInUrl, ojsSignOutUrl } from '../ojs/config.ts'
+import { ojsLoginPageUrl, ojsProfileUrl, ojsSignInUrl, ojsSignOutUrl, requireOjsBaseUrl } from '../ojs/config.ts'
 import { OJS_SESSION_COOKIE, ROLE_NAMES, type SessionUser } from './roles.ts'
 
 /** OJS's own CSRF token for an authenticated session, plus who it belongs to. */
@@ -180,8 +180,34 @@ export async function fetchLoginForm(userAgent?: string | null): Promise<LoginFo
 }
 
 export type SignInResult =
-  | { ok: true; sid: string }
-  | { ok: false; reason: 'invalid-credentials' | 'ojs-unreachable'; message?: string }
+  | { ok: true; sid: string; /** Where OJS sent the browser next; kept for the logs. */ redirectedTo: string | null }
+  | { ok: false; reason: 'invalid-credentials' | 'ojs-unreachable' | 'password-change-required'; message?: string }
+  /**
+   * OJS answered, but with an error page rather than a verdict on the
+   * credentials: a 500 from PHP, a 503 from nginx while FPM restarts, a 403
+   * from a firewall. Named separately from `ojs-unreachable` because it is a
+   * different thing to fix — the request arrived and OJS failed on it — and
+   * kept out of `invalid-credentials` because it used to land there: a 500
+   * with no session cookie fell through to "wrong password", and a person
+   * whose password was right was told to check it.
+   */
+  | { ok: false; reason: 'ojs-error'; status: number }
+
+/**
+ * OJS's "must change password" flag, read off the login redirect.
+ *
+ * An account carrying the flag — set by an administrator editing the user and
+ * leaving "user must change password on next login" ticked, or by a password
+ * reset — is *not* signed in by a correct password. `LoginHandler::signIn`
+ * (stable-3_5_0) logs the session straight back out and redirects to
+ * `login/changePassword/<username>`. That is a 3xx like a success, and the
+ * relay once read it as one: the identity fetch that followed found no user,
+ * the route answered 502, and the page said "something went wrong" to a
+ * person whose password was right. The redirect target is the only tell.
+ */
+export function passwordChangeRequired(location: string | null): boolean {
+  return /\/login\/changePassword(?:\/|\?|$)/.test(location ?? '')
+}
 
 /**
  * Step 2: post the credentials.
@@ -226,18 +252,58 @@ export async function postSignIn(
     return { ok: false, reason: 'ojs-unreachable' }
   }
 
-  const html = response.status === 200 ? await response.text() : ''
-  const error = html ? parseLoginError(html) : null
-  if (error) return { ok: false, reason: 'invalid-credentials', message: error }
+  return interpretSignIn(
+    {
+      status: response.status,
+      location: response.headers.get('location'),
+      rotated: firstCookie(response),
+      html: response.status === 200 ? await response.text() : '',
+    },
+    form.sid,
+  )
+}
 
-  const rotated = firstCookie(response)
+/** What the sign-in POST came back with, reduced to the parts that decide the verdict. */
+export type SignInResponse = {
+  status: number
+  location: string | null
+  /** The OJSSID OJS set on this response, if any. */
+  rotated: string | null
+  /** The body, only when OJS re-rendered the form (status 200). */
+  html: string
+}
+
+/**
+ * The verdict on a sign-in response. Pure, so the cases can be tested without
+ * a fetch — this is where a misread turns into a wrong message to the person,
+ * and every branch here has at some point been reached in production.
+ *
+ *   200 + form error          → the credentials, in OJS's words
+ *   3xx → changePassword      → right password, OJS wants a new one first
+ *   3xx (any other)           → signed in; the rotated cookie is the session
+ *   200 + no error + cookie   → treated as signed in (older releases reuse the id)
+ *   200 + no error, no cookie → refused with no explanation
+ *   anything else             → OJS failed on the request; not a verdict at all
+ */
+export function interpretSignIn(response: SignInResponse, anonymousSid: string): SignInResult {
   const redirected = response.status >= 300 && response.status < 400
 
-  if (!redirected && !rotated) return { ok: false, reason: 'invalid-credentials' }
+  if (response.status !== 200 && !redirected) {
+    return { ok: false, reason: 'ojs-error', status: response.status }
+  }
+
+  const error = response.html ? parseLoginError(response.html) : null
+  if (error) return { ok: false, reason: 'invalid-credentials', message: error }
+
+  if (redirected && passwordChangeRequired(response.location)) {
+    return { ok: false, reason: 'password-change-required' }
+  }
+
+  if (!redirected && !response.rotated) return { ok: false, reason: 'invalid-credentials' }
 
   // OJS rotates the id on success; fall back to the anonymous one only if it
   // did not, which some releases do when the session is reused.
-  return { ok: true, sid: rotated ?? form.sid }
+  return { ok: true, sid: response.rotated ?? anonymousSid, redirectedTo: response.location }
 }
 
 /**
@@ -250,19 +316,94 @@ export async function postSignIn(
  * guessing is worse than asking the user to sign in again.
  */
 export async function fetchOjsIdentity(sid: string, userAgent?: string | null): Promise<OjsIdentity | null> {
-  try {
-    const response = await fetch(ojsProfileUrl(), {
-      headers: withUserAgent({ Cookie: `${OJS_SESSION_COOKIE}=${sid}`, Accept: 'text/html' }, userAgent),
-      redirect: 'manual',
-      cache: 'no-store',
-      signal: AbortSignal.timeout(COOKIE_TIMEOUT_MS),
-    })
+  return (await probeOjsIdentity(sid, userAgent)).identity
+}
 
-    if (response.status !== 200) return null
-    return parseCurrentUser(await response.text())
+/**
+ * fetchOjsIdentity with its working shown: the status OJS answered and, on a
+ * redirect, where to.
+ *
+ * For the sign-in route, which has just been told by OJS that the password
+ * was right. When the identity then fails to resolve, "null" leaves nothing to
+ * investigate with — and that outcome has had three different causes so far
+ * (a cookie-path bug, a must-change-password redirect, and a profile page
+ * that would not render). The status and location are what tell them apart
+ * in the logs. `status` is 0 when the request itself failed.
+ */
+export async function probeOjsIdentity(
+  sid: string,
+  userAgent?: string | null,
+): Promise<{ identity: OjsIdentity | null; status: number; location: string | null }> {
+  const headers = withUserAgent({ Cookie: `${OJS_SESSION_COOKIE}=${sid}`, Accept: 'text/html' }, userAgent)
+  const get = (url: string) =>
+    fetch(url, { headers, redirect: 'manual', cache: 'no-store', signal: AbortSignal.timeout(COOKIE_TIMEOUT_MS) })
+
+  try {
+    let response = await get(ojsProfileUrl())
+    let location = response.headers.get('location')
+
+    // A member of exactly one journal is sent from the site-level profile to
+    // that journal's own profile page — see profileRedirectTarget. One hop,
+    // same cookie, same rules: that page renders for a live session and
+    // redirects to login for a dead one, exactly like the site-level one.
+    const hop = profileRedirectTarget(response.status, location, ojsProfileUrl())
+    if (hop) {
+      response = await get(hop)
+      location = response.headers.get('location')
+    }
+
+    if (response.status !== 200) return { identity: null, status: response.status, location }
+    return { identity: parseCurrentUser(await response.text()), status: 200, location }
+  } catch {
+    return { identity: null, status: 0, location: null }
+  }
+}
+
+/**
+ * The one redirect from the profile page that means "signed in", not "signed
+ * out": the URL of another profile page to fetch, or null.
+ *
+ * `ProfileHandler::profile` (pkp-lib stable-3_5_0) does this at the site level:
+ *
+ *     $workingContexts = $contextDao->getAvailable($user->getId());
+ *     [$first, $second] = [...];
+ *     if ($first && !$second) {
+ *         $request->redirect($first->getPath(), 'user', 'profile', $args);
+ *     }
+ *
+ * `getAvailable` is the journals in which the account currently holds a role
+ * — all of them for a site administrator. So the administrator who tested
+ * the relay saw a 200 and every account that registered into one journal,
+ * which is what the registration form's single tick produces, saw a 302. The
+ * relay read that 302 as "not signed in": sign-in answered "did not respond",
+ * registration reported that its automatic sign-in had not completed, and
+ * session revalidation signed such members out at the first check. The
+ * production log held thirty "did not resolve to a user" lines before the
+ * redirect was looked at.
+ *
+ * Only a redirect to a `/user/profile` page is followed; a redirect anywhere
+ * else — the login form above all — still means the session is dead. The
+ * target is resolved against the profile URL that was asked for, so a
+ * relative Location works and the request stays on the OJS origin.
+ */
+export function profileRedirectTarget(status: number, location: string | null, requested: string): string | null {
+  if (status < 300 || status >= 400 || !location) return null
+
+  let target: URL
+  let origin: URL
+  try {
+    origin = new URL(requested)
+    target = new URL(location, origin)
   } catch {
     return null
   }
+
+  if (target.origin !== origin.origin) return null
+  if (!/\/user\/profile(?:\/|$)/.test(target.pathname)) return null
+  if (/\/login(?:\/|$)/.test(target.pathname)) return null
+  if (target.href === origin.href) return null
+
+  return target.href
 }
 
 /**
@@ -285,4 +426,45 @@ export async function postSignOut(sid: string, userAgent?: string | null): Promi
   } catch {
     /* ignored — see above */
   }
+}
+
+/**
+ * Whether OJS would let this session start a submission in `journal`.
+ *
+ * Asked of OJS itself rather than inferred from roles, because OJS's own rule
+ * is wider than "holds the Author role": its start page (`<journal>/submission`)
+ * offers the form to any signed-in account that holds a submitting role *or*
+ * for which the journal's Author role permits self-registration — in which
+ * case the account is enrolled as an author on its first submission
+ * (`PKPSubmissionHandler::getSubmitUserGroups`, `PKPSubmissionController::add`,
+ * both stable-3_5_0). An account outside both gets a "not able to make a
+ * submission" error page instead, with the same 200 status.
+ *
+ * The form is what is looked for: its config is inlined into the page as the
+ * `startSubmission` form posting to the submissions API. Anything other than
+ * a 200 — a redirect to login for a dead session, a timeout — is `unknown`,
+ * and the caller falls back to the roles it already holds.
+ */
+export async function wizardOpenTo(
+  journal: string,
+  sid: string,
+  userAgent?: string | null,
+): Promise<'open' | 'closed' | 'unknown'> {
+  try {
+    const response = await fetch(`${requireOjsBaseUrl()}/index.php/${encodeURIComponent(journal)}/submission`, {
+      headers: withUserAgent({ Cookie: `${OJS_SESSION_COOKIE}=${sid}`, Accept: 'text/html' }, userAgent),
+      redirect: 'manual',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(COOKIE_TIMEOUT_MS),
+    })
+    if (response.status !== 200) return 'unknown'
+    return wizardPageOffersForm(await response.text()) ? 'open' : 'closed'
+  } catch {
+    return 'unknown'
+  }
+}
+
+/** Pure half of wizardOpenTo, for tests: does the start page carry the form? */
+export function wizardPageOffersForm(html: string): boolean {
+  return html.includes('"StartSubmissionPage"') && /"id":"startSubmission"/.test(html) && /api\\?\/v1\\?\/submissions"/.test(html)
 }

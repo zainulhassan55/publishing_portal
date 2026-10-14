@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { parseCurrentUser, parseLoginError, parseLoginForm } from './ojs-login.ts'
+import {
+  interpretSignIn,
+  parseCurrentUser,
+  parseLoginError,
+  parseLoginForm,
+  passwordChangeRequired,
+  profileRedirectTarget,
+} from './ojs-login.ts'
 
 /**
  * These tests exist for one reason: the login relay depends on another
@@ -163,4 +170,118 @@ test('parseCurrentUser is not confused by other JSON on the page', () => {
   </script>`
   assert.equal(parseCurrentUser(html)?.id, 31)
   assert.equal(parseCurrentUser(html)?.userName, 'picked')
+})
+
+test('passwordChangeRequired recognises the must-change-password redirect and nothing else', () => {
+  assert.equal(passwordChangeRequired('https://www.nextgeniqpress.com/ojs/index.php/index/login/changePassword/dhruv9911'), true)
+  assert.equal(passwordChangeRequired('/ojs/index.php/index/login/changePassword?x=1'), true)
+  assert.equal(passwordChangeRequired('https://www.nextgeniqpress.com/ojs/index.php/index/index'), false)
+  assert.equal(passwordChangeRequired('https://www.nextgeniqpress.com/ojs/index.php/ijdh/dashboard'), false)
+  assert.equal(passwordChangeRequired(null), false)
+})
+
+/* ---------------------------- sign-in verdict ----------------------------- */
+
+/**
+ * Every branch of the verdict, because a misread here is a wrong message to
+ * a person: "wrong password" for a server fault, or "did not respond" for a
+ * password that was right. The fixtures are the response shapes OJS 3.5.0.5
+ * has actually produced against this relay.
+ */
+
+const REFUSED_FORM = `<form class="cmp_form login">
+  <div class="pkp_form_error">Invalid username/email or password. Please try again.</div>
+</form>`
+
+test('interpretSignIn: a 3xx with a rotated cookie is a sign-in on the new session', () => {
+  const r = interpretSignIn(
+    { status: 302, location: 'https://www.nextgeniqpress.com/ojs/index.php/index/index', rotated: 'NEW0SID', html: '' },
+    'ANON0SID',
+  )
+  assert.deepEqual(r, { ok: true, sid: 'NEW0SID', redirectedTo: 'https://www.nextgeniqpress.com/ojs/index.php/index/index' })
+})
+
+test('interpretSignIn: a 3xx without a new cookie keeps the anonymous session', () => {
+  const r = interpretSignIn({ status: 302, location: '/ojs/index.php/index/index', rotated: null, html: '' }, 'ANON0SID')
+  assert.equal(r.ok, true)
+  assert.equal(r.ok && r.sid, 'ANON0SID')
+})
+
+test('interpretSignIn: the change-password redirect is not a sign-in, even with a rotated cookie', () => {
+  const r = interpretSignIn(
+    { status: 302, location: '/ojs/index.php/index/login/changePassword/someone', rotated: 'NEW0SID', html: '' },
+    'ANON0SID',
+  )
+  assert.deepEqual(r, { ok: false, reason: 'password-change-required' })
+})
+
+test('interpretSignIn: a re-rendered form carries OJS own refusal', () => {
+  const r = interpretSignIn({ status: 200, location: null, rotated: null, html: REFUSED_FORM }, 'ANON0SID')
+  assert.deepEqual(r, {
+    ok: false,
+    reason: 'invalid-credentials',
+    message: 'Invalid username/email or password. Please try again.',
+  })
+})
+
+test('interpretSignIn: a 200 with no error and no cookie is a refusal without a reason', () => {
+  const r = interpretSignIn({ status: 200, location: null, rotated: null, html: '<html>nothing</html>' }, 'ANON0SID')
+  assert.deepEqual(r, { ok: false, reason: 'invalid-credentials' })
+})
+
+test('interpretSignIn: a server error is reported as one, not as a wrong password', () => {
+  for (const status of [500, 502, 503, 403, 404]) {
+    const r = interpretSignIn({ status, location: null, rotated: null, html: '' }, 'ANON0SID')
+    assert.deepEqual(r, { ok: false, reason: 'ojs-error', status }, `status ${status}`)
+  }
+})
+
+test('interpretSignIn: a server error that still sets a cookie is not mistaken for a sign-in', () => {
+  // PHP had already started the session when it died; the cookie proves
+  // nothing about the credentials. This used to be read as success, and the
+  // identity fetch that followed then failed with no explanation.
+  const r = interpretSignIn({ status: 500, location: null, rotated: 'NEW0SID', html: '' }, 'ANON0SID')
+  assert.deepEqual(r, { ok: false, reason: 'ojs-error', status: 500 })
+})
+
+/* ------------------------- profile-page redirects ------------------------- */
+
+const SITE_PROFILE = 'https://www.nextgeniqpress.com/ojs/index.php/index/user/profile'
+
+test('profileRedirectTarget follows the one-journal redirect to that journal profile', () => {
+  // ProfileHandler::profile for an account whose only role is in ijdh. This is
+  // the response every single-journal registrant produced, and the portal
+  // read it as "not signed in" for a month.
+  assert.equal(
+    profileRedirectTarget(302, 'https://www.nextgeniqpress.com/ojs/index.php/ijdh/user/profile', SITE_PROFILE),
+    'https://www.nextgeniqpress.com/ojs/index.php/ijdh/user/profile',
+  )
+})
+
+test('profileRedirectTarget resolves a relative Location and the restful_urls spelling', () => {
+  assert.equal(
+    profileRedirectTarget(302, '/ojs/index.php/ijdh/user/profile', SITE_PROFILE),
+    'https://www.nextgeniqpress.com/ojs/index.php/ijdh/user/profile',
+  )
+  assert.equal(
+    profileRedirectTarget(303, '/ojs/ijdh/user/profile', SITE_PROFILE),
+    'https://www.nextgeniqpress.com/ojs/ijdh/user/profile',
+  )
+})
+
+test('profileRedirectTarget does not follow the login redirect of a dead session', () => {
+  assert.equal(
+    profileRedirectTarget(302, 'https://www.nextgeniqpress.com/ojs/index.php/index/login', SITE_PROFILE),
+    null,
+  )
+  assert.equal(profileRedirectTarget(302, '/ojs/index.php/ijdh/login?source=/user/profile', SITE_PROFILE), null)
+})
+
+test('profileRedirectTarget ignores anything that is not a redirect to a profile page', () => {
+  assert.equal(profileRedirectTarget(200, null, SITE_PROFILE), null)
+  assert.equal(profileRedirectTarget(302, null, SITE_PROFILE), null)
+  assert.equal(profileRedirectTarget(302, SITE_PROFILE, SITE_PROFILE), null) // itself: would loop
+  assert.equal(profileRedirectTarget(302, 'https://evil.example/ojs/index.php/ijdh/user/profile', SITE_PROFILE), null)
+  assert.equal(profileRedirectTarget(302, '/ojs/index.php/ijdh/index', SITE_PROFILE), null)
+  assert.equal(profileRedirectTarget(302, 'not a url at all', 'also not a url'), null)
 })

@@ -43,6 +43,14 @@ export const ojsServiceApiKey = process.env.OJS_API_KEY || ''
 export const ojsUrl = (context: string, path = '') => `${ojsPathPrefix}/index.php/${context}${path}`
 
 export const ojsLoginUrl = ojsUrl('index', '/login')
+
+/**
+ * The reader's own OJS profile, browser-relative. The one OJS page every
+ * signed-in account can open regardless of journal enrolment, so it is the
+ * last-resort target for "open the editorial system" when nothing better is
+ * known. The absolute, server-side form is `ojsProfileUrl` below.
+ */
+export const ojsProfileUrlRelative = ojsUrl('index', '/user/profile')
 export const ojsRegisterUrl = ojsUrl('index', '/user/register')
 export const ojsLostPasswordUrl = ojsUrl('index', '/login/lostPassword')
 
@@ -105,6 +113,10 @@ export const ojsRegisterPageUrl = () => `${requireOjsBaseUrl()}/index.php/index/
  * the original session design was built on. This page is the substitute: it
  * redirects (302) for an unauthenticated session and renders a prefilled form
  * (200) for an authenticated one. See docs/OJS-INTEGRATION.md.
+ *
+ * With one exception: for an account that holds a role in exactly one journal
+ * it redirects (302) to that journal's own profile page, which then renders.
+ * The relay follows that one hop — see profileRedirectTarget in ojs-login.ts.
  */
 export const ojsProfileUrl = () => `${requireOjsBaseUrl()}/index.php/index/user/profile`
 
