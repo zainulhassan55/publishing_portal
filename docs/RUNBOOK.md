@@ -33,16 +33,37 @@ from `localhost` against the live OJS, with no deployment.
 
 ## Deploying
 
+**Production deploys itself on every push to `main`.** The "Deploy portal"
+workflow (`.github/workflows/deploy.yml`) tags the commit with the next patch
+version after the highest existing `v*` tag, pushes the tag, and runs
+`scripts/deploy.sh production`. Merge a pull request into `main` and watch the
+Actions tab; nothing else is required. The consequence is that `main` must be
+releasable at all times — use a branch and a pull request for anything that is
+not.
+
+Until 14 October 2026 the workflow fired only on a pushed `v*` tag. It was
+reliable when a tag was pushed and silent otherwise, and for a week nobody
+pushed one: fixes were merged and then deployed by hand from a laptop while the
+last tag on GitHub stayed at v1.3.2. The automatic tag removes the step that
+was being forgotten; every release is still a tag.
+
+By hand, when needed (a hotfix from a release branch, a rollback to an older
+version, or GitHub being unavailable):
+
 ```bash
 ./scripts/deploy.sh staging       # any commit
-git tag -a v1.2.0 -m "…" && git push --tags
+git tag -a v1.2.0 -m "…" && git push origin v1.2.0   # the push also deploys via GitHub
 ./scripts/deploy.sh production    # refuses an untagged or dirty tree
 ```
 
-The script builds locally, runs the full gate (typecheck, lint, test, harvest,
-build), uploads to a new timestamped release directory, flips the `current`
-symlink, restarts the service, and **rolls back automatically** if
-`/api/health` does not answer within 30 seconds. Five releases are kept.
+Push local tags before relying on the automatic bump — it reads the tags on
+GitHub, so a tag that exists only on a laptop can later collide with one the
+workflow creates. `git push origin --tags` once settles it.
+
+The script builds, runs the full gate (typecheck, lint, test, harvest, build),
+uploads to a new timestamped release directory, flips the `current` symlink,
+restarts the service, and **rolls back automatically** if `/api/health` does
+not answer within 30 seconds. Five releases are kept.
 
 Rollback by hand:
 
