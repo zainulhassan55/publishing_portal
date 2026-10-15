@@ -390,6 +390,11 @@ the whole OJS path untouched.
 3. Replace with the contents of `deploy/cloudpanel-vhost.conf`
 4. Save. CloudPanel runs `nginx -t` itself and refuses to save a broken config
 
+Repeat these four steps whenever `deploy/cloudpanel-vhost.conf` changes in the
+repository — the deploy script does not touch nginx, and the file in the panel
+is the one that counts. Last change: 2026-10-15, OJS article and issue pages
+redirect to the portal through `/go/…`.
+
 What it does:
 
 | Path | Goes to | Changed? |

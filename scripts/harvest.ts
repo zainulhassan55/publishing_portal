@@ -262,6 +262,7 @@ for (const slug of JOURNAL_SLUGS) {
       title: text(issue.title) || undefined,
       publishedIso: issue.datePublished?.slice(0, 10),
       current: Boolean(issue.isCurrent),
+      ojsId: issue.id,
       sections: [],
     })
   }
