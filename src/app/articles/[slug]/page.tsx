@@ -5,7 +5,7 @@ import { JsonLd } from '@/components/seo/JsonLd'
 import { getArticle, getArticles } from '@/data/content'
 import { getJournal, journalCode } from '@/data/registry'
 import { articleCitationMeta, dublinCoreMeta } from '@/lib/citation-meta'
-import { buildCitation } from '@/lib/citation'
+import { buildAllCitations } from '@/lib/citation'
 import { authorsShort, formatDate } from '@/lib/format'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/jsonld'
 import { absoluteUrl, siteName } from '@/lib/site'
@@ -101,12 +101,7 @@ export default async function ArticleRoute({ params }: { params: Promise<{ slug:
     { label: `Volume ${article.volume}, Issue ${article.issue}`, href: `/journals/${journal.slug}/issues` },
   ]
 
-  const citations: ArticleCitations = {
-    bibtex: buildCitation('bibtex', article, journal),
-    ris: buildCitation('ris', article, journal),
-    endnote: buildCitation('endnote', article, journal),
-    plain: buildCitation('plain', article, journal),
-  }
+  const citations: ArticleCitations = buildAllCitations(article, journal)
 
   // The mockup's related rail: the next three articles across the portfolio.
   const related = (await getArticles())

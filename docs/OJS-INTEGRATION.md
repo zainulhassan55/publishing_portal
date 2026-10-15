@@ -244,9 +244,12 @@ The one exception is the **published PDF galley**, which is public by
 definition. OJS serves it with `Content-Disposition: attachment`, so a browser
 downloads it instead of displaying it; `/articles/{slug}/pdf` streams the same
 bytes from OJS with an `inline` disposition (and `?download=1` for the save
-button), which is what lets the article page embed it in an iframe. The route
-reads through `getArticles()`, so a paper hidden in the admin panel 404s here
-too. Nothing is stored on the portal.
+button). The article page displays it with PDF.js (`pdfjs-dist`, bundled —
+the content-security policy allows scripts from this origin only), in
+`src/components/article/PdfViewer.tsx`; the browser's own viewer was tried
+first and behaves differently on every device. The route reads through
+`getArticles()`, so a paper hidden in the admin panel 404s here too. Nothing is
+stored on the portal.
 
 `temporaryFiles` and `submissions/{id}/files` both exist, so this is a choice
 rather than a limitation. Three reasons, in order of weight:

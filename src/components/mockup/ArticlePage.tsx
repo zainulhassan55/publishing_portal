@@ -5,6 +5,8 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import type { Article, ArticleFigure, ArticleSection } from '@/types/publishing'
 import { formatDate, formatNumber } from '@/lib/format'
 import { doiUrl } from '@/lib/site'
+import { citationFormats, type CitationFormat } from '@/lib/citation'
+import { PdfViewer } from '@/components/article/PdfViewer'
 
 /**
  * Article.dc.html replicated verbatim (docs/REPLICATION.md). The mockup's
@@ -14,7 +16,8 @@ import { doiUrl } from '@/lib/site'
  * this mockup page.
  */
 
-export type ArticleCitations = { bibtex: string; ris: string; endnote: string; plain: string }
+/** One rendering per format in `citationFormats`; built server-side by the route. */
+export type ArticleCitations = Record<CitationFormat, string>
 
 export type RelatedArticle = { href: string; title: string; authorLine: string; code: string; date: string }
 
@@ -26,7 +29,7 @@ type Props = {
   related: RelatedArticle[]
 }
 
-type CiteFormat = keyof ArticleCitations
+type CiteFormat = CitationFormat
 
 /* Mockup body-paragraph style, reused for every serif paragraph. */
 const paraStyle: CSSProperties = {
@@ -66,7 +69,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
   const [active, setActive] = useState('highlights')
   const [aff, setAff] = useState(false)
   const [cite, setCite] = useState(false)
-  const [fmt, setFmt] = useState<CiteFormat>('bibtex')
+  const [fmt, setFmt] = useState<CiteFormat>('apa')
   const [copied, setCopied] = useState(false)
   const [plainCopied, setPlainCopied] = useState(false)
   const [shared, setShared] = useState(false)
@@ -189,12 +192,12 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
       ).filter((d): d is [string, string] => !!d[1])
     : []
 
-  const citeTabs: { key: CiteFormat; label: string }[] = [
-    { key: 'bibtex', label: 'BibTeX' },
-    { key: 'ris', label: 'RIS' },
-    { key: 'endnote', label: 'EndNote' },
-    { key: 'plain', label: 'Text' },
-  ]
+  /* Styles first (APA, MLA, Chicago, Harvard, Vancouver, IEEE), then the
+     reference-manager exports — the order src/lib/citation.ts declares. */
+  const citeTabs: { key: CiteFormat; label: string }[] = citationFormats.map((f) => ({
+    key: f.id,
+    label: f.id === 'plain' ? 'Text' : f.label,
+  }))
 
   const metrics = article.metrics
     ? [
@@ -857,30 +860,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
               >
                 Full text
               </h2>
-              <iframe
-                src={pdfViewerHref}
-                title={`PDF of ${article.title}`}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  height: '80vh',
-                  minHeight: 560,
-                  border: '1px solid var(--line, #DCE1E6)',
-                  borderRadius: 3,
-                  background: 'var(--surface-2, #F5F6F7)',
-                }}
-              />
-              <p style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5, color: 'var(--muted, #505C68)' }}>
-                If the PDF does not display above,{' '}
-                <a href={pdfViewerHref} target="_blank" rel="noreferrer">
-                  open it in a new tab
-                </a>{' '}
-                or{' '}
-                <a href={pdfDownloadHref} download>
-                  download it
-                </a>
-                .
-              </p>
+              <PdfViewer src={pdfViewerHref} downloadHref={pdfDownloadHref} title={article.title} />
             </section>
           ) : null}
 
@@ -1033,7 +1013,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
                 How to cite
               </h2>
               <button
-                onClick={() => copyText(citations.plain, setPlainCopied)}
+                onClick={() => copyText(citations.apa, setPlainCopied)}
                 style={{
                   border: '1px solid var(--line-strong, #B9C1C9)',
                   background: 'var(--surface, #fff)',
@@ -1048,7 +1028,10 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
               </button>
             </div>
             <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-2, #1F2A36)' }}>
-              {citations.plain}
+              {citations.apa}
+            </p>
+            <p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--muted, #505C68)' }}>
+              APA 7th. Other styles and reference-manager exports are under “Cite this article”.
             </p>
           </section>
 
@@ -1249,7 +1232,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
                   position: 'absolute',
                   right: 0,
                   top: 'calc(100% + 4px)',
-                  width: 340,
+                  width: 'min(440px, calc(100vw - 32px))',
                   background: 'var(--surface, #fff)',
                   border: '1px solid var(--line-strong, #B9C1C9)',
                   borderRadius: 3,
@@ -1260,7 +1243,13 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
               >
                 <div
                   role="tablist"
-                  style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--line, #DCE1E6)', marginBottom: 10 }}
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 2,
+                    borderBottom: '1px solid var(--line, #DCE1E6)',
+                    marginBottom: 10,
+                  }}
                 >
                   {citeTabs.map((ct) => (
                     <button
