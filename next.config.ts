@@ -18,6 +18,14 @@ const csp = [
   "object-src 'none'",
 ].join('; ')
 
+/**
+ * The article page embeds its own PDF route in an iframe. `frame-ancestors
+ * 'none'` and `X-Frame-Options: DENY` are right for every other path, so that
+ * one route gets `'self'` instead — the later headers() rule wins on a key the
+ * global rule also sets.
+ */
+const pdfCsp = csp.replace("frame-ancestors 'none'", "frame-ancestors 'self'")
+
 const securityHeaders = [
   { key: 'Content-Security-Policy', value: csp },
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -38,7 +46,16 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
   async headers() {
-    return [{ source: '/:path*', headers: securityHeaders }]
+    return [
+      { source: '/:path*', headers: securityHeaders },
+      {
+        source: '/articles/:slug/pdf',
+        headers: [
+          { key: 'Content-Security-Policy', value: pdfCsp },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+        ],
+      },
+    ]
   },
   async redirects() {
     // Route shape from the previous Vite app, preserved so existing links and

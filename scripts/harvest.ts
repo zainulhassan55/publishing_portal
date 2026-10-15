@@ -348,7 +348,13 @@ for (const slug of JOURNAL_SLUGS) {
       receivedIso: submission.dateSubmitted?.slice(0, 10),
       access: 'Open access',
       licence: 'CC BY 4.0',
-      pdfHref: publication.galleys?.find((g) => /pdf/i.test(g.label ?? ''))?.urlPublished,
+      // `urlPublished` is OJS's galley *page* (HTML wrapping its own viewer).
+      // The file itself is the same path under /download/, which is what a
+      // PDF link, Google Scholar's citation_pdf_url and the portal's inline
+      // viewer all need.
+      pdfHref: publication.galleys
+        ?.find((g) => /pdf/i.test(g.label ?? ''))
+        ?.urlPublished?.replace('/article/view/', '/article/download/'),
     })
   }
 }
