@@ -163,6 +163,8 @@ export type Issue = {
   publishedIso?: string
   sections: IssueSection[]
   current?: boolean
+  /** OJS's issue id, so a link OJS emits (`/issue/view/<id>`) can be resolved to a portal page. */
+  ojsId?: number
 }
 
 /* -------------------------------------------------------------------------- */
