@@ -240,6 +240,14 @@ Manuscript bytes never pass through the portal. The wizard records file
 *metadata* as a readiness checklist and the author attaches the files themselves
 in OJS.
 
+The one exception is the **published PDF galley**, which is public by
+definition. OJS serves it with `Content-Disposition: attachment`, so a browser
+downloads it instead of displaying it; `/articles/{slug}/pdf` streams the same
+bytes from OJS with an `inline` disposition (and `?download=1` for the save
+button), which is what lets the article page embed it in an iframe. The route
+reads through `getArticles()`, so a paper hidden in the admin panel 404s here
+too. Nothing is stored on the portal.
+
 `temporaryFiles` and `submissions/{id}/files` both exist, so this is a choice
 rather than a limitation. Three reasons, in order of weight:
 

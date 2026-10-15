@@ -109,6 +109,14 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
   const pdf = !!article.pdfHref
   const refs = article.references ?? []
 
+  /* The portal's own PDF route: same origin, served inline, so it can sit in
+     an iframe here and open in a tab from the buttons. OJS serves the file as
+     an attachment, which a browser downloads rather than displays. */
+  const pdfViewerHref = `/articles/${article.slug}/pdf`
+  const pdfDownloadHref = `${pdfViewerHref}?download=1`
+  /* Harvested papers carry no structured body; the PDF is the full text. */
+  const inlinePdf = pdf && !(article.body?.length)
+
   /* Journal colour derivations, exactly as the mockup computes them. */
   const jc = 'var(--warm, #C2410C)'
   const jDark = `color-mix(in srgb, ${jc} 60%, #101B27)`
@@ -159,6 +167,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
   if (article.highlights?.length) toc.push({ id: 'highlights', href: '#highlights', label: 'Highlights' })
   toc.push({ id: 'abstract', href: '#abstract', label: 'Abstract' })
   if (article.keywords.length) toc.push({ id: 'keywords', href: '#keywords', label: 'Keywords' })
+  if (inlinePdf) toc.push({ id: 'fulltext', href: '#fulltext', label: 'Full text (PDF)' })
   for (const s of article.body ?? []) toc.push({ id: s.id, href: `#${s.id}`, label: `${s.number}  ${s.heading}` })
   if (article.declarations) toc.push({ id: 'declarations', href: '#declarations', label: 'Declarations' })
   if (refs.length) toc.push({ id: 'references', href: '#references', label: 'References' })
@@ -835,6 +844,46 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
             </section>
           ) : null}
 
+          {inlinePdf ? (
+            <section id="fulltext" data-sec="1" style={{ scrollMarginTop: 20, marginTop: 40 }}>
+              <h2
+                style={{
+                  margin: '0 0 12px',
+                  fontFamily: 'var(--font-serif)',
+                  fontSize: 24,
+                  fontWeight: 600,
+                  color: 'var(--ink, #101B27)',
+                }}
+              >
+                Full text
+              </h2>
+              <iframe
+                src={pdfViewerHref}
+                title={`PDF of ${article.title}`}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  height: '80vh',
+                  minHeight: 560,
+                  border: '1px solid var(--line, #DCE1E6)',
+                  borderRadius: 3,
+                  background: 'var(--surface-2, #F5F6F7)',
+                }}
+              />
+              <p style={{ margin: '8px 0 0', fontSize: 13, lineHeight: 1.5, color: 'var(--muted, #505C68)' }}>
+                If the PDF does not display above,{' '}
+                <a href={pdfViewerHref} target="_blank" rel="noreferrer">
+                  open it in a new tab
+                </a>{' '}
+                or{' '}
+                <a href={pdfDownloadHref} download>
+                  download it
+                </a>
+                .
+              </p>
+            </section>
+          ) : null}
+
           {(article.body ?? []).map((s) => (
             <section key={s.id} id={s.id} data-sec="1" style={{ scrollMarginTop: 20, marginTop: 40 }}>
               <h2
@@ -1117,7 +1166,9 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
           {pdf ? (
             <>
               <a
-                href={article.pdfHref}
+                href={pdfViewerHref}
+                target="_blank"
+                rel="noreferrer"
                 style={{
                   background: jDark,
                   color: '#fff',
@@ -1132,7 +1183,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
                 View PDF
               </a>
               <a
-                href={article.pdfHref}
+                href={pdfDownloadHref}
                 download
                 style={{
                   border: '1px solid var(--line-strong, #B9C1C9)',
