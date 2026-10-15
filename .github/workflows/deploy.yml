@@ -7,13 +7,26 @@
 # the VPS, deployed by scripts/deploy.sh, and it has to run on the same origin
 # as OJS for the integration to work at all.
 #
-# Tag-triggered, because scripts/deploy.sh refuses an untagged production
-# deploy — a release must be reproducible from a tag, not from a branch tip.
+# Runs on every push to `main`. Originally this fired only on a pushed `v*`
+# tag, because scripts/deploy.sh refuses an untagged production deploy — a
+# release must be reproducible from a tag, not from a branch tip. That held,
+# but the tag was the step that kept getting skipped: a week of fixes were
+# merged to main and deployed by hand from a laptop, while the last tag to
+# reach GitHub was v1.3.2. The workflow now cuts the tag itself — next patch
+# version after the highest existing `v*` tag — pushes it, and then runs the
+# very same deploy script. Every release is still a tag; nobody has to
+# remember to make one.
+#
+# A tag pushed by hand still deploys, for a release that is not the tip of
+# main (a hotfix from a release branch, or a rollback to an older version).
+# The tag this workflow pushes does not trigger a second run: GitHub never
+# starts a workflow from an event created with the job's own GITHUB_TOKEN.
 #
 name: Deploy portal
 
 on:
   push:
+    branches: [main]
     tags: ['v*']
 
   workflow_dispatch:
@@ -30,8 +43,10 @@ concurrency:
   group: deploy-${{ inputs.target || 'production' }}
   cancel-in-progress: false
 
+# `write` is what lets the job push the release tag it creates. Nothing else
+# here needs more than read.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   deploy:
@@ -44,13 +59,42 @@ jobs:
       - uses: actions/checkout@v5
         with:
           # deploy.sh runs `git describe --exact-match --tags HEAD`, which needs
-          # the tags, and names the release from the short SHA.
+          # the tags, and names the release from the short SHA. The version
+          # bump below needs every existing tag to find the highest.
           fetch-depth: 0
 
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
+
+      # Production releases are tagged, and the tag is made here when the push
+      # that triggered this run did not carry one. A tag already on HEAD — a
+      # hand-made release, or a re-run of a tag push — is kept as it is, so the
+      # same commit never gets two version numbers.
+      #
+      # Staging is left untagged: deploy.sh deploys any commit there, and a
+      # staging try-out is not a release.
+      - name: Tag the release
+        if: ${{ (inputs.target || 'production') == 'production' }}
+        run: |
+          set -euo pipefail
+          if existing=$(git describe --exact-match --tags HEAD 2>/dev/null); then
+            echo "HEAD is already tagged $existing; deploying that."
+            exit 0
+          fi
+          latest=$(git tag -l 'v*' | sort -V | tail -n 1)
+          if [ -z "$latest" ]; then
+            next=v1.0.0
+          else
+            IFS=. read -r major minor patch <<< "${latest#v}"
+            next="v${major}.${minor}.$((patch + 1))"
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$next" -m "Release $next (automatic, from main @ ${GITHUB_SHA::7})"
+          git push origin "$next"
+          echo "Tagged $next"
 
       - name: Configure SSH
         run: |

@@ -125,3 +125,86 @@ test('a single-word author name is not mangled into an initial', () => {
   assert.ok(plainTextCitation(mononym, journal).startsWith('Aristotle (2026)'))
   assert.ok(bibtexCitation(mononym, journal).includes('author  = {Aristotle}'))
 })
+
+/* ------------------------------ styled forms ------------------------------ */
+
+import {
+  apaCitation,
+  chicagoCitation,
+  harvardCitation,
+  ieeeCitation,
+  mlaCitation,
+  vancouverCitation,
+  buildAllCitations,
+  citationFormats,
+} from './citation.ts'
+
+test('APA 7 inverts every author, uses an ampersand, and italicises nothing', () => {
+  assert.equal(
+    apaCitation(article, journal),
+    'Okafor, A. N., & Reyes-Morales, D. (2026). Remote photoplethysmography for continuous heart-rate monitoring. International Journal of Digital Health, 1(2), 45–67. https://doi.org/10.63521/ijdh.2026.0014',
+  )
+})
+
+test('MLA 9 leads with the inverted first author and spells the second out', () => {
+  assert.equal(
+    mlaCitation(article, journal),
+    'Okafor, Amara N., and Daniel Reyes-Morales. "Remote photoplethysmography for continuous heart-rate monitoring." International Journal of Digital Health, vol. 1, no. 2, 2026, pp. 45–67, https://doi.org/10.63521/ijdh.2026.0014.',
+  )
+})
+
+test('MLA 9 cuts to "et al." at three authors', () => {
+  const three = { ...article, authors: [...article.authors, { name: 'Wei Zhang', affiliationIds: [] }] } as Article
+  assert.ok(mlaCitation(three, journal).startsWith('Okafor, Amara N., et al. "'))
+})
+
+test('Chicago author-date puts the year after the authors and the pages after a colon', () => {
+  assert.equal(
+    chicagoCitation(article, journal),
+    'Okafor, Amara N., and Daniel Reyes-Morales. 2026. "Remote photoplethysmography for continuous heart-rate monitoring." International Journal of Digital Health 1 (2): 45–67. https://doi.org/10.63521/ijdh.2026.0014.',
+  )
+})
+
+test('Harvard uses tight initials, single quotes and a bare doi', () => {
+  assert.equal(
+    harvardCitation(article, journal),
+    "Okafor, A.N. and Reyes-Morales, D. (2026) 'Remote photoplethysmography for continuous heart-rate monitoring', International Journal of Digital Health, 1(2), pp. 45–67. doi: 10.63521/ijdh.2026.0014.",
+  )
+})
+
+test('Vancouver uses bare initials and the year;volume(issue):pages run', () => {
+  assert.equal(
+    vancouverCitation(article, journal),
+    'Okafor AN, Reyes-Morales D. Remote photoplethysmography for continuous heart-rate monitoring. International Journal of Digital Health. 2026;1(2):45–67. doi:10.63521/ijdh.2026.0014',
+  )
+})
+
+test('IEEE puts initials first and the title in quotes with the comma inside', () => {
+  assert.equal(
+    ieeeCitation(article, journal),
+    'A. N. Okafor and D. Reyes-Morales, "Remote photoplethysmography for continuous heart-rate monitoring," International Journal of Digital Health, vol. 1, no. 2, pp. 45–67, 2026, doi: 10.63521/ijdh.2026.0014.',
+  )
+})
+
+test('a paper without a DOI cites its article page rather than a bare doi.org', () => {
+  const noDoi = { ...article, doi: '' } as Article
+  for (const f of citationFormats) {
+    const out = buildCitation(f.id, noDoi, journal)
+    assert.ok(!out.includes('doi.org/'), `${f.id} must not emit a DOI link with no DOI`)
+    assert.ok(out.includes('/articles/rppg-study'), `${f.id} must fall back to the article page`)
+  }
+  assert.ok(!bibtexCitation(noDoi, journal).includes('doi     ='), 'BibTeX omits an empty doi field')
+})
+
+test('buildAllCitations returns every listed format', () => {
+  const all = buildAllCitations(article, journal)
+  assert.deepEqual(Object.keys(all).sort(), citationFormats.map((f) => f.id).sort())
+  assert.equal(all.apa, apaCitation(article, journal))
+})
+
+test('styles that end the author block with a stop never double it after an initial', () => {
+  const single = { ...article, authors: [{ name: 'Amara N. Okafor', affiliationIds: [] }] } as Article
+  assert.ok(mlaCitation(single, journal).startsWith('Okafor, Amara N. "'))
+  assert.ok(chicagoCitation(single, journal).startsWith('Okafor, Amara N. 2026. "'))
+  assert.ok(!vancouverCitation(single, journal).includes('..'))
+})
