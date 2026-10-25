@@ -25,7 +25,14 @@ export class ValidationError extends Error {
   }
 }
 
-export const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim())
+/**
+ * A plain address only. Quoting, comments, groups and angle brackets are legal
+ * in RFC 5322 but no one types them into a form, and they are exactly what
+ * mail address parsers get wrong (nodemailer GHSA-8c8m-p3m8-cjg8 and siblings:
+ * a ";" or ">" in the text can turn into an extra recipient). The forms send
+ * acknowledgements to the typed address, so it must be a single mailbox.
+ */
+export const isEmail = (value: string) => /^[^\s@;<>(),":\\[\]]+@[^\s@;<>(),":\\[\]]+\.[^\s@;<>(),":\\[\]]{2,}$/.test(value.trim())
 
 /**
  * ORCID iDs carry an ISO 7064 MOD 11-2 check digit, so a typo is detectable.

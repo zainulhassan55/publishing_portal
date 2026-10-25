@@ -18,16 +18,18 @@ const base = `http://127.0.0.1:${PORT}`
 /** Each route must contain every string listed for it. */
 const checks = [
   { path: '/', must: ['NextGenIQ Press', 'application/ld+json', '<h1'] },
-  { path: '/journals', must: ['International Journal of Digital Health', 'IJQT'] },
+  { path: '/journals', must: ['International Journal of Intelligent Computing', 'Lecture Notes in Multidisciplinary Research'] },
   {
-    path: '/journals/ijdh',
-    must: ['International Journal of Digital Health', 'application/ld+json', 'Periodical'],
+    path: '/journals/ijic',
+    must: ['International Journal of Intelligent Computing', 'application/ld+json', 'Periodical'],
   },
   {
-    path: '/journals/ijdh/peer-review-process',
+    path: '/journals/ijic/peer-review-ethics',
     // Real prose from the data layer, so a shell would fail this.
-    must: ['double-blind', 'Peer Review'],
+    must: ['double-blind', 'Peer Review and Ethics'],
   },
+  { path: '/series/aiisc', must: ['Advances in AI, Intelligent Systems and Computing', 'Series Editors'] },
+  { path: '/policies', must: ['Publication Ethics', 'Generative AI Policy'] },
   { path: '/authors', must: ['Research Article', 'Short Communication'] },
   { path: '/about', must: ['NextGenIQ Press'] },
 ]

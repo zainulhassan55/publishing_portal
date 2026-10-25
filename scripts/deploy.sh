@@ -173,7 +173,14 @@ cp deploy/harvest.sh "$STAGE/deploy/"
 # rather than shipping them under node_modules. A private install next to the
 # script satisfies the import without touching the app's node_modules.
 printf '{"private":true,"type":"module"}' > "$STAGE/scripts/package.json"
-npm install --prefix "$STAGE/scripts" --no-save --no-audit --no-fund --loglevel=error mysql2
+npm install --prefix "$STAGE/scripts" --no-save --no-audit --no-fund --loglevel=error mysql2 aws4fetch@1.0.20
+
+# The storage check ships too, so the R2 keys can be confirmed on the server
+# (`node --experimental-strip-types scripts/storage-check.ts` in the release).
+# It reads src/lib/storage.ts, copied beside it with aws4fetch installed above.
+cp scripts/storage-check.ts "$STAGE/scripts/"
+mkdir -p "$STAGE/scripts/lib"
+cp src/lib/storage.ts "$STAGE/scripts/lib/storage.ts"
 
 echo "==> Uploading to $SSH_HOST:$RELEASES_DIR/$RELEASE"
 ssh "$SSH_HOST" "mkdir -p '$RELEASES_DIR/$RELEASE'"

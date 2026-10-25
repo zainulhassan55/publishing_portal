@@ -2,7 +2,7 @@
  * ISSN registry.
  *
  * Audit finding F-03: the portal previously shipped the literal strings
- * "ISSN Sample" / "eISSN Sample" on all ten live journal pages, which reads to
+ * "ISSN Sample" / "eISSN Sample" on every live journal page, which reads to
  * a cautious author as evidence of an unserious operation.
  *
  * The honest state today is that registration is in progress, so this map is
@@ -14,7 +14,7 @@
  * than no ISSN: it is checkable, and it fails the check.
  */
 export const journalIssn: Record<string, { print?: string; electronic?: string }> = {
-  // ijdh: { electronic: '0000-0000' },
+  // ijic: { electronic: '0000-0000' },
 }
 
 export const seriesIssn: Record<string, { print?: string; electronic?: string }> = {}

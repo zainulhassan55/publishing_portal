@@ -40,6 +40,13 @@ export function handler(fn: (request: Request) => Promise<Response>) {
         )
       }
 
+      if (message === 'storage-unavailable') {
+        console.error('[api] object storage not configured (S3_* variables)')
+        return jsonError('unavailable', 503, {
+          message: 'File uploads are not available yet. Please email contact@nextgeniqpress.com.',
+        })
+      }
+
       if (message.includes('PORTAL_DATABASE_URL')) {
         console.error('[api] database not configured:', message)
         return jsonError('unavailable', 503, {

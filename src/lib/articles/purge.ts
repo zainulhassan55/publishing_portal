@@ -1,5 +1,6 @@
 import { revalidatePath } from 'next/cache'
 import { resetHarvestCache } from '../ojs/harvest-cache.ts'
+import { resetBooksCache } from '../books/volumes.ts'
 import { resetDisplayCache } from './display.ts'
 
 /**
@@ -18,11 +19,12 @@ import { resetDisplayCache } from './display.ts'
  * The cost is that every page renders once more on its next visit, which at
  * this site's size is not a cost worth a smarter list.
  *
- * Callers: the admin show/hide toggle, the scheduled harvest (through
+ * Callers: the admin show/hide toggle, the book volume screen, the scheduled harvest (through
  * /api/revalidate) and the deploy script after a release goes live.
  */
 export function purgePublicContent(): void {
   resetHarvestCache()
   resetDisplayCache()
+  resetBooksCache()
   revalidatePath('/', 'layout')
 }

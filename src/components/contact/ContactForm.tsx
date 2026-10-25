@@ -3,19 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { isEmail } from '@/lib/validate'
 import { editorialEmail } from '@/lib/site'
+import { CONTACT_TOPICS, HONEYPOT } from '@/lib/forms/options'
 
 type FieldErrors = Record<string, string>
 
-const TOPICS = [
-  'Submission enquiry',
-  'Manuscript status',
-  'Peer review',
-  'Special issue proposal',
-  'Editorial board application',
-  'Indexing or metadata',
-  'Technical problem',
-  'Other',
-]
+const TOPICS = CONTACT_TOPICS
 
 /** Mockup control styling: 1px border, radius 3, 14px text, inherited font. */
 const control = (invalid?: boolean): React.CSSProperties => ({
@@ -44,8 +36,9 @@ export function ContactForm({ journals }: { journals: { slug: string; label: str
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [journalSlug, setJournalSlug] = useState('none')
-  const [topic, setTopic] = useState(TOPICS[0])
+  const [topic, setTopic] = useState<string>(TOPICS[0])
   const [message, setMessage] = useState('')
+  const [trap, setTrap] = useState('')
 
   const [errors, setErrors] = useState<FieldErrors>({})
   const [summary, setSummary] = useState<{ field: string; message: string }[]>([])
@@ -83,7 +76,7 @@ export function ContactForm({ journals }: { journals: { slug: string; label: str
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, journalSlug, topic, message }),
+        body: JSON.stringify({ name, email, journalSlug, topic, message, [HONEYPOT]: trap }),
       })
       const data = (await response.json()) as {
         ok?: boolean
@@ -134,13 +127,13 @@ export function ContactForm({ journals }: { journals: { slug: string; label: str
         <h2 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 22, fontWeight: 600, color: '#1E6B3A' }}>Message received</h2>
         <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: 'var(--ink-2,#1F2A36)' }}>
           Your reference is{' '}
-          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{sent.reference}</span>. We reply within two working
-          days — quote that reference if you follow up.
+          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{sent.reference}</span>. A copy has been sent
+          to your email address; quote the reference if you follow up.
         </p>
         {!sent.relayed ? (
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>
-            Your message is recorded and an editor will see it. Our mail relay did not confirm delivery of the
-            notification copy, so if the matter is urgent, also email{' '}
+            Your message is recorded and an editor will see it. Our mail relay did not confirm delivery, so if the
+            matter is urgent, also email{' '}
             <a href={`mailto:${editorialEmail}`} style={{ fontWeight: 500 }}>{editorialEmail}</a>.
           </p>
         ) : null}
@@ -149,7 +142,14 @@ export function ContactForm({ journals }: { journals: { slug: string; label: str
   }
 
   return (
-    <form onSubmit={submit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+    <form onSubmit={submit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 22, position: 'relative' }}>
+      {/* Hidden from people and assistive technology; bots that fill every input fill this too. */}
+      <div aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, overflow: 'hidden' }}>
+        <label>
+          Website
+          <input tabIndex={-1} autoComplete="off" value={trap} onChange={(e) => setTrap(e.target.value)} />
+        </label>
+      </div>
       {summary.length > 0 ? (
         <div
           ref={summaryRef}
@@ -233,7 +233,7 @@ export function ContactForm({ journals }: { journals: { slug: string; label: str
 
         <div style={fieldStyle}>
           <label htmlFor="journalSlug" style={labelStyle}>
-            Journal
+            Journal or book series
           </label>
           <select
             id="journalSlug"
@@ -242,7 +242,7 @@ export function ContactForm({ journals }: { journals: { slug: string; label: str
             aria-describedby="journalSlug-hint"
             style={control()}
           >
-            <option value="none">Not journal-specific</option>
+            <option value="none">Not about a specific title</option>
             {journals.map((journal) => (
               <option key={journal.slug} value={journal.slug}>
                 {journal.label}
@@ -250,7 +250,7 @@ export function ContactForm({ journals }: { journals: { slug: string; label: str
             ))}
           </select>
           <span id="journalSlug-hint" style={hintStyle}>
-            Leave as “Not journal-specific” for general enquiries
+            Leave as “Not about a specific title” for general enquiries
           </span>
         </div>
       </div>

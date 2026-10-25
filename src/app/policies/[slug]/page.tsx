@@ -64,7 +64,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
   if (!policy) notFound()
 
   const toc = policy.blocks.map((block, i) => ({ id: sectionId(i), label: block.title }))
-  const others = policies.filter((other) => other.slug !== policy.slug)
+  const others = policies.filter((other) => other.slug !== policy.slug && other.group === policy.group)
 
   return (
     <>
@@ -73,7 +73,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
         <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)', flexWrap: 'wrap' }}>
           <Link href="/">Home</Link>
           <span aria-hidden="true">/</span>
-          <Link href="/authors#policies">Policies</Link>
+          <Link href="/policies">Policies</Link>
           <span aria-hidden="true">/</span>
           <span style={{ color: 'var(--ink-2,#1F2A36)' }}>{policy.title}</span>
         </nav>
@@ -81,12 +81,12 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
 
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '24px 32px 0', display: 'flex', gap: 56, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <article id="main-content" style={{ flex: 1, minWidth: 300, maxWidth: 720 }}>
-          <span style={{ fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 500 }}>Publisher policy</span>
+          <span style={{ fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 500 }}>{policy.group}</span>
           <h1 style={{ margin: '6px 0 10px', fontFamily: 'var(--font-serif)', fontSize: 36, lineHeight: 1.15, fontWeight: 600, color: 'var(--ink,#101B27)', letterSpacing: '-.01em' }}>{policy.title}</h1>
-          <p style={{ margin: '0 0 10px', fontSize: 17, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '68ch' }}>{policy.summary}</p>
+          <p style={{ margin: '0 0 10px', fontSize: 17, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '68ch' }}>{policy.intro ?? policy.summary}</p>
           <p style={{ margin: '0 0 28px', fontSize: 13, color: 'var(--muted,#505C68)' }}>
-            Last updated <time dateTime={policy.updatedIso}>{formatDate(policy.updatedIso)}</time>. This policy applies
-            to every NextGenIQ Press journal and series.
+            Last updated <time dateTime={policy.updatedIso}>{formatDate(policy.updatedIso)}</time>.
+            {policy.intro ? null : ' This policy applies to every NextGenIQ Press journal and series.'}
           </p>
 
           {policy.blocks.map((block, i) => (
@@ -134,7 +134,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
           ))}
 
           <nav aria-label="Other policies" style={{ marginTop: 40, borderTop: '1px solid var(--line,#DCE1E6)', paddingTop: 20 }}>
-            <span style={{ display: 'block', fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 600, marginBottom: 8 }}>Other publisher policies</span>
+            <span style={{ display: 'block', fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 600, marginBottom: 8 }}>More in {policy.group.toLowerCase()}</span>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,260px),1fr))', columnGap: 32 }}>
               {others.map((other) => (
                 <Link key={other.slug} href={`/policies/${other.slug}`} className="pol-other" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--line,#DCE1E6)', fontSize: 14, color: 'var(--ink,#101B27)', textDecoration: 'none' }}>
@@ -147,10 +147,10 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
         </article>
 
         <aside style={{ width: 220, flexShrink: 0, position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <SectionToc entries={toc} />
+          {toc.length > 1 ? <SectionToc entries={toc} /> : null}
           <div style={{ border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Need to ask about this?</span>
-            <span style={{ fontSize: 13, color: 'var(--ink-3,#3C4854)', lineHeight: 1.5 }}>The editorial office replies within two working days.</span>
+            <span style={{ fontSize: 13, color: 'var(--ink-3,#3C4854)', lineHeight: 1.5 }}>Email contact@nextgeniqpress.com or use the contact form.</span>
             <Link href="/contact" style={{ background: 'var(--accent,#1D5DA8)', color: '#fff', padding: '9px 12px', borderRadius: 3, fontSize: 14, fontWeight: 500, textAlign: 'center', textDecoration: 'none' }}>Contact the editorial office</Link>
           </div>
         </aside>

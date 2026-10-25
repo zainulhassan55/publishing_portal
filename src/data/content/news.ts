@@ -11,20 +11,10 @@ export const news: NewsItem[] = [
     slug: 'all-journals-open-for-submissions',
     dateIso: '2026-09-02',
     type: 'Announcement',
-    title: 'All ten NextGenIQ Press journals are now accepting submissions',
+    title: 'NextGenIQ Press journals are now accepting submissions',
     body: [
       'Every journal in the portfolio is open for submissions across its full scope. Manuscripts are reviewed double-blind by a minimum of two independent reviewers.',
       'There is no submission fee, and no article processing charge applies to manuscripts submitted during the launch period.',
-    ],
-  },
-  {
-    slug: 'founding-editorial-board-applications',
-    dateIso: '2026-07-29',
-    type: 'Editorial',
-    title: 'Applications open for founding editorial board members',
-    body: [
-      'We are appointing founding Editors-in-Chief, Senior Editors and Associate Editors across all ten journals.',
-      'Applicants should hold a doctorate and an established publication record in the journal’s scope. Send a CV, your ORCID iD and a short statement of the topics you are qualified to assess to the editorial office.',
     ],
   },
   {

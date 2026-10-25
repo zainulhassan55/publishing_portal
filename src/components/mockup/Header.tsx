@@ -7,6 +7,7 @@ import { useSession } from '@/components/auth/SessionProvider'
 import { useHydrated } from '@/lib/hooks/client-state'
 import { hasEditorialRole, roleLabel } from '@/lib/auth/roles'
 import { normalise } from '@/lib/search-core'
+import { journalCode, journals, series, seriesPageHref } from '@/data/registry'
 import type { TypeaheadIndex } from '@/lib/search'
 
 /**
@@ -17,18 +18,105 @@ import type { TypeaheadIndex } from '@/lib/search'
 
 type SugItem = { t: string; meta: string; href: string }
 
-const NAV: [string, string, string][] = [
-  ['Journals', '/journals', 'journals'],
-  ['Articles', '/search?tab=articles', 'articles'],
-  ['Books & proceedings', '/journals#series', 'series'],
-  ['Calls for papers', '/authors#cfp', 'cfp'],
-  ['For authors', '/authors', 'authors'],
-  ['Policies', '/authors#policies', 'policies'],
-  ['About', '/#about', 'about'],
+type NavEntry = { label: string; href: string; key: string; children?: { label: string; href: string }[] }
+
+/**
+ * Primary navigation. Every entry but Contact opens a dropdown of its pages on
+ * hover or keyboard focus (CSS :hover / :focus-within, so it works before
+ * hydration); the top-level label stays a link for touch screens, where there
+ * is no hover.
+ */
+const NAV: NavEntry[] = [
+  {
+    label: 'Journals',
+    href: '/journals',
+    key: 'journals',
+    children: [...journals.map((j) => ({ label: `${j.title} (${journalCode(j)})`, href: `/journals/${j.slug}` })), { label: 'All journals', href: '/journals' }],
+  },
+  {
+    label: 'Book series',
+    href: '/series',
+    key: 'series',
+    children: [
+      ...series.map((s) => ({ label: `${s.title} (${s.code})`, href: `/series/${s.slug}` })),
+      ...series.map((s) => ({ label: `Propose a volume for ${s.code}`, href: seriesPageHref(s.slug, 'propose-volume') })),
+      { label: 'All book series', href: '/series' },
+    ],
+  },
+  {
+    label: 'For reviewers',
+    href: '/reviewers',
+    key: 'reviewers',
+    children: [
+      { label: 'Reviewer guidelines', href: '/reviewers' },
+      { label: 'Become a reviewer', href: '/reviewers#apply' },
+    ],
+  },
+  {
+    label: 'For editors',
+    href: '/editors',
+    key: 'editors',
+    children: [
+      { label: 'Join an editorial board', href: '/editors#board-application' },
+      { label: 'Special Issue Guidelines', href: '/editors/special-issues' },
+      { label: 'Propose a special issue', href: '/editors/special-issues#proposal-form' },
+      { label: 'Propose a book volume or proceedings', href: '/editors#books-and-proceedings' },
+      { label: 'Submit a New Journal proposal', href: '/propose-journal' },
+    ],
+  },
+  {
+    label: 'For librarians',
+    href: '/librarians',
+    key: 'librarians',
+    children: [
+      { label: 'Browse publications', href: '/librarians#browse-publications' },
+      { label: 'Indexing and discovery', href: '/librarians#indexing-and-discovery' },
+      { label: 'Access and licensing', href: '/librarians#access-and-licensing' },
+    ],
+  },
+  {
+    label: 'For authors',
+    href: '/authors',
+    key: 'authors',
+    children: [
+      { label: 'Submit a manuscript', href: '/submit' },
+      ...journals.map((j) => ({ label: `${journalCode(j)} author guidelines`, href: `/journals/${j.slug}/author-guidelines` })),
+      { label: 'Open access and fees', href: '/authors#apc' },
+      { label: 'Author resources', href: '/authors' },
+    ],
+  },
+  {
+    label: 'Policies',
+    href: '/policies',
+    key: 'policies',
+    children: [
+      { label: 'Publication ethics', href: '/policies/publication-ethics' },
+      { label: 'Peer review policy', href: '/policies/peer-review-policy' },
+      { label: 'Generative AI policy', href: '/policies/generative-ai-policy' },
+      { label: 'Open access and licensing', href: '/policies/open-access' },
+      { label: 'Complaints and appeals', href: '/policies/complaints-appeals' },
+      { label: 'All policies', href: '/policies' },
+    ],
+  },
+  {
+    label: 'About',
+    href: '/about',
+    key: 'about',
+    children: [
+      { label: 'About NextGenIQ Press', href: '/about' },
+      { label: 'Editorial quality and integrity', href: '/about#editorial-quality-and-integrity' },
+      { label: 'Access and discoverability', href: '/about#access-and-discoverability' },
+    ],
+  },
+  { label: 'Contact', href: '/contact', key: 'contact' },
 ]
 
 const activeKey = (pathname: string): string => {
   if (pathname === '/authors') return 'authors'
+  if (pathname.startsWith('/reviewers')) return 'reviewers'
+  if (pathname.startsWith('/editors') || pathname === '/propose-journal') return 'editors'
+  if (pathname.startsWith('/librarians')) return 'librarians'
+  if (pathname === '/contact') return 'contact'
   if (pathname.startsWith('/policies')) return 'policies'
   if (pathname.startsWith('/journals')) return 'journals'
   if (pathname.startsWith('/articles') || pathname === '/search') return 'articles'
@@ -78,6 +166,9 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
   const [hi, setHi] = useState(-1)
   const [menu, setMenu] = useState(false)
   const [menuLeft, setMenuLeft] = useState(false)
+  // The dropdown a click just used. It stays shut, even though the pointer is
+  // still over it, until the pointer leaves that menu.
+  const [closedNav, setClosedNav] = useState<string | null>(null)
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -96,7 +187,7 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
   }, [menu])
 
   const a = activeKey(pathname || '')
-  const nav = NAV.map(([label, href, k]) => ({ label, href, active: k === a }))
+  const nav = NAV.map((item) => ({ ...item, active: item.key === a }))
 
   const signedIn = !!user
   const fullName = user?.fullName || ''
@@ -177,19 +268,19 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
 @keyframes ngiqDrop{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes ngiqRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .ngiqHdrNavLink:hover{color:var(--ink,#101B27)!important;border-bottom-color:var(--line-strong,#B9C1C9)!important}
+.ngiqNavItem{position:relative}
+.ngiqNavDrop{display:none;position:absolute;left:-14px;top:100%;z-index:50;min-width:250px;padding:8px 0;background:var(--surface,#fff);border:1px solid var(--line,#DCE1E6);border-top:2px solid var(--accent,#1D5DA8);border-radius:0 0 3px 3px;box-shadow:0 10px 28px rgba(16,27,39,.12);animation:ngiqDrop .14s ease}
+.ngiqNavItem:hover .ngiqNavDrop,.ngiqNavItem:has(:focus-visible) .ngiqNavDrop{display:block}
+.ngiqNavItem.ngiqNavClosed .ngiqNavDrop{display:none!important}
+.ngiqNavItem:hover>.ngiqHdrNavLink{color:var(--ink,#101B27)!important}
+.ngiqNavDrop a{display:block;padding:8px 16px;font-size:14px;line-height:1.35;color:var(--ink-2,#1F2A36);text-decoration:none;white-space:nowrap}
+.ngiqNavDrop a:hover,.ngiqNavDrop a:focus-visible{background:var(--surface-2,#F5F6F7);color:var(--accent,#1D5DA8)}
+.ngiqNavCaret{font-size:9px;margin-left:5px;color:var(--muted,#6B7682)}
 .ngiqHdrMenuItem:hover{background:var(--surface-2,#F5F6F7)!important;color:var(--accent,#1D5DA8)!important}
 .ngiqHdrSignOut:hover{background:#FBEAEA!important}
 .ngiqHdrSubmit:hover{background:var(--accent-dark,#174C8A)!important}
 @media (prefers-reduced-motion:reduce){.ngiqHdrAnim{animation:none!important}}
 `}</style>
-      <div style={{ background: 'var(--line-soft, #EEF1F4)', borderBottom: '1px solid var(--line, #DCE1E6)' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '6px 32px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', fontSize: 12, color: 'var(--ink-3, #3C4854)' }}>
-          <div style={{ flex: 1 }}></div>
-          <Link href="/authors#reviewers" style={{ color: 'var(--ink-3, #3C4854)' }}>For reviewers</Link>
-          <Link href="/authors#editors" style={{ color: 'var(--ink-3, #3C4854)' }}>For editors</Link>
-          <Link href="/authors#librarians" style={{ color: 'var(--ink-3, #3C4854)' }}>For librarians</Link>
-        </div>
-      </div>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 32px', display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--ink, #101B27)', textDecoration: 'none' }}>
           <span style={{ width: 34, height: 34, background: 'var(--accent-dark, #0A685C)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-serif)', fontWeight: 600, fontSize: 20, borderRadius: 2 }}>N</span>
@@ -340,18 +431,43 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
           <Link href="/submit" className="ngiqHdrSubmit" style={{ background: 'var(--accent, #1D5DA8)', color: '#fff', padding: '9px 16px', borderRadius: 3, fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>Submit manuscript</Link>
         </div>
       </div>
-      <nav aria-label="Primary" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', display: 'flex', gap: 28, flexWrap: 'wrap' }}>
-        {nav.map((item) =>
-          item.active ? (
-            <Link key={item.label} href={item.href} aria-current="page" style={{ padding: '10px 0 11px', fontSize: 14, fontWeight: 600, color: 'var(--ink, #101B27)', borderBottom: '3px solid var(--accent, #1D5DA8)', textDecoration: 'none' }}>
-              {item.label}
-            </Link>
-          ) : (
-            <Link key={item.label} href={item.href} className="ngiqHdrNavLink" style={{ padding: '10px 0 11px', fontSize: 14, fontWeight: 500, color: 'var(--ink-3, #3C4854)', borderBottom: '3px solid transparent', textDecoration: 'none' }}>
-              {item.label}
-            </Link>
-          ),
-        )}
+      <nav aria-label="Primary" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', gap: '0 26px', flexWrap: 'wrap' }}>
+          {nav.map((item) => (
+            <li key={item.key} className={`ngiqNavItem${closedNav === item.key ? ' ngiqNavClosed' : ''}`} onMouseLeave={() => setClosedNav(null)}>
+              <Link
+                href={item.href}
+                onClick={(e) => {
+                  setClosedNav(item.key)
+                  e.currentTarget.blur()
+                }}
+                aria-current={item.active ? 'page' : undefined}
+                aria-haspopup={item.children ? 'true' : undefined}
+                className="ngiqHdrNavLink"
+                style={{ display: 'inline-block', padding: '10px 0 11px', fontSize: 14, fontWeight: item.active ? 600 : 500, color: item.active ? 'var(--ink, #101B27)' : 'var(--ink-3, #3C4854)', borderBottom: `3px solid ${item.active ? 'var(--accent, #1D5DA8)' : 'transparent'}`, textDecoration: 'none' }}
+              >
+                {item.label}
+                {item.children ? <span aria-hidden="true" className="ngiqNavCaret">▼</span> : null}
+              </Link>
+              {item.children ? (
+                <div className="ngiqNavDrop">
+                  {item.children.map((c) => (
+                    <Link
+                      key={c.href + c.label}
+                      href={c.href}
+                      onClick={(e) => {
+                        setClosedNav(item.key)
+                        e.currentTarget.blur()
+                      }}
+                    >
+                      {c.label}
+                    </Link>
+                  ))}
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
       </nav>
     </header>
   )

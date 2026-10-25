@@ -43,7 +43,7 @@ const chip = (s: string): [string, string] =>
       : ['var(--line-soft,#EEF1F4)', 'var(--ink-3,#3C4854)']
 
 const quick = [
-  { h: 'Find a journal', p: 'Ten journals, all open access', href: '/journals' },
+  { h: 'Find a journal', p: 'Open-access journals and book series', href: '/journals' },
   { h: 'Prepare your manuscript', p: 'Templates and article-type limits', href: '#templates' },
   { h: 'Fees', p: 'No APC during the launch period', href: '#apc' },
   { h: 'Track a submission', p: 'Sign in to your author dashboard', href: '/sign-in' },
@@ -93,7 +93,7 @@ const policyGroups = [
     h: 'Publishing ethics',
     items: [
       { t: 'Publication ethics', href: '/policies/publication-ethics' },
-      { t: 'Peer review policy', href: '/journals/ijdh/peer-review-process' },
+      { t: 'Peer review policy', href: '/policies/peer-review-policy' },
       { t: 'Generative AI policy', href: '/policies/generative-ai-policy' },
       { t: 'Corrections and retractions', href: '/policies/corrections-retractions' },
     ],
@@ -104,15 +104,15 @@ const policyGroups = [
       { t: 'Open access and licensing', href: '/policies/open-access' },
       { t: 'Copyright', href: '/policies/copyright-licensing' },
       { t: 'Research data policy', href: '/policies/research-data-policy' },
-      { t: 'Archiving and preservation', href: '/journals/ijdh/indexing' },
+      { t: 'Archiving and preservation', href: '/policies/archiving-preservation' },
     ],
   },
   {
     h: 'Publisher',
     items: [
-      { t: 'Complaints and appeals', href: '/policies/publication-ethics' },
+      { t: 'Complaints and appeals', href: '/policies/complaints-appeals' },
       { t: 'Privacy policy', href: '/policies/privacy' },
-      { t: 'Advertising policy', href: '/policies/privacy' },
+      { t: 'Advertising policy', href: '/policies/advertising' },
       { t: 'Accessibility statement', href: '/policies/accessibility' },
     ],
   },
@@ -191,7 +191,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             <span style={{ color: 'var(--ink-2,#1F2A36)' }}>For authors</span>
           </nav>
           <h1 style={{ margin: '18px 0 10px', fontFamily: 'var(--font-serif)', fontSize: 40, fontWeight: 600, color: 'var(--ink,#101B27)', letterSpacing: '-.01em' }}>For authors</h1>
-          <p style={{ margin: 0, fontSize: 17, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '64ch' }}>Everything you need to prepare and submit a manuscript to a NextGenIQ Press journal: scope, article types, templates, fees, ethics requirements and open calls.</p>
+          <p style={{ margin: 0, fontSize: 17, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '64ch' }}>Everything you need to prepare and submit a manuscript to a NextGenIQ Press journal: article types, templates, fees, ethics requirements and open calls. Book series proposals are made on each series’ Propose a Volume page.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 0, marginTop: 28, border: '1px solid var(--line,#DCE1E6)', background: 'var(--surface,#fff)', borderRadius: 3 }}>
             {quick.map((q) =>
               q.href.startsWith('#') ? (
@@ -278,7 +278,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
 
           <section id="apc" style={{ scrollMarginTop: 20 }}>
             <h2 style={{ margin: '0 0 6px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Open access and fees</h2>
-            <p style={{ margin: '0 0 18px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '66ch' }}>All articles are published open access under CC BY 4.0. Authors retain copyright.</p>
+            <p style={{ margin: '0 0 18px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '66ch' }}>All articles are published open access under CC BY 4.0. Copyright ownership and publishing rights are specified in the applicable publishing agreement and displayed with the work.</p>
             <div style={{ overflowX: 'auto', borderTop: '2px solid #101B27' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 560 }}>
                 <thead>
@@ -302,7 +302,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
                 </tbody>
               </table>
             </div>
-            <p style={{ margin: '14px 0 0', fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '72ch' }}>Any future APC will be announced at least six months in advance and will not apply to manuscripts already submitted. Waivers will apply to authors in low- and lower-middle-income countries; editors are not informed of waiver requests.</p>
+            <p style={{ margin: '14px 0 0', fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '72ch' }}>Any introduction of, or change to, article processing charges (APCs) will be announced at least six months before taking effect and will apply only to manuscripts submitted on or after the effective date. Full or partial waivers will be available under the publisher’s published waiver policy, with priority given to authors based in low- and lower-middle-income countries and those facing financial hardship. Waiver requests will be handled confidentially by the publishing office and will not be disclosed to handling editors or reviewers. Editorial decisions will be made independently of authors’ ability to pay.</p>
           </section>
 
           <section id="cfp" style={{ scrollMarginTop: 20 }}>
@@ -355,7 +355,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
                 <p style={{ padding: '20px 0', margin: 0, fontSize: 14, color: 'var(--ink-3,#3C4854)' }}>No open calls for this journal. Regular submissions within scope are welcome at any time.</p>
               ) : null}
             </div>
-            <p style={{ margin: '14px 0 0', fontSize: 14, color: 'var(--ink-3,#3C4854)' }}>Planning a special issue? <a href="#editors">Read the guest-editor guidance and submit a proposal</a>.</p>
+            <p style={{ margin: '14px 0 0', fontSize: 14, color: 'var(--ink-3,#3C4854)' }}>Planning a special issue? <Link href="/editors/special-issues">Read the special issue guidelines</Link>.</p>
           </section>
 
           <section id="policies" style={{ scrollMarginTop: 20 }}>
@@ -375,21 +375,23 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
           <section id="reviewers" style={{ scrollMarginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 32, borderTop: '2px solid #101B27', paddingTop: 24 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: 'var(--ink,#101B27)' }}>For reviewers</h2>
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Register your subject expertise and availability. Completed reviews are recognised on your ORCID record.</p>
-              <Link href="/journals/ijdh/reviewer-guidelines" style={{ fontSize: 14, fontWeight: 500 }}>Reviewer guidelines</Link>
-              <Link href="/sign-in" style={{ fontSize: 14, fontWeight: 500 }}>Become a reviewer</Link>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Contribute your expertise to rigorous and constructive peer review. Explore our reviewer guidelines, ethical responsibilities, and opportunities to review submissions in your field.</p>
+              <Link href="/reviewers" style={{ fontSize: 14, fontWeight: 500 }}>Reviewer guidelines</Link>
+              <Link href="/reviewers#become-a-reviewer" style={{ fontSize: 14, fontWeight: 500 }}>Become a reviewer</Link>
             </div>
             <div id="editors" style={{ display: 'flex', flexDirection: 'column', gap: 8, scrollMarginTop: 20 }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: 'var(--ink,#101B27)' }}>For editors</h2>
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Apply to join an editorial board, propose a special issue, or propose a book volume or conference proceedings.</p>
-              <Link href="/journals/ijdh/special-issue-guidelines" style={{ fontSize: 14, fontWeight: 500 }}>Special issue guidelines</Link>
-              <Link href="/journals/ijdh/editorial-board" style={{ fontSize: 14, fontWeight: 500 }}>Join an editorial board</Link>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Help shape the direction of scholarly publishing in your field. Express your interest in joining an editorial board, propose a journal special issue, or submit a proposal for an edited book or conference proceedings.</p>
+              <Link href="/editors#join-a-board" style={{ fontSize: 14, fontWeight: 500 }}>Join an editorial board</Link>
+              <Link href="/editors/special-issues" style={{ fontSize: 14, fontWeight: 500 }}>Special Issue Guidelines</Link>
+              <Link href="/propose-journal" style={{ fontSize: 14, fontWeight: 500 }}>Submit a New Journal proposal</Link>
             </div>
             <div id="librarians" style={{ display: 'flex', flexDirection: 'column', gap: 8, scrollMarginTop: 20 }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: 'var(--ink,#101B27)' }}>For librarians</h2>
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Indexing status, persistent identifiers, licensing and preservation arrangements for every title.</p>
-              <Link href="/journals/ijdh/indexing" style={{ fontSize: 14, fontWeight: 500 }}>Indexing and abstracting</Link>
-              <Link href="/journals/ijdh/copyright-licensing" style={{ fontSize: 14, fontWeight: 500 }}>Licensing</Link>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Explore our publications and find the information needed to support discovery, access, and collection development. Consult individual title pages for indexing status, identifiers, access options, licensing terms, and available preservation information.</p>
+              <Link href="/librarians#browse-publications" style={{ fontSize: 14, fontWeight: 500 }}>Browse publications</Link>
+              <Link href="/librarians#indexing-and-discovery" style={{ fontSize: 14, fontWeight: 500 }}>Indexing and discovery</Link>
+              <Link href="/librarians#access-and-licensing" style={{ fontSize: 14, fontWeight: 500 }}>Access and licensing</Link>
             </div>
           </section>
 

@@ -30,6 +30,8 @@ const NAV = [
   { href: '/admin/journals', label: 'Journals' },
   { href: '/admin/publishing', label: 'Published papers' },
   { href: '/admin/proposals', label: 'Journal proposals' },
+  { href: '/admin/forms', label: 'Editorial forms' },
+  { href: '/admin/volumes', label: 'Book volumes' },
   { href: '/admin/submissions', label: 'All submissions' },
   { href: '/admin/activity', label: 'Activity' },
 ]
