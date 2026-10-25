@@ -29,6 +29,10 @@ const ACTION_LABEL: Record<string, string> = {
   'journal.visibility_changed': 'Journal visibility',
   'article.display_changed': 'Article display',
   'cfp.status_changed': 'Call for papers decision',
+  'editorial_form.status_changed': 'Editorial form decision',
+  'upload.downloaded': 'Submitted file downloaded',
+  'volume.changed': 'Book volume change',
+  'chapter.changed': 'Book chapter change',
 }
 
 const TARGET_LABEL: Record<string, string> = {

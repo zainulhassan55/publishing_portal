@@ -11,7 +11,9 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  // Editorial form uploads go from the browser straight to Cloudflare R2 with a
+  // presigned URL (src/lib/storage.ts), so the R2 API host must be reachable.
+  "connect-src 'self' https://*.r2.cloudflarestorage.com",
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -33,6 +35,57 @@ const securityHeaders = [
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+]
+
+/**
+ * October 2026 portfolio change: the publisher kept two journals (IJIC, IJDM)
+ * and two book series (AIISC, LNMR). Pages of the titles that were dropped, and
+ * journal page ids that were renamed, redirect to their nearest equivalent.
+ */
+const removedJournals = ['ijdh', 'ijds', 'ijei', 'ijis', 'ijmc', 'ijmr', 'ijqt', 'ijse']
+const removedSeries = ['isri', 'lnisi', 'ngiq-lncse']
+
+/** Old journal page id → new page id, or a publisher-wide page when it starts with "/". */
+const renamedJournalPages: Record<string, string> = {
+  about: '',
+  'author-instructions': 'author-guidelines',
+  'article-types': 'author-guidelines',
+  'peer-review-process': 'peer-review-ethics',
+  'publication-ethics': 'peer-review-ethics',
+  apc: 'open-access-fees',
+  'open-access': 'open-access-fees',
+  // Indexing and archiving pages were removed from the journals in October 2026.
+  indexing: '',
+  'indexing-abstracting': '',
+  'archiving-preservation': '',
+  'editorial-office': 'contact',
+  'articles-in-press': '',
+  // No articles are published yet; the journal home is the nearest page.
+  articles: '',
+  'special-issues': 'special-issue-guidelines',
+  'call-for-papers': 'special-issue-guidelines',
+  news: '',
+  'reviewer-guidelines': '/reviewers',
+  'copyright-licensing': '/policies/copyright-licensing',
+  'generative-ai-policy': '/policies/generative-ai-policy',
+  'research-data-policy': '/policies/research-data-policy',
+  'corrections-retractions': '/policies/corrections-retractions',
+}
+
+const portfolioRedirects = [
+  // Publisher-wide guidance that used to live under one journal's path.
+  { source: '/journals/:journal(ijdh|ijdm|ijds|ijei|ijic|ijis|ijmc|ijmr|ijqt|ijse)/reviewer-guidelines', destination: '/reviewers', permanent: true },
+  ...removedJournals.map((slug) => ({ source: `/journals/${slug}/:path*`, destination: '/journals', permanent: true })),
+  ...removedJournals.map((slug) => ({ source: `/journals/${slug}`, destination: '/journals', permanent: true })),
+  { source: '/series/ngiq-lnmr/:path*', destination: '/series/lnmr', permanent: true },
+  { source: '/series/ngiq-lnmr', destination: '/series/lnmr', permanent: true },
+  ...removedSeries.map((slug) => ({ source: `/series/${slug}/:path*`, destination: '/series', permanent: true })),
+  ...removedSeries.map((slug) => ({ source: `/series/${slug}`, destination: '/series', permanent: true })),
+  ...Object.entries(renamedJournalPages).map(([from, to]) => ({
+    source: `/journals/:journal(ijic|ijdm)/${from}`,
+    destination: to.startsWith('/') ? to : `/journals/:journal${to ? `/${to}` : ''}`,
+    permanent: true,
+  })),
 ]
 
 const nextConfig: NextConfig = {
@@ -58,15 +111,16 @@ const nextConfig: NextConfig = {
     ]
   },
   async redirects() {
-    // Route shape from the previous Vite app, preserved so existing links and
-    // any already-indexed URLs do not 404.
     return [
-      { source: '/articles', destination: '/search?tab=articles', permanent: true },
-      { source: '/cfp', destination: '/authors#calls', permanent: true },
+      // Route shape from the previous Vite app, preserved so existing links and
+      // any already-indexed URLs do not 404.
+      // Temporary: nothing is published yet. Point back at the article search once papers appear.
+      { source: '/articles', destination: '/journals', permanent: false },
+      { source: '/cfp', destination: '/authors#cfp', permanent: true },
       { source: '/guidelines', destination: '/authors', permanent: true },
-      { source: '/policies', destination: '/authors#policies', permanent: true },
-      { source: '/proceedings', destination: '/journals#series', permanent: true },
-      { source: '/special-issues', destination: '/authors#calls', permanent: true },
+      { source: '/proceedings', destination: '/series', permanent: true },
+      { source: '/special-issues', destination: '/editors/special-issues', permanent: true },
+      ...portfolioRedirects,
     ]
   },
 }

@@ -1,49 +1,44 @@
 import type { Article, CallForPapers, Issue, NewsItem } from '@/types/publishing'
 import { readHarvest } from '@/lib/ojs/harvest-cache'
 import { hiddenArticleIds, withoutHidden } from '@/lib/articles/display'
-import { demoArticles, demoIssues } from './demo-articles'
-import { demoThematicCalls, standingCalls } from './cfps'
+import { standingCalls } from './cfps'
 import { news as curatedNews } from './news'
+import { journalSlugs } from '../registry'
 
 /**
- * Content resolution.
+ * Content resolution: harvested OJS content only.
  *
- * Harvested OJS content is the only thing served by default. The fixture
- * articles, issues and thematic calls (the same records as the mockups' data.js)
- * are **opt-in**: set NEXT_PUBLIC_DEMO_CONTENT=1 for local development and
- * design review, and never in production.
- *
- * This default is deliberately fail-safe. It used to be `!== '0'`, which meant
- * any environment that simply forgot the variable published invented articles,
- * issues and calls for papers under a real publisher's name — the same class of
- * credibility failure as audit finding F-03, and one missing env var away.
- * Opt-in means the worst case is an empty site, which every listing page
- * already renders a launch-state message for.
+ * The site used to carry fixture articles, issues and calls (the mockups'
+ * data.js) behind NEXT_PUBLIC_DEMO_CONTENT. They were removed in October 2026:
+ * the publisher has no published articles yet, and invented records under a
+ * real publisher's name are a credibility failure (audit finding F-03) one
+ * environment variable away. Every listing renders its empty state instead.
  *
  * ## Why the article readers are async
  *
  * A published paper can be held back from the site by an administrator
  * (`article_display`, migration 004). That set lives in the database, so
  * `getArticles()` and everything derived from it await it. Issues, calls and
- * news have no gate and stay synchronous. The fixtures are not gated either:
- * they are not real papers, and the admin screen lists the harvest only.
+ * news have no gate and stay synchronous.
  */
-export const demoContentEnabled = process.env.NEXT_PUBLIC_DEMO_CONTENT === '1'
+
+/**
+ * OJS still hosts journals that are no longer in the portfolio. Their records
+ * stay in the harvest (the admin screen lists them) but are not served: an
+ * article whose journal has no page here would link to a 404.
+ */
+const inPortfolio = <T extends { journalSlug: string }>(items: T[]) => items.filter((i) => journalSlugs.includes(i.journalSlug))
 
 export async function getArticles(): Promise<Article[]> {
-  const harvested = readHarvest().articles
-  if (demoContentEnabled && harvested.length === 0) return demoArticles
-  return withoutHidden(harvested, await hiddenArticleIds())
+  return withoutHidden(inPortfolio(readHarvest().articles), await hiddenArticleIds())
 }
 
 export function getIssues(): Issue[] {
-  const harvested = readHarvest().issues
-  if (!demoContentEnabled) return harvested
-  return harvested.length > 0 ? harvested : (demoIssues as Issue[])
+  return inPortfolio(readHarvest().issues)
 }
 
 export function getCalls(): CallForPapers[] {
-  return demoContentEnabled ? [...demoThematicCalls, ...standingCalls] : standingCalls
+  return standingCalls
 }
 
 export function getNews(): NewsItem[] {
@@ -100,4 +95,3 @@ export const portfolioStats = async () => {
   }
 }
 
-export { demoArticles }

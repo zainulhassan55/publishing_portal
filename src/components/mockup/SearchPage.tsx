@@ -520,7 +520,7 @@ export function SearchPage({ index, extras }: Props) {
                     </button>
                   </li>
                   <li>
-                    <Link href="/authors#calls">Browse open calls for papers</Link>
+                    <Link href="/authors#cfp">Browse open calls for papers</Link>
                   </li>
                 </ul>
               </div>
@@ -594,7 +594,7 @@ export function SearchPage({ index, extras }: Props) {
           ))}
           {journalResults.length === 0 ? (
             <p style={{ padding: '32px 0', fontSize: 15, color: 'var(--ink-2, #1F2A36)' }}>
-              No journal titles or scopes match this search. <Link href="/journals">Browse all ten journals</Link>.
+              No journal titles or scopes match this search. <Link href="/journals">Browse all journals</Link>.
             </p>
           ) : null}
         </div>

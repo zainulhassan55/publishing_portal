@@ -6,34 +6,49 @@ import { editorialEmail, licenceShort, licenceUrl, siteName } from '@/lib/site'
  *
  * Audit finding F-14 was that policy text had two sources of truth — the portal
  * and OJS — kept in step by a sync script that was missing from the repo. The
- * rule now: **this file is the only source.** Journal-level policy pages are
- * generated from `journalTemplate.ts` and are deliberately journal-scoped
- * ("IJDH operates double-blind review"); they restate scope, not substance. If
- * a rule changes, it changes here and in the template, and the OJS copy is
- * replaced with a link to this page rather than a duplicate of it.
+ * rule now: **this file is the only source.** Journal and series pages state how
+ * a title applies these policies; they do not restate them. If a rule changes,
+ * it changes here, and the OJS copy is replaced with a link to this page rather
+ * than a duplicate of it.
+ *
+ * Each `summary` is the publisher's own statement of the policy (October 2026).
+ * It leads the policy page and is what the /policies index shows. Privacy,
+ * terms, cookies and accessibility carry the publisher's full text as given.
  */
+
+export type PolicyGroup = 'Publishing ethics' | 'Access and data' | 'Publisher policies'
+
+export const policyGroups: PolicyGroup[] = ['Publishing ethics', 'Access and data', 'Publisher policies']
 
 export type PolicyPage = {
   slug: string
   title: string
+  group: PolicyGroup
   summary: string
+  /** Opening paragraph on the policy page, where the publisher's page text differs from its index summary. */
+  intro?: string
   /** Last substantive revision. ISO 8601. */
   updatedIso: string
   blocks: ContentBlock[]
 }
 
+const OCT_2026 = '2026-10-25'
+
 export const policies: PolicyPage[] = [
+  /* ---------------------------- Publishing ethics --------------------------- */
   {
     slug: 'publication-ethics',
-    title: 'Publication ethics',
-    summary: 'Integrity standards for authors, reviewers and editors across every NextGenIQ Press journal.',
-    updatedIso: '2026-09-01',
+    title: 'Publication Ethics',
+    group: 'Publishing ethics',
+    summary:
+      'NextGenIQ Press expects authors, reviewers, and editors to uphold research integrity, accurate reporting, and responsible authorship. Plagiarism, fabricated or manipulated findings, duplicate publication, and undisclosed conflicts of interest are unacceptable. Concerns are assessed fairly, with reference to relevant COPE guidance.',
+    updatedIso: OCT_2026,
     blocks: [
       {
         title: 'Principles',
         paragraphs: [
           `${siteName} follows the Core Practices of the Committee on Publication Ethics (COPE) and handles suspected misconduct using the COPE flowcharts.`,
-          'These standards apply identically across every journal, book series and proceedings volume we publish.',
+          'These standards apply identically across every journal and book series we publish.',
         ],
       },
       {
@@ -47,13 +62,6 @@ export const policies: PolicyPage[] = [
         ],
       },
       {
-        title: 'Similarity screening',
-        paragraphs: [
-          'Every submission is checked with similarity-detection software before it reaches a reviewer. Overlap with published work, including the authors’ own, must be cited and justified.',
-          'A similarity percentage alone does not establish misconduct. Potentially problematic overlap is assessed in context by an editor.',
-        ],
-      },
-      {
         title: 'Authorship',
         paragraphs: [
           'Authorship is limited to those who made a meaningful scholarly contribution. Guest, gift and ghost authorship are not acceptable.',
@@ -63,96 +71,33 @@ export const policies: PolicyPage[] = [
       {
         title: 'Investigating concerns',
         paragraphs: [
-          `Concerns about a published article should be sent to ${editorialEmail}. They are handled confidentially, and by an editor who was not involved in the original decision.`,
-          'Where a concern is substantiated we publish a correction, an expression of concern or a retraction as appropriate. The article itself remains available and is clearly marked.',
-        ],
-      },
-      {
-        title: 'Complaints and appeals',
-        paragraphs: [
-          'Authors may appeal an editorial decision within 30 days by writing to the editorial office with a point-by-point rationale. Appeals are assessed by an editor not involved in the original decision.',
+          `Concerns about a published work should be sent to ${editorialEmail}. They are handled confidentially, and by an editor who was not involved in the original decision.`,
+          'Where a concern is substantiated we publish a correction, an expression of concern or a retraction as appropriate. Appeals and complaints follow the Complaints and Appeals policy.',
         ],
       },
     ],
   },
   {
-    slug: 'open-access',
-    title: 'Open access',
-    summary: 'Every article is free to read and reuse from the moment it is published.',
-    updatedIso: '2026-09-01',
-    blocks: [
-      {
-        title: 'The model',
-        paragraphs: [
-          'All articles are freely available to read, download and reuse immediately upon publication. There is no subscription, no pay-per-view and no embargo period.',
-          'There is no charge to submit. No article processing charge applies to manuscripts submitted during the launch period.',
-        ],
-      },
-      {
-        title: 'Future charges',
-        paragraphs: [
-          'Any future article processing charge will be announced at least six months before it takes effect and will not apply to manuscripts already submitted.',
-          'When a charge is introduced, full waivers will apply to corresponding authors in countries the World Bank classifies as low-income, and partial waivers in lower-middle-income countries. Editors are not told whether a waiver has been requested.',
-        ],
-      },
-      {
-        title: 'Preprints',
-        paragraphs: [
-          'Authors may post preprints on a recognised server at any time, before or during review. Provide the preprint DOI at submission; reviewers are not asked to search for it.',
-        ],
-      },
-      {
-        title: 'Repositories',
-        paragraphs: [
-          `Because articles are published under ${licenceShort}, authors may deposit the published version in an institutional or subject repository immediately, with no embargo.`,
-        ],
-      },
-    ],
-  },
-  {
-    slug: 'copyright-licensing',
-    title: 'Copyright and licensing',
-    summary: 'Authors retain copyright. Articles are published under a Creative Commons Attribution licence.',
-    updatedIso: '2026-09-01',
-    blocks: [
-      {
-        title: 'Licence',
-        paragraphs: [
-          `Articles are published under the Creative Commons Attribution 4.0 International licence (${licenceShort}), available at ${licenceUrl}.`,
-          'Anyone may share and adapt the work for any purpose, including commercially, provided the original is properly cited.',
-        ],
-      },
-      {
-        title: 'Copyright',
-        paragraphs: [
-          `Authors retain copyright in their work. They grant ${siteName} a non-exclusive licence to publish the article and to be identified as its original publisher.`,
-        ],
-      },
-      {
-        title: 'Third-party material',
-        paragraphs: [
-          'Authors are responsible for obtaining permission to reproduce copyrighted material from other sources, and for identifying such material clearly in the article.',
-        ],
-      },
-    ],
+    slug: 'peer-review-policy',
+    title: 'Peer Review Policy',
+    group: 'Publishing ethics',
+    summary:
+      'Submissions undergo editorial screening and peer review appropriate to the publication type. Reviewers assess originality, methodological soundness, clarity, and the strength of the evidence. Each title specifies its review model, and editorial decisions are based on scholarly merit independently of publication payments.',
+    updatedIso: OCT_2026,
+    blocks: [],
   },
   {
     slug: 'generative-ai-policy',
-    title: 'Generative AI policy',
-    summary: 'How authors, reviewers and editors may and may not use generative AI tools.',
-    updatedIso: '2026-09-01',
+    title: 'Generative AI Policy',
+    group: 'Publishing ethics',
+    summary:
+      'Authors must disclose substantive use of generative AI and remain responsible for the accuracy, originality, and integrity of their submissions. AI tools cannot be credited as authors. Editors and reviewers must not upload confidential submissions or review materials to public or third-party generative AI services.',
+    updatedIso: OCT_2026,
     blocks: [
-      {
-        title: 'AI cannot be an author',
-        paragraphs: [
-          'Generative AI systems cannot be listed as authors or co-authors. Authorship requires accountability for the work, which only a person can hold.',
-        ],
-      },
       {
         title: 'Authors',
         paragraphs: [
           'Authors may use AI-assisted tools for language, readability and organisation. Where such a tool has made a substantive contribution to writing, analysis, content generation or methodology, it must be disclosed in the declarations with the tool, version and purpose.',
-          'Authors remain fully responsible for accuracy, originality, citations, arguments, conclusions and ethical compliance.',
         ],
         bullets: [
           'Verify every bibliographic reference against the source. Fabricated references are a serious breach.',
@@ -164,30 +109,84 @@ export const policies: PolicyPage[] = [
       {
         title: 'Reviewers and editors',
         paragraphs: [
-          'Reviewers and editors must not upload manuscripts, reports or confidential correspondence to generative AI tools. Doing so breaches the confidentiality of material entrusted to them.',
-          'Final editorial decisions remain a human responsibility.',
+          'Uploading a manuscript, report or confidential correspondence to a generative AI tool breaches the confidentiality of material entrusted to reviewers and editors. Final editorial decisions remain a human responsibility.',
         ],
       },
       {
         title: 'Routine tools',
+        paragraphs: ['Spelling and grammar checkers are not treated as substantive generative-AI use and need no disclosure.'],
+      },
+    ],
+  },
+  {
+    slug: 'corrections-retractions',
+    title: 'Corrections and Retractions',
+    group: 'Publishing ethics',
+    summary:
+      'Errors or concerns affecting published work are investigated and addressed through corrections, expressions of concern, or retractions, as appropriate. Notices explain the reason for the action and are linked to the original publication. Retractions are clearly identified to maintain a transparent scholarly record.',
+    updatedIso: OCT_2026,
+    blocks: [
+      {
+        title: 'Corrections',
         paragraphs: [
-          'Spelling and grammar checkers are not treated as substantive generative-AI use and need no disclosure.',
+          'A correction is published when an error affects part of a work but does not invalidate its overall findings. Authors who discover an error in their published work should notify the editorial office promptly.',
+        ],
+      },
+      {
+        title: 'Expressions of concern',
+        paragraphs: [
+          'An expression of concern is published when there are serious unresolved questions about a work that remain under investigation.',
+        ],
+      },
+      {
+        title: 'Retractions',
+        paragraphs: [
+          'A work is retracted when its findings are unreliable through major error or misconduct, or where plagiarism, duplicate publication or a serious ethical breach is established. Retracted works remain online, clearly marked as retracted, with a linked notice explaining the reason.',
+        ],
+      },
+    ],
+  },
+
+  /* ----------------------------- Access and data ---------------------------- */
+  {
+    slug: 'open-access',
+    title: 'Open Access and Licensing',
+    group: 'Access and data',
+    summary:
+      'NextGenIQ Press publications are freely available to read online. Each publication identifies its applicable licence and permitted uses. Where a Creative Commons licence applies, readers may reuse the material according to its conditions, including appropriate attribution.',
+    updatedIso: OCT_2026,
+    blocks: [
+      {
+        title: 'Article processing charges',
+        paragraphs: [
+          'Any introduction of, or change to, article processing charges (APCs) will be announced at least six months before taking effect and will apply only to manuscripts submitted on or after the effective date. Full or partial waivers will be available under the publisher’s published waiver policy, with priority given to authors based in low- and lower-middle-income countries and those facing financial hardship. Waiver requests will be handled confidentially by the publishing office and will not be disclosed to handling editors or reviewers. Editorial decisions will be made independently of authors’ ability to pay.',
+        ],
+      },
+      {
+        title: 'Licence',
+        paragraphs: [
+          `Journal articles and book series volumes are published under the Creative Commons Attribution 4.0 International licence (${licenceShort}), available at ${licenceUrl}, unless the work states otherwise.`,
         ],
       },
     ],
   },
   {
+    slug: 'copyright-licensing',
+    title: 'Copyright and Permissions',
+    group: 'Access and data',
+    summary:
+      'Copyright ownership and publishing rights are specified in the applicable publishing agreement and displayed with the work. Authors must obtain permission for third-party material where required. Reuse beyond the applicable licence requires permission from the relevant rights holder.',
+    updatedIso: OCT_2026,
+    blocks: [],
+  },
+  {
     slug: 'research-data-policy',
-    title: 'Research data policy',
-    summary: 'What we expect authors to share, and what must appear in a data availability statement.',
-    updatedIso: '2026-09-01',
+    title: 'Research Data Policy',
+    group: 'Access and data',
+    summary:
+      'Authors are encouraged to make supporting data, code, and research materials available through suitable repositories and include a data availability statement where applicable. Restrictions arising from privacy, consent, confidentiality, or legal obligations should be explained. Individual publications may set additional requirements.',
+    updatedIso: OCT_2026,
     blocks: [
-      {
-        title: 'Data availability statement',
-        paragraphs: [
-          'Every research article includes a data availability statement. It must say where the data supporting the findings can be accessed, or why they cannot be shared — for example privacy, ethical, legal or commercial reasons. A statement is required even when no data can be shared.',
-        ],
-      },
       {
         title: 'Deposit and citation',
         paragraphs: [
@@ -200,171 +199,150 @@ export const policies: PolicyPage[] = [
           'Data involving human participants or identifiable personal information must be handled in accordance with the applicable ethical approvals, consent and data-protection requirements, and anonymised where appropriate.',
         ],
       },
-      {
-        title: 'Requests from editors',
-        paragraphs: [
-          'Editors may request supporting data where it is necessary to evaluate a manuscript or to examine a question of research integrity.',
-        ],
-      },
     ],
   },
   {
-    slug: 'corrections-retractions',
-    title: 'Corrections and retractions',
-    summary: 'How the published record is corrected after publication.',
-    updatedIso: '2026-09-01',
-    blocks: [
-      {
-        title: 'Corrections',
-        paragraphs: [
-          'A correction is published when an error affects part of an article but does not invalidate its overall findings. The article is updated, marked as corrected, and linked to the correction notice.',
-          'Authors who discover an error in their published article should notify the editorial office promptly.',
-        ],
-      },
-      {
-        title: 'Expressions of concern',
-        paragraphs: [
-          'An expression of concern is published when there are serious unresolved questions about an article that remain under investigation.',
-        ],
-      },
-      {
-        title: 'Retractions',
-        paragraphs: [
-          'An article is retracted when its findings are unreliable through major error or misconduct, or where plagiarism, duplicate publication or a serious ethical breach is established.',
-          'Retracted articles remain online and citable, clearly marked as retracted, with a linked notice explaining the reason. We do not remove articles from the record.',
-        ],
-      },
-    ],
+    slug: 'archiving-preservation',
+    title: 'Archiving and Preservation',
+    group: 'Access and data',
+    summary:
+      'Long-term access arrangements are described on individual publication pages. These identify any preservation services in use and the content they cover. Authors should consult the applicable licence and repository policy when depositing copies of their work.',
+    updatedIso: OCT_2026,
+    blocks: [],
+  },
+
+  /* --------------------------- Publisher policies --------------------------- */
+  {
+    slug: 'complaints-appeals',
+    title: 'Complaints and Appeals',
+    group: 'Publisher policies',
+    summary: `Authors may appeal editorial decisions by providing a reasoned explanation and supporting evidence. Complaints about publishing practices or ethical conduct should include sufficient details for investigation. Appeals and complaints are reviewed impartially, with independent editorial involvement where a conflict exists. Contact ${editorialEmail}.`,
+    updatedIso: OCT_2026,
+    blocks: [],
   },
   {
     slug: 'privacy',
-    title: 'Privacy',
-    summary: 'What personal data this site collects, why, and how long it is kept.',
-    updatedIso: '2026-09-01',
+    title: 'Privacy Policy',
+    group: 'Publisher policies',
+    summary:
+      'This policy explains how personal information is collected and used when people visit our website, submit manuscripts, review content, or contact us. It also describes service-provider access, data retention, security measures, and how individuals can raise privacy concerns or exercise applicable rights.',
+    intro: 'This policy applies to NextGenIQ Press journals and series.',
+    updatedIso: OCT_2026,
     blocks: [
       {
-        title: 'What we collect',
-        paragraphs: ['This site collects personal data in three places, and nowhere else:'],
-        bullets: [
-          'Account and submission data — name, email, affiliation, ORCID and manuscript files — held in the editorial system in order to operate peer review.',
-          'Email alert subscriptions — your address and which alerts you chose, held until you unsubscribe.',
-          'Messages you send through the contact form or a journal proposal — held so that we can reply and keep a record of the correspondence.',
-        ],
-      },
-      {
-        title: 'What we do not do',
+        title: 'Information We Collect and Use',
         paragraphs: [
-          'There is no advertising, no third-party analytics and no tracking across sites. We do not sell or share personal data with advertisers or data brokers.',
+          'We collect information provided when you create an account, submit or review a manuscript, subscribe to alerts, or contact us. This may include your name, email address, affiliation, ORCID iD, submission materials, and correspondence. We use it to manage publishing activities, deliver requested communications, and respond to enquiries.',
         ],
       },
       {
-        title: 'Legal basis and retention',
+        title: 'Sharing and Retention',
         paragraphs: [
-          'Submission and review data are processed to perform the publishing agreement with authors and are retained as part of the permanent record of the editorial process. Alert subscriptions are processed on consent and deleted when you unsubscribe. Contact messages are retained for two years.',
+          'Relevant information may be shared with editors, reviewers, and service providers as needed to support publishing, subject to confidentiality requirements. We do not sell personal data. Information is retained as necessary for editorial administration, research integrity, and applicable legal obligations. You may unsubscribe from alerts at any time.',
         ],
       },
       {
-        title: 'Your rights',
+        title: 'Your Rights',
         paragraphs: [
-          `Write to ${editorialEmail} to request access to, correction of, or deletion of your personal data. One limit applies: the metadata of a published article — authors, affiliations, the article itself — is part of the scholarly record and cannot be withdrawn. That is the point of publishing it.`,
-        ],
-      },
-      {
-        title: 'Processors',
-        paragraphs: [
-          'Data is held on servers we operate. We use a transactional email provider to deliver notifications and confirmations, which processes recipient addresses on our behalf.',
-        ],
-      },
-    ],
-  },
-  {
-    slug: 'cookies',
-    title: 'Cookies',
-    summary: 'This site sets no tracking cookies. The two it does set are necessary ones.',
-    updatedIso: '2026-09-01',
-    blocks: [
-      {
-        title: 'What is set',
-        paragraphs: ['There is no analytics, advertising or tracking cookie on this site. Two things are stored:'],
-        bullets: [
-          'A session cookie, set only after you sign in, which keeps you signed in. It is removed when you sign out.',
-          'Your appearance preference — colour palette and light or dim mode — stored in your browser’s local storage, not sent to the server.',
-        ],
-      },
-      {
-        title: 'Consent',
-        paragraphs: [
-          'Both are strictly necessary or set at your own request, so there is no consent banner. If we ever add anything that requires consent, we will ask for it before setting it.',
+          `To request access, correction, or deletion of your personal information, contact ${editorialEmail}. Requests are considered under applicable law. Some information may need to be retained to preserve the scholarly record or meet legal obligations; changes to published content are handled through the relevant editorial policies.`,
         ],
       },
     ],
   },
   {
     slug: 'terms',
-    title: 'Terms of use',
-    summary: 'The terms on which this site and its content may be used.',
-    updatedIso: '2026-09-01',
+    title: 'Terms of Use',
+    group: 'Publisher policies',
+    summary: 'The terms on which the NextGenIQ Press website and its content may be used.',
+    intro: 'These terms apply to the NextGenIQ Press website and its journals and series.',
+    updatedIso: OCT_2026,
     blocks: [
       {
-        title: 'Using the content',
+        title: 'Content and Licensing',
         paragraphs: [
-          `Articles are published under ${licenceShort}: you may read, download, redistribute and adapt them, including commercially, provided you credit the original authors and source.`,
-          'Site design, navigation and non-article text are not covered by that licence and remain the property of the publisher.',
+          'Published content may be accessed and reused under the licence stated on each work. Content licensed under CC BY 4.0 may be shared and adapted, including commercially, with appropriate attribution, a link to the licence, and an indication of any changes. Third-party material may carry separate restrictions. Website design and other publisher-owned material are not covered unless expressly stated.',
         ],
       },
       {
-        title: 'Acceptable use',
+        title: 'Acceptable Use',
         paragraphs: [
-          'Automated access is welcome for legitimate research and indexing. Please use the sitemap and the OAI-PMH endpoint rather than crawling aggressively, and identify your crawler. We may rate-limit traffic that degrades the service for readers.',
+          'Use the website lawfully and avoid disrupting its operation or compromising its security. Automated access for research and indexing should respect published access instructions and reasonable rate limits. Access may be restricted where activity affects service performance or security.',
         ],
       },
       {
-        title: 'Accuracy and availability',
+        title: 'Accuracy and Availability',
         paragraphs: [
-          'The published version of record is the article as it appears here, identified by its DOI. We correct the record when we are told of an error — see corrections and retractions. The service is provided without a guarantee of uninterrupted availability.',
+          'Concerns about published content are addressed through our corrections and retractions policy. We aim to maintain reliable access but cannot guarantee uninterrupted availability.',
         ],
       },
       {
         title: 'Contact',
-        paragraphs: [`Questions about these terms: ${editorialEmail}.`],
+        paragraphs: [`For questions about these terms, email ${editorialEmail}.`],
       },
     ],
   },
   {
-    slug: 'accessibility',
-    title: 'Accessibility',
-    summary: 'What we target, what is already done, and what is not fixed yet.',
-    updatedIso: '2026-09-01',
+    slug: 'cookies',
+    title: 'Cookies and Local Storage',
+    group: 'Publisher policies',
+    summary: 'The cookie and browser storage this website uses. We do not use analytics, advertising, or cross-site tracking cookies.',
+    intro: 'This policy applies to the NextGenIQ Press website and its journals and series.',
+    updatedIso: OCT_2026,
     blocks: [
       {
-        title: 'Target',
+        title: 'What We Use',
         paragraphs: [
-          'We aim to meet WCAG 2.2 Level AA. This statement describes the current state honestly rather than claiming conformance we have not verified with an independent audit.',
+          'We use a session cookie to keep you signed in. It is removed when you sign out. Your selected appearance settings, such as colour palette and display mode, are saved in your browser’s local storage and are not sent to our servers.',
+          'We do not use analytics, advertising, or cross-site tracking cookies.',
         ],
       },
       {
-        title: 'In place',
-        bullets: [
-          'All text and interface colours are checked against AA contrast ratios in both light and dim appearance.',
-          'The whole site is operable by keyboard, with a visible focus indicator and a skip link to the main content.',
-          'Interactive controls carry accessible names and state; tabs, menus and disclosures follow the ARIA patterns including arrow-key navigation.',
-          'Every animation respects prefers-reduced-motion, and the only auto-advancing component has a pause control.',
-          'Article pages are served as rendered HTML, so assistive technology does not depend on JavaScript to read the content.',
-          'Figures carry alternative text; decorative images are hidden from assistive technology.',
-        ],
-      },
-      {
-        title: 'Known gaps',
-        bullets: [
-          'No independent accessibility audit has been carried out yet.',
-          'Author-supplied PDFs are not guaranteed to be tagged for accessibility. The HTML version of an article is the accessible version.',
-          'The editorial system used for submission and peer review is third-party software whose accessibility we do not control.',
-        ],
-      },
-      {
-        title: 'Reporting a barrier',
+        title: 'Your Choices',
         paragraphs: [
-          `If something on this site is not usable for you, write to ${editorialEmail} describing what you were trying to do. We treat accessibility reports as defects, not feature requests, and will tell you what we are doing about it.`,
+          'You can manage cookies and clear local storage through your browser settings. Blocking the session cookie may prevent sign-in features from working, while clearing local storage will reset your appearance preferences.',
+          'If we introduce technologies that require consent, we will request it before activating them.',
+        ],
+      },
+      {
+        title: 'Contact',
+        paragraphs: [`For questions, email ${editorialEmail}.`],
+      },
+    ],
+  },
+  {
+    slug: 'advertising',
+    title: 'Advertising Policy',
+    group: 'Publisher policies',
+    summary:
+      'Any advertising or sponsored content must be clearly identified and distinguishable from scholarly material. Advertising does not influence peer review, editorial decisions, or publication priority. The publisher may decline or remove misleading, inappropriate, or conflicting advertisements.',
+    updatedIso: OCT_2026,
+    blocks: [],
+  },
+  {
+    slug: 'accessibility',
+    title: 'Accessibility Statement',
+    group: 'Publisher policies',
+    summary: `NextGenIQ Press aims to make its website and publications accessible to a broad readership. We welcome reports of accessibility barriers and requests for assistance. Please contact ${editorialEmail}, identifying the page or publication and describing the difficulty encountered.`,
+    intro:
+      'NextGenIQ Press aims to make its website and publications accessible to all users. This statement applies to our journals and series.',
+    updatedIso: OCT_2026,
+    blocks: [
+      {
+        title: 'Our Approach',
+        paragraphs: [
+          'We aim to meet WCAG 2.2 Level AA, with attention to readable text, colour contrast, keyboard navigation, accessible controls, image descriptions, and reduced-motion preferences. Independent verification of conformance has not yet been completed.',
+        ],
+      },
+      {
+        title: 'Current Limitations',
+        paragraphs: [
+          'Some author-supplied PDFs may lack accessibility features. Where available, readers may find the HTML version more accessible. Third-party submission and peer-review systems may also have limitations.',
+        ],
+      },
+      {
+        title: 'Report an Accessibility Issue',
+        paragraphs: [
+          `Please email ${editorialEmail} with the relevant page or publication, the difficulty encountered, and any assistance you need. We will review your report and explain the steps we can take to help.`,
         ],
       },
     ],

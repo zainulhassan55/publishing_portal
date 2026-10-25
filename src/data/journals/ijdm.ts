@@ -1,107 +1,124 @@
-import { buildJournal, buildJournalDetail } from '../journalTemplate'
-import type { JournalSpec } from '../journalTemplate'
+import type { JournalDetail } from '@/types/content'
+import { electronicIssn, issnLabel, printIssn } from '../issn'
+import { editorTable, editorialEmail, journalFacts, page, plain } from '../pages'
 
-const spec: JournalSpec = {
-  slug: 'ijdm',
-  title: 'International Journal of Digital Management',
+/**
+ * Text supplied by the publisher (October 2026) and reproduced as given, except
+ * the Aims and Scope page, which was rewritten at the site owner's request in
+ * the publisher's own terms (same topics, same closing requirement). Edit the
+ * wording only on the publisher's instruction.
+ */
+const slug = 'ijdm'
+const title = 'International Journal of Digital Management'
+
+const intro =
+  'The International Journal of Digital Management (IJDM) publishes research on how digital technologies transform organisations, management practices, and business performance. The journal welcomes original research, review articles, conceptual papers, and rigorous case studies connecting scholarly insights with managerial practice.'
+
+const topics = [
+  'Digital transformation and organisational change',
+  'Digital business strategy',
+  'AI and business analytics',
+  'Managerial decision-making',
+  'Digital leadership and workforce development',
+  'Human–AI collaboration',
+  'Digital platforms and business model innovation',
+  'Digital entrepreneurship',
+  'Intelligent operations and supply chains',
+  'Process automation',
+  'Digital marketing and customer experience',
+  'Service management',
+  'Knowledge management and data governance',
+  'Cybersecurity and digital trust',
+  'Sustainable digital innovation',
+  'Public-sector transformation and inclusion',
+]
+
+const editors = [
+  { name: 'Dragan Peraković', affiliation: 'University of Zagreb, Croatia' },
+  { name: 'Shingo Yamaguchi', affiliation: 'Yamaguchi University, Japan' },
+  { name: 'Chi-Wen Lung', affiliation: 'Asia University, Taiwan' },
+  { name: 'Domenico Santaniello', affiliation: 'University of Salerno, Italy' },
+  { name: 'Ramakrishnan Raman', affiliation: 'Symbiosis International (Deemed University), Pune, India' },
+  { name: 'Francisco José García-Peñalvo', affiliation: 'University of Salamanca, Spain' },
+]
+
+export const ijdmDetail: JournalDetail = {
+  slug,
+  title,
   shortTitle: 'IJDM',
+  tagline: 'How digital technologies transform organisations, management practices, and business performance.',
+  issn: issnLabel(printIssn(slug)),
+  eIssn: issnLabel(electronicIssn(slug)),
   area: 'Digital Management',
-  tagline: 'Digital technologies, management, innovation, and organizational transformation.',
-  summary:
-    'Peer-reviewed research at the intersection of digital technologies, management, business, innovation, and organizational transformation.',
-  about: [
-    'The International Journal of Digital Management (IJDM) is an international, peer-reviewed scholarly journal published by NextGenIQ Press. The journal provides a multidisciplinary platform for advancing research at the intersection of digital technologies, management, business, innovation, and organizational transformation.',
-    'IJDM aims to connect developments in emerging technologies with contemporary management theory and practice. The journal welcomes theoretical, empirical, methodological, and applied research that examines how digital technologies influence organizations, industries, markets, decision-making, entrepreneurship, governance, and society.',
-    'Particular attention is given to research addressing artificial intelligence, business analytics, digital transformation, digital platforms, financial technologies, intelligent decision-making, digital entrepreneurship, Industry 4.0 and Industry 5.0, cybersecurity management, sustainable digital business, and emerging digital ecosystems.',
-    'The journal encourages interdisciplinary research involving management science, information systems, computer science, economics, finance, marketing, operations management, entrepreneurship, public administration, and related disciplines.',
-    'IJDM seeks contributions from researchers, academics, practitioners, industry professionals, and policymakers worldwide.',
+  access: 'Open Access',
+  frequency: 'Continuous publication',
+  publisher: 'NextGenIQ Press',
+  editor: 'Editors',
+  reviewType: 'Double-blind peer review',
+  license: 'CC BY 4.0',
+  scope: intro,
+  overview: [intro],
+  metrics: [],
+  board: editors.map((e) => `${e.name}, ${e.affiliation}`),
+  topics,
+  quickLinks: [],
+  profile: {
+    kicker: 'IJDM · A NextGenIQ Press Journal',
+    cover: '/images/journals/cover-ijdm.jpg',
+    tile: '/images/journals/tile-ijdm.jpg',
+    badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
+    intro,
+    ctas: [
+      { label: 'Submit a manuscript', pageId: 'submit' },
+      { label: 'Editorial board', pageId: 'editorial-board' },
+      { label: 'Author guidelines', pageId: 'author-guidelines' },
+    ],
+    facts: journalFacts(electronicIssn(slug)),
+    editorsLabel: 'Editors',
+    editors,
+  },
+  pages: [
+    page('aims-scope', 'Aims & scope', 'Aims and Scope', 'The research areas covered by IJDM.', [
+      {
+        title: '',
+        lead: 'The international journal for research on digital technologies, organisations and management practice',
+        paragraphs: [
+          'Digital technologies are changing how organisations are led, structured and run. Artificial intelligence, analytics, platforms and automation are reshaping strategy, operations, marketing and work itself, while raising new questions of governance, trust, skills and inclusion. Understanding these changes, and managing them well, requires research that connects technological developments with sound management theory and evidence from practice.',
+          'The International Journal of Digital Management (IJDM) is a peer-reviewed, open-access journal that publishes research on how digital technologies transform organisations, management practices and business performance. The journal welcomes original research, review articles, conceptual papers and rigorous case studies connecting scholarly insights with managerial practice. Topics include, but are not limited to:',
+        ],
+        bullets: topics,
+        topicList: true,
+        closing: ['Submissions should demonstrate a clear managerial or organisational contribution supported by sound theory, methods, or evidence.'],
+      },
+    ]),
+    page('editorial-board', 'Editorial board', 'Editorial Board', 'The editors of IJDM.', [
+      { title: 'Editors', table: editorTable(editors) },
+    ]),
+    page('author-guidelines', 'Author guidelines', 'Author Guidelines', 'How to prepare a manuscript for IJDM.', [
+      plain([
+        'Submissions must be original, written in English, and not under consideration elsewhere. Authors should clearly explain the research question, contribution, analytical approach, findings, limitations, and implications for management.',
+        'Submit an anonymised manuscript for double-blind review, with author details provided separately. Include funding, conflicts of interest, data availability, relevant ethical approvals, and substantive AI-use disclosures.',
+      ]),
+    ]),
+    page('peer-review-ethics', 'Peer review & ethics', 'Peer Review and Ethics', 'How IJDM manuscripts are reviewed.', [
+      plain([
+        'Suitable manuscripts undergo independent double-blind peer review following editorial screening. Decisions consider originality, theoretical grounding, methodological quality, clarity, and practical significance.',
+        'All contributors must follow NextGenIQ Press publication ethics policies. Conflicts of interest are disclosed, and submissions involving editors are handled independently. Authors must protect participants’ privacy and confidential organisational information.',
+      ]),
+    ]),
+    page('open-access-fees', 'Open access & fees', 'Open Access and Fees', 'Licensing and charges for IJDM articles.', [
+      plain([
+        'Articles are freely available under CC BY 4.0, permitting sharing and adaptation with appropriate attribution. Third-party material may carry separate restrictions.',
+        'Current charges and waiver arrangements are disclosed on the fees page. Any new or revised APC will be announced at least six months before taking effect and will apply only to manuscripts submitted on or after the effective date. Editorial decisions are independent of payment.',
+      ]),
+    ]),
+    page('special-issue-guidelines', 'Special issues', 'Special Issues', 'Proposing a special issue of IJDM.', [
+      plain([
+        'IJDM welcomes proposals on focused and emerging topics in digital management. Proposals should include the theme, rationale, topics, guest editor biographies, and timeline. All submissions follow the journal’s standard review and ethics requirements.',
+      ]),
+    ]),
+    page('contact', 'Contact', 'Contact', 'How to contact IJDM.', [
+      plain([`Email ${editorialEmail}, including IJDM and your manuscript reference, if available.`]),
+    ]),
   ],
-  objectives: [
-    'Advance theoretical and practical understanding of digital management.',
-    'Promote interdisciplinary research connecting technology and management.',
-    'Examine organizational and societal implications of emerging digital technologies.',
-    'Encourage responsible, sustainable, and human-centered digital transformation.',
-    'Provide an international platform for researchers and practitioners.',
-    'Support research addressing contemporary and emerging challenges in digital economies.',
-  ],
-  scope: [
-    'The International Journal of Digital Management publishes high-quality research exploring how digital technologies transform management practices, organizations, industries, markets, and society.',
-    'The journal is particularly interested in research that combines technological innovation with managerial, organizational, economic, and strategic perspectives.',
-  ],
-  topics: [
-    'Digital Transformation and Digital Strategy',
-    'Artificial Intelligence in Management',
-    'Generative AI and Large Language Models in Business',
-    'Agentic AI and Autonomous Business Systems',
-    'Business Intelligence and Analytics',
-    'Big Data Analytics for Management',
-    'Digital Business Models',
-    'Digital Entrepreneurship',
-    'Digital Innovation Management',
-    'Digital Marketing and Consumer Analytics',
-    'E-Commerce and Digital Platforms',
-    'Financial Technology and Digital Finance',
-    'Blockchain Applications in Business',
-    'Cryptocurrency and Digital Assets',
-    'Digital Supply Chain Management',
-    'Smart Manufacturing and Industry 4.0',
-    'Human–AI Collaboration',
-    'Intelligent Decision Support Systems',
-    'Information Systems Management',
-    'Knowledge Management',
-    'Technology and Innovation Management',
-    'Digital Human Resource Management',
-    'Cybersecurity Management',
-    'Digital Risk Management',
-    'Digital Governance',
-    'Platform Economy',
-    'Sharing Economy',
-    'Digital Leadership',
-    'Organizational Digital Transformation',
-    'Sustainable Digital Business',
-    'Green Digital Transformation',
-    'ESG and Digital Technologies',
-    'Smart Cities and Digital Governance',
-    'Healthcare Management and Digital Health',
-    'Digital Education Management',
-    'AI Ethics and Responsible Innovation',
-    'Technology Adoption and Acceptance',
-    'Digital Economy and Society',
-    'Emerging Technologies and Future Business Models',
-  ],
-  scopeNote:
-    'Interdisciplinary contributions connecting management with computing, artificial intelligence, economics, behavioral science, engineering, public policy, or social science are particularly encouraged.',
-  articleStructure: [
-    'Introduction',
-    'Literature Review / Related Work',
-    'Theoretical Background',
-    'Research Methodology',
-    'Results',
-    'Discussion',
-    'Theoretical Implications',
-    'Managerial/Practical Implications',
-    'Limitations',
-    'Future Research',
-    'Conclusion',
-  ],
-  implicationsQuestion: 'Are managerial or practical implications meaningful?',
-  specialIssueAreas: [
-    'Generative AI in Business and Management',
-    'Agentic AI and Autonomous Organizations',
-    'Digital Transformation',
-    'AI-Driven Decision Making',
-    'Digital Finance and FinTech',
-    'Digital Marketing and Consumer Intelligence',
-    'Industry 5.0',
-    'Sustainable Digital Transformation',
-    'Digital Supply Chains',
-    'Human–AI Collaboration',
-    'Digital Entrepreneurship',
-    'AI Governance and Responsible Innovation',
-  ],
-  cfpFocus:
-    'digital transformation, artificial intelligence in management, digital business, business analytics, FinTech, digital platforms, innovation management, and related areas',
 }
-
-export const ijdmJournal = buildJournal(spec)
-export const ijdmDetail = buildJournalDetail(spec)

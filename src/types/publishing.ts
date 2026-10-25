@@ -1,4 +1,4 @@
-import type { ContentTable } from './content'
+import type { ContentTable, JournalPage, PublicationProfile } from './content'
 
 /* -------------------------------------------------------------------------- */
 /* Subjects                                                                   */
@@ -287,7 +287,12 @@ export type Series = {
   title: string
   kind: SeriesKind
   subjectKey: SubjectKey
+  /** One-paragraph description used on cards and in meta descriptions. */
   scope: string
+  /** Topic list from the aims and scope, shown on cards and the series home page. */
+  topics: string[]
   /** Null until the ISSN registration completes. */
   issn: string | null
+  profile: PublicationProfile
+  pages: JournalPage[]
 }

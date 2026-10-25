@@ -27,11 +27,25 @@ export type AuditAction =
   | 'journal.visibility_changed'
   | 'article.display_changed'
   | 'cfp.status_changed'
+  | 'editorial_form.status_changed'
+  | 'upload.downloaded'
+  | 'volume.changed'
+  | 'chapter.changed'
 
 export type AuditEntry = {
   actor: SessionUser
   action: AuditAction
-  targetType: 'journal_proposal' | 'journal' | 'article' | 'cfp_proposal'
+  targetType:
+    | 'journal_proposal'
+    | 'journal'
+    | 'article'
+    | 'cfp_proposal'
+    | 'editorial_application'
+    | 'editorial_proposal'
+    | 'book_submission'
+    | 'upload'
+    | 'book_volume'
+    | 'book_chapter'
   targetId: string | number
   before?: unknown
   after?: unknown

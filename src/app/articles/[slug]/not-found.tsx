@@ -17,7 +17,7 @@ export default function ArticleNotFound() {
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)', flexWrap: 'wrap' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
-        <Link href="/search?tab=articles">Articles</Link>
+        <Link href="/journals">Journals</Link>
         <span aria-hidden="true">/</span>
         <span style={{ color: 'var(--ink-2,#1F2A36)' }}>Not found</span>
       </nav>

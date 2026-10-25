@@ -489,7 +489,7 @@ export function ProposeJournalPage({ subjects, editorialEmail }: Props) {
                   />
                   <span>
                     I confirm the proposed Editor-in-Chief is aware of this proposal, and that the journal would operate under
-                    NextGenIQ Press <Link href="/journals/ijdh/publication-ethics">publication ethics</Link> and open-access policies.
+                    NextGenIQ Press <Link href="/policies/publication-ethics">publication ethics</Link> and open-access policies.
                   </span>
                 </label>
               </section>

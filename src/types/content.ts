@@ -64,9 +64,16 @@ export type ContentTable = {
 }
 
 export type ContentBlock = {
+  /** An empty title renders the block without a heading and keeps it out of the page's table of contents. */
   title: string
+  /** A one-line tagline shown above the paragraphs, as on an aims and scope page. */
+  lead?: string
   paragraphs?: string[]
   bullets?: string[]
+  /** Renders the bullets as a topic list in columns rather than a running list. */
+  topicList?: boolean
+  /** Paragraphs that follow the bullet list, such as a closing note after a topic list. */
+  closing?: string[]
   table?: ContentTable
   subsections?: {
     title: string
@@ -74,6 +81,12 @@ export type ContentBlock = {
     bullets?: string[]
     table?: ContentTable
   }[]
+}
+
+/** A titled section of a publisher-wide page, with an anchor id and optional follow-on links. */
+export type PublisherSection = ContentBlock & {
+  id: string
+  links?: { label: string; href: string }[]
 }
 
 export type JournalPage = {
@@ -88,10 +101,44 @@ export type JournalMenuItem =
   | { kind: 'page'; id: string }
   | { kind: 'submit'; label: string }
   | { kind: 'archive'; label: string }
+  | { kind: 'link'; label: string; href: string }
 
 export type JournalMenuGroup = {
   label: string
   items: JournalMenuItem[]
+}
+
+export type Editor = {
+  name: string
+  affiliation: string
+}
+
+/**
+ * The publisher-supplied front matter of a journal or book series: the lines
+ * above the fold on its home page, and its named editors. Kept separate from the
+ * pages so the masthead, home page and editorial-board page read one source.
+ */
+export type PublicationProfile = {
+  /** "IJIC · A NextGenIQ Press Journal" */
+  kicker: string
+  /**
+   * Cover banner under /public (987 × 392, the title set in the artwork), shown
+   * uncropped on cards and in the masthead. A title without one gets a lettered tile.
+   */
+  cover?: string
+  /** Portrait (3:4) crop of the cover's artwork, without the title text, for the small cover on cards. */
+  tile?: string
+  /** "Open access", "Double-blind peer review", … */
+  badges: string[]
+  /** The introductory paragraph under the title. */
+  intro: string
+  /** Calls to action under the introduction, each pointing at one of the publication's pages. */
+  ctas: { label: string; pageId: string }[]
+  /** Facts shown in the strip under the masthead. Only verifiable facts belong here. */
+  facts: { label: string; value: string }[]
+  editorsLabel: string
+  editors: Editor[]
+  editorsNote?: string
 }
 
 export type JournalDetail = {
@@ -117,6 +164,7 @@ export type JournalDetail = {
   topics: string[]
   quickLinks: string[]
   pages?: JournalPage[]
+  profile: PublicationProfile
 }
 
 export type IssueArchive = {

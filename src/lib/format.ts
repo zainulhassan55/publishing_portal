@@ -86,3 +86,10 @@ export function citationAuthor(names: string[]): string {
   const family = names[0].split(/\s+/).pop() ?? names[0]
   return names.length === 1 ? family : `${family} et al.`
 }
+
+/** Trims to a whole word so a meta description never ends mid-term. */
+export function clampText(text: string, max = 155): string {
+  if (text.length <= max) return text
+  const cut = text.slice(0, max)
+  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:]$/, '')}…`
+}

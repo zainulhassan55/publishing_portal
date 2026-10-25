@@ -1,4 +1,5 @@
-import { journalCode, journalMenuGroups, journals } from '@/data/registry'
+import { journalCode, journalMenuGroups, journals, series, seriesMenuGroups } from '@/data/registry'
+import type { JournalPage } from '@/types/content'
 import { subjectFor } from '@/data/subjects'
 import { getArticles } from '@/data/content'
 import { normalise, type ArticleHit, type GuidanceHit, type JournalHit, type SearchIndex } from './search-core'
@@ -63,33 +64,28 @@ export async function buildSearchIndex(): Promise<SearchIndex> {
   })
 
   const guidance: GuidanceHit[] = []
-  for (const journal of journals) {
+  const owners = [
+    ...journals.map((j) => ({ slug: j.slug, code: journalCode(j), title: j.title, base: `/journals/${j.slug}`, pages: j.pages ?? [], groups: journalMenuGroups(j.slug) })),
+    ...series.map((s) => ({ slug: s.slug, code: s.code, title: s.title, base: `/series/${s.slug}`, pages: s.pages, groups: seriesMenuGroups(s.slug) })),
+  ]
+  for (const owner of owners) {
     const groupFor = new Map<string, string>()
-    for (const group of journalMenuGroups(journal.slug)) {
+    for (const group of owner.groups) {
       for (const item of group.items) groupFor.set(item.href, group.label)
     }
 
-    for (const page of journal.pages ?? []) {
-      const href = page.id === 'current-issue' ? `/journals/${journal.slug}/current-issue` : `/journals/${journal.slug}/${page.id}`
-      const text = (page.blocks ?? [])
-        .flatMap((b) => [
-          b.title,
-          ...(b.paragraphs ?? []),
-          ...(b.bullets ?? []),
-          ...(b.subsections ?? []).flatMap((s) => [s.title, ...(s.paragraphs ?? []), ...(s.bullets ?? [])]),
-        ])
-        .join(' ')
-
+    for (const page of owner.pages) {
+      const href = `${owner.base}/${page.id}`
       guidance.push({
         kind: 'guidance',
-        journalSlug: journal.slug,
-        journalCode: journalCode(journal),
+        journalSlug: owner.slug,
+        journalCode: owner.code,
         pageId: page.id,
         title: page.title,
         group: groupFor.get(href) ?? 'About',
         href,
         text: page.summary,
-        haystack: normalise([page.title, page.label, page.summary, text, journal.title, journalCode(journal)].join(' ')),
+        haystack: normalise([page.title, page.label, page.summary, pageText(page), owner.title, owner.code].join(' ')),
       })
     }
   }
@@ -97,6 +93,19 @@ export async function buildSearchIndex(): Promise<SearchIndex> {
   return { articles: articleHits, journals: journalHits, guidance }
 }
 
+
+function pageText(page: JournalPage): string {
+  return page.blocks
+    .flatMap((b) => [
+      b.title,
+      ...(b.paragraphs ?? []),
+      ...(b.bullets ?? []),
+      ...(b.closing ?? []),
+      ...(b.table?.rows.flat() ?? []),
+      ...(b.subsections ?? []).flatMap((s) => [s.title, ...(s.paragraphs ?? []), ...(s.bullets ?? [])]),
+    ])
+    .join(' ')
+}
 
 export type TypeaheadEntry = { title: string; code: string; href: string; haystack: string }
 

@@ -23,20 +23,12 @@ export const subjects: Record<SubjectKey, Subject> = {
 export const subjectList: Subject[] = Object.values(subjects)
 
 /**
- * Journal → subject. Kept here rather than on each JournalSpec so the ten spec
+ * Journal → subject. Kept here rather than on each journal file so those
  * files stay purely about editorial content.
  */
 export const journalSubjectKey: Record<string, SubjectKey> = {
-  ijdh: 'health',
-  ijdm: 'management',
-  ijds: 'society',
-  ijei: 'entrepreneurship',
   ijic: 'computing',
-  ijis: 'interdisciplinary',
-  ijmc: 'mathematics',
-  ijmr: 'interdisciplinary',
-  ijqt: 'electronics',
-  ijse: 'electronics',
+  ijdm: 'management',
 }
 
 export const subjectFor = (slug: string): Subject => subjects[journalSubjectKey[slug] ?? 'interdisciplinary']

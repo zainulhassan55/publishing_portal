@@ -91,6 +91,23 @@ else
   exit 1
 fi
 
+# Files sent through the portal's editorial forms (CVs, proposals, book
+# manuscripts) live in Cloudflare R2, not on this server. Copying them into the
+# nightly snapshot gives them a second home with a different provider. Needs an
+# rclone remote for the R2 account (`rclone config`, type s3, provider
+# Cloudflare) named in R2_RCLONE_REMOTE; skipped, loudly, until it is set.
+if [ -n "${R2_RCLONE_REMOTE:-}" ]; then
+  for BUCKET in "${S3_BUCKET_SUBMISSIONS:-ngiq-submissions}" "${S3_BUCKET_PUBLICATIONS:-ngiq-publications}"; do
+    log "copying r2:$BUCKET"
+    rclone copy --quiet "$R2_RCLONE_REMOTE:$BUCKET" "$WORK/r2/$BUCKET" --exclude "pending/**" --exclude "healthcheck/**"
+  done
+  tar -czf "$WORK/r2-$STAMP.tar.gz" -C "$WORK" r2
+  rm -rf "$WORK/r2"
+  log "  r2 → $(du -h "$WORK/r2-$STAMP.tar.gz" | cut -f1)"
+else
+  log "WARNING: R2_RCLONE_REMOTE is not set — files uploaded through the portal forms are NOT in this backup"
+fi
+
 log "archiving configuration"
 tar -czf "$WORK/config-$STAMP.tar.gz" \
   --ignore-failed-read \

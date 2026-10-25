@@ -28,6 +28,11 @@ test('isEmail accepts ordinary addresses and rejects obvious breakage', () => {
   assert.equal(isEmail('no-at-sign.example.com'), false)
   assert.equal(isEmail('spaces in@example.com'), false)
   assert.equal(isEmail('trailing@dot.'), false)
+  // Characters mail address parsers mis-split into extra recipients.
+  assert.equal(isEmail('a@example.com;b@evil.test'), false)
+  assert.equal(isEmail('a@example.com>x'), false)
+  assert.equal(isEmail('"a,b"@example.com'), false)
+  assert.equal(isEmail('a(comment)@example.com'), false)
 })
 
 test('isRor matches the 9-character identifier', () => {

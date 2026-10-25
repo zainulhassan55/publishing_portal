@@ -1,45 +1,20 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import {
-  JournalStaticPage,
-  type PageBlock,
-  type SideGroup,
-  type StaticPageCall,
-} from '@/components/mockup/JournalStaticPage'
-import { callsForJournal, getArticles } from '@/data/content'
-import { isStanding } from '@/data/content/cfps'
-import {
-  getJournal,
-  getJournalPage,
-  journalCode,
-  journalMenuGroups,
-  journalPageNeighbours,
-  journals,
-} from '@/data/registry'
-import { subjectFor } from '@/data/subjects'
-import { formatDate } from '@/lib/format'
-
-/**
- * Every journal page except the two with routes of their own: `current-issue`
- * and the archive, which read live issue data rather than static blocks.
- */
-const EXCLUDED = new Set(['current-issue', 'issues'])
+import { notFound, redirect } from 'next/navigation'
+import { JournalStaticPage } from '@/components/mockup/JournalStaticPage'
+import { getJournal, getJournalPage, journalCode, journalPageNeighbours, journals, journalSubmitHref } from '@/data/registry'
+import { getPublication, groupOf, mastheadFor, sideGroupsFor, toPageBlocks } from '@/lib/publication'
 
 export function generateStaticParams() {
-  return journals.flatMap((journal) =>
-    (journal.pages ?? [])
-      .filter((page) => !EXCLUDED.has(page.id))
-      .map((page) => ({ slug: journal.slug, pageId: page.id })),
-  )
+  return journals.flatMap((journal) => (journal.pages ?? []).map((page) => ({ slug: journal.slug, pageId: page.id })))
 }
 
 /**
- * Refreshed on the server rather than fixed at build. Published papers reach
- * this page through the scheduled harvest and the admin show/hide gate, both of
- * which purge the page cache (src/lib/articles/purge.ts); the hour here is the
- * safety net for when that purge is missed, not the normal delay.
+ * Refreshed on the server rather than fixed at build; the scheduled harvest and
+ * the admin screens purge the page cache (src/lib/articles/purge.ts), and the
+ * hour here is the safety net for when that purge is missed.
  */
 export const revalidate = 3600
+
 export async function generateMetadata({
   params,
 }: {
@@ -63,90 +38,52 @@ export async function generateMetadata({
   }
 }
 
-const pageHref = (slug: string, id: string) =>
-  id === 'current-issue' ? `/journals/${slug}/current-issue` : `/journals/${slug}/${id}`
-
 export default async function JournalContentPage({
   params,
 }: {
   params: Promise<{ slug: string; pageId: string }>
 }) {
   const { slug, pageId } = await params
-  const journal = getJournal(slug)
+  // The publisher's path list gives every journal a /submit page; submission itself lives at /submit.
+  if (pageId === 'submit' && getJournal(slug)) redirect(journalSubmitHref(slug))
+
   const page = getJournalPage(slug, pageId)
-  if (!journal || !page || EXCLUDED.has(pageId)) notFound()
+  const pub = getPublication('journal', slug)
+  if (!page || !pub) notFound()
 
-  const code = journalCode(journal)
-  const subject = subjectFor(slug)
-  const own = (await getArticles()).filter((a) => a.journalSlug === slug)
-  const menuGroups = journalMenuGroups(slug)
+  const href = `/journals/${slug}/${pageId}`
+  const group = groupOf(pub, href)
 
-  const masthead = {
-    j: { slug, code, title: journal.title, subject: subject.label, color: subject.color },
-    tab:
-      menuGroups.find((g) => g.items.some((item) => item.href === `/journals/${slug}/${pageId}`))?.label ?? 'About',
-    groups: menuGroups.map((g) => ({
-      group: g.label,
-      links: g.items.map((item) => ({ title: item.label, href: item.href })),
-    })),
-    articlesPublished: own.length,
-    downloads: own.reduce((n, a) => n + (a.metrics?.downloads ?? 0), 0),
-  }
-
-  const blocks: PageBlock[] = (page.blocks ?? []).map((b, i) => ({
-    id: `s${i + 1}`,
-    n: i + 1,
-    h: b.title,
-    p: b.paragraphs ?? [],
-    ul: b.bullets ?? [],
-    table: b.table ? { head: b.table.head, rows: b.table.rows } : null,
-    sub: (b.subsections ?? []).map((s, k) => ({
-      id: `s${i + 1}-${k + 1}`,
-      n: `${i + 1}.${k + 1}`,
-      h: s.title,
-      p: s.paragraphs ?? [],
-      ul: s.bullets ?? [],
-      table: s.table ? { head: s.table.head, rows: s.table.rows } : null,
-    })),
-  }))
-
-  const side: SideGroup[] = menuGroups.map((g) => ({
-    group: g.label,
-    links: g.items.map((item) => ({
-      title: item.label,
-      href: item.href,
-      current: item.href === `/journals/${slug}/${pageId}`,
-    })),
-  }))
-
-  // Prev/next wrap around the full page order, as the mockup's modulo does.
-  const pages = journal.pages ?? []
+  // Prev/next wrap around the full page order.
   const { previous, next } = journalPageNeighbours(slug, pageId)
-  const wrapPrev = previous ?? pages[pages.length - 1]
-  const wrapNext = next ?? pages[0]
+  const wrapPrev = previous ?? pub.pages[pub.pages.length - 1]
+  const wrapNext = next ?? pub.pages[0]
 
-  const calls: StaticPageCall[] = callsForJournal(slug)
-    .filter((c) => !isStanding(c))
-    .map((c) => ({
-      theme: c.theme,
-      deadlineIso: c.deadlineIso,
-      deadline: formatDate(c.deadlineIso),
-      guest: c.guestEditor ?? '',
-    }))
 
   return (
     <JournalStaticPage
-      masthead={masthead}
-      group={masthead.tab}
+      masthead={mastheadFor(pub, group)}
+      group={group}
       title={page.title}
-      blocks={blocks}
-      isInstructions={pageId === 'author-instructions'}
-      showCalls={pageId === 'call-for-papers' || pageId === 'special-issues'}
-      calls={calls}
-      todayIso={new Date().toISOString().slice(0, 10)}
-      side={side}
-      prev={{ href: pageHref(slug, wrapPrev.id), title: wrapPrev.label }}
-      next={{ href: pageHref(slug, wrapNext.id), title: wrapNext.label }}
+      blocks={toPageBlocks(page.blocks)}
+      side={sideGroupsFor(pub, href)}
+      prev={{ href: pub.pageHref(wrapPrev.id), title: wrapPrev.label }}
+      next={{ href: pub.pageHref(wrapNext.id), title: wrapNext.label }}
+      cta={
+        pageId === 'special-issue-guidelines'
+          ? {
+              title: 'Propose a special issue',
+              text: 'Send your proposal online, following the Special Issue Guidelines.',
+              label: 'Proposal form',
+              href: '/editors/special-issues#proposal-form',
+            }
+          : {
+              title: 'Ready to submit?',
+              text: `${pub.code} accepts submissions year-round.`,
+              label: 'Submit a manuscript',
+              href: journalSubmitHref(slug),
+            }
+      }
     />
   )
 }
