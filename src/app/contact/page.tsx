@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ContactForm } from '@/components/contact/ContactForm'
-import { publicationOptions } from '@/data/registry'
+import { FormLauncher } from '@/components/forms/FormLauncher'
 import { editorialEmail } from '@/lib/site'
 
 export const metadata: Metadata = {
@@ -23,10 +22,8 @@ const asides = [
 ]
 
 export default function ContactPage() {
-  const journalOptions = publicationOptions().map((o) => ({ slug: o.value, label: o.label }))
-
   return (
-    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 0' }}>
+    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
@@ -43,12 +40,17 @@ export default function ContactPage() {
         </p>
       </div>
 
-      <div style={{ display: 'flex', gap: 56, alignItems: 'flex-start', flexWrap: 'wrap', padding: '32px 0 0' }}>
+      <div className="m-col" style={{ display: 'flex', gap: '32px 56px', alignItems: 'flex-start', flexWrap: 'wrap', padding: '32px 0 0' }}>
         <div style={{ flex: 1, minWidth: 300, maxWidth: 720 }}>
-          <ContactForm journals={journalOptions} />
+          <FormLauncher
+            id="message"
+            href="/contact/form"
+            title="Send us a message"
+            description="Tell us which journal or book series it concerns, choose a topic, and write your message. Quote your submission reference if you have one."
+          />
         </div>
 
-        <aside style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <aside className="m-full" style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, background: 'var(--surface,#fff)', padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <h2 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Email directly</h2>
             <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>

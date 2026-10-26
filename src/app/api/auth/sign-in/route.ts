@@ -7,6 +7,7 @@ import { fetchLoginForm, postSignIn, postSignOut, probeOjsIdentity } from '@/lib
 import { ojsIsSameOrigin, setOjsSessionCookie } from '@/lib/auth/ojs-cookie'
 import { PORTAL_SESSION_COOKIE, SESSION_TTL_SECONDS, createSession } from '@/lib/auth/portal-session'
 import { ojsBaseUrl } from '@/lib/ojs/config'
+import { captchaGate } from '@/lib/captcha'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,7 +32,7 @@ export const dynamic = 'force-dynamic'
  * leads with the OJS link-out instead, which always works.
  */
 
-type Body = { email?: string; password?: string }
+type Body = { email?: string; password?: string; captchaToken?: string }
 
 const nativeSignInEnabled = process.env.PORTAL_NATIVE_SIGNIN === '1'
 
@@ -90,6 +91,11 @@ export const POST = handler(async (request) => {
   if (identifier.length > 320 || (identifier.includes('@') && !isEmail(identifier))) {
     return jsonError('invalid-credentials', 401)
   }
+
+  // After the cheap checks, before anything reaches OJS: a script that fails
+  // the captcha costs OJS nothing.
+  const blocked = await captchaGate(request, body.captchaToken, 'sign-in')
+  if (blocked) return blocked
 
   // The browser's agent rides along on every OJS call, so the session OJS
   // creates is fingerprinted to the browser that will later present it

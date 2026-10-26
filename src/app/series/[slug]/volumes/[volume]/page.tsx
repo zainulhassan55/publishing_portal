@@ -60,13 +60,14 @@ export default async function VolumePage({ params }: Params) {
   return (
     <>
       <JsonLd data={volumeJsonLd(v, series)} />
+      <style>{`@media (max-width:760px){.vol-aside{position:static!important}.vol-h1{font-size:27px!important}}`}</style>
       <JournalMasthead {...mastheadFor(pub, 'Volumes')} />
-      <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 32px 0', display: 'flex', gap: 48, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px var(--shell-pad) 0', display: 'flex', gap: 48, flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <article style={{ flex: '1 1 600px', minWidth: 0, maxWidth: 820 }}>
           <span style={{ fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--warm,#B5400F)', fontWeight: 600 }}>
             {format} · Open access
           </span>
-          <h1 style={{ margin: '8px 0 10px', fontFamily: 'var(--font-serif)', fontSize: 34, lineHeight: 1.2, fontWeight: 600, color: 'var(--ink,#101B27)', textWrap: 'balance' }}>{title}</h1>
+          <h1 className="vol-h1" style={{ margin: '8px 0 10px', fontFamily: 'var(--font-serif)', fontSize: 34, lineHeight: 1.2, fontWeight: 600, color: 'var(--ink,#101B27)', textWrap: 'balance' }}>{title}</h1>
           <p style={{ margin: '0 0 6px', fontSize: 16, color: 'var(--ink-2,#1F2A36)' }}>{contributorLine(v)}</p>
           <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--muted,#505C68)' }}>
             {series.title}
@@ -128,7 +129,7 @@ export default async function VolumePage({ params }: Params) {
           ) : null}
         </article>
 
-        <aside style={{ flex: '0 1 300px', display: 'flex', flexDirection: 'column', gap: 20, position: 'sticky', top: 16 }}>
+        <aside className="vol-aside m-full" style={{ flex: '0 1 300px', display: 'flex', flexDirection: 'column', gap: 20, position: 'sticky', top: 16 }}>
           {v.pdfUploadId ? (
             <a href={`${base}/pdf?download=1`} style={{ background: 'var(--accent,#1D5DA8)', color: '#fff', padding: '11px 16px', borderRadius: 3, fontSize: 15, fontWeight: 500, textAlign: 'center', textDecoration: 'none' }}>
               Download PDF

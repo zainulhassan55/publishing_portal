@@ -32,7 +32,7 @@ export const metadata: Metadata = {
  */
 export default function Submit() {
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 100px' }}>
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 100px' }}>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
@@ -52,7 +52,7 @@ export default function Submit() {
         the submission checklist. If you are signed in here, you will arrive in the editorial system already signed in.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: 16 }}>
         {journals.map((journal) => (
           <section
             key={journal.slug}

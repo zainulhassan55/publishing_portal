@@ -71,7 +71,7 @@ export default async function AdminOverview() {
   const [proposals, publishing] = await Promise.all([proposalCounts(), publishingCounts()])
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 14 }}>
       <div style={card}>
         <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>Journal proposals awaiting a decision</span>
         <strong style={{ fontSize: 30, lineHeight: 1.1, color: 'var(--ink,#101B27)' }}>

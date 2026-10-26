@@ -401,7 +401,8 @@ export function AdminVolumes({ csrfToken, series }: { csrfToken: string; series:
         volumes.length === 0 ? (
           <p style={{ color: 'var(--ink-3,#3C4854)' }}>No volumes yet.</p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <div className="scroll-x">
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 620 }}>
             <thead>
               <tr>
                 {['Series', 'Title', 'Chapters', 'Status', 'Call', ''].map((h) => (
@@ -435,6 +436,7 @@ export function AdminVolumes({ csrfToken, series }: { csrfToken: string; series:
               ))}
             </tbody>
           </table>
+          </div>
         )
       ) : null}
     </section>

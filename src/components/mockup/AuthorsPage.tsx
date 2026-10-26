@@ -16,7 +16,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useToday } from '@/lib/hooks/client-state'
 import { daysUntil } from '@/lib/format'
-import { editorialEmail } from '@/lib/site'
+import { FormLauncher } from '@/components/forms/FormLauncher'
 
 export type AuthorsJournalRef = { slug: string; code: string; title: string }
 
@@ -32,7 +32,6 @@ export type AuthorsCall = {
   href: string
 }
 
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 /** Mockup's status chip colours. */
 const chip = (s: string): [string, string] =>
@@ -121,10 +120,6 @@ const policyGroups = [
 export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]; calls: AuthorsCall[] }) {
   const [cfpJ, setCfpJ] = useState('all')
   const [showClosed, setShowClosed] = useState(false)
-  const [email, setEmail] = useState('')
-  const [err, setErr] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [done, setDone] = useState(false)
   // Deadline countdowns depend on "today", which a statically generated page
   // does not know. Null until hydration; the badges render only after that.
   const todayIso = useToday()
@@ -147,34 +142,6 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
     .sort((a, b) => a.deadlineIso.localeCompare(b.deadlineIso))
   const noCfps = cfps.length === 0
 
-  const onAlert = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!EMAIL_RE.test(email)) {
-      setErr('Enter an email address in the format name@example.org')
-      return
-    }
-    if (busy) return
-    setBusy(true)
-    setErr(null)
-    try {
-      const res = await fetch('/api/alerts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-      if (res.status === 202) setDone(true)
-      else if (res.status === 422) setErr('Enter an email address in the format name@example.org')
-      else if (res.status === 429) setErr('rate')
-      else setErr('down')
-    } catch {
-      setErr('down')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const emailInvalid = err !== null
-  const emailBorder = emailInvalid ? '#A52A2A' : 'var(--line-strong,#B9C1C9)'
 
   return (
     <>
@@ -182,9 +149,24 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
 @keyframes ngiqPulse{0%,100%{box-shadow:0 0 0 0 rgba(165,42,42,.45)}50%{box-shadow:0 0 0 6px rgba(165,42,42,0)}}
 .au-quick:hover{background:var(--surface-3,#FAFBFB)}
 .au-nav:hover{color:var(--accent,#1D5DA8);border-left:2px solid var(--accent,#1D5DA8)}
-.au-policy:hover{color:var(--accent,#1D5DA8)}`}</style>
+.au-policy:hover{color:var(--accent,#1D5DA8)}
+.au-m-only{display:none}
+@media (max-width:760px){
+.au-toc{position:static!important;width:100%!important}
+.au-step{grid-template-columns:28px minmax(0,1fr)!important;row-gap:4px!important}
+.au-step>:nth-child(3){grid-column:2}
+.au-tpl{flex-wrap:wrap;padding:13px 14px!important}
+.au-tpl-st{flex-basis:100%;padding-left:58px}
+.au-fees{min-width:0!important}
+.au-cfp-r{grid-template-columns:64px minmax(0,1fr)!important;row-gap:8px!important}
+.au-cfp-r>:nth-child(n+3){grid-column:2}
+.au-cfp-r>:nth-child(3){flex-direction:row!important;flex-wrap:wrap}
+.au-cfp-hx{display:none}
+.au-m-only{display:inline}
+.au-pol{row-gap:24px}
+}`}</style>
       <div style={{ background: 'linear-gradient(135deg,var(--accent-tint,#F3F9F8) 25%,var(--accent-soft,#CDF0E7))', borderBottom: '1px solid var(--line,#DCE1E6)' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 36px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 36px' }}>
           <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
             <Link href="/">Home</Link>
             <span aria-hidden="true">/</span>
@@ -209,8 +191,8 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
           </div>
         </div>
       </div>
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 32px 0', display: 'flex', gap: 56, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <nav aria-label="On this page" style={{ width: 200, flexShrink: 0, position: 'sticky', top: 16 }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '40px var(--shell-pad) 0', display: 'flex', gap: 56, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <nav aria-label="On this page" className="au-toc" style={{ width: 200, flexShrink: 0, position: 'sticky', top: 16 }}>
           <span style={{ display: 'block', fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 600, marginBottom: 8 }}>On this page</span>
           {nav.map((n) => (
             <a key={n.href} href={n.href} className="au-nav" style={{ display: 'block', fontSize: 14, padding: '6px 0 6px 12px', borderLeft: '2px solid var(--line,#DCE1E6)', color: 'var(--ink-3,#3C4854)' }}>{n.label}</a>
@@ -222,7 +204,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             <p style={{ margin: '0 0 20px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '66ch' }}>The submission system saves your progress after every step. Most authors complete it in 20–30 minutes once files are prepared.</p>
             <ol style={{ listStyle: 'none', margin: 0, padding: 0, borderTop: '2px solid #101B27' }}>
               {steps.map((s) => (
-                <li key={s.n} style={{ display: 'grid', gridTemplateColumns: '40px 220px minmax(0,1fr)', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--line,#DCE1E6)', alignItems: 'baseline' }}>
+                <li key={s.n} className="au-step" style={{ display: 'grid', gridTemplateColumns: '40px 220px minmax(0,1fr)', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--line,#DCE1E6)', alignItems: 'baseline' }}>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--muted,#505C68)' }}>{s.n}</span>
                   <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink,#101B27)' }}>{s.h}</span>
                   <span style={{ fontSize: 14, lineHeight: 1.55, color: 'var(--ink-3,#3C4854)' }}>{s.p}</span>
@@ -239,14 +221,14 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             <h2 style={{ margin: '0 0 16px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Templates and checklist</h2>
             <div style={{ border: '1px solid var(--line,#DCE1E6)', borderRadius: 3 }}>
               {templates.map((t) => (
-                <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 18px', borderBottom: '1px solid var(--line-soft,#EEF1F4)' }}>
+                <div key={t.name} className="au-tpl" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 18px', borderBottom: '1px solid var(--line-soft,#EEF1F4)' }}>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, padding: '3px 6px', border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 2, width: 44, textAlign: 'center' }}>{t.ext}</span>
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink,#101B27)' }}>{t.name}</span>
                     <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>{t.meta}</span>
                   </div>
                   {/* The download files do not exist yet, so no fake href. */}
-                  <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--muted,#505C68)' }}>In preparation</span>
+                  <span className="au-tpl-st" style={{ fontSize: 13, fontWeight: 500, color: 'var(--muted,#505C68)' }}>In preparation</span>
                 </div>
               ))}
             </div>
@@ -280,7 +262,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             <h2 style={{ margin: '0 0 6px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Open access and fees</h2>
             <p style={{ margin: '0 0 18px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '66ch' }}>All articles are published open access under CC BY 4.0. Copyright ownership and publishing rights are specified in the applicable publishing agreement and displayed with the work.</p>
             <div style={{ overflowX: 'auto', borderTop: '2px solid #101B27' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 560 }}>
+              <table className="au-fees" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 560 }}>
                 <thead>
                   <tr>
                     <th scope="col" style={{ textAlign: 'left', padding: '10px 12px 10px 0', fontSize: 12, color: 'var(--muted,#505C68)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em', borderBottom: '1px solid var(--line-strong,#B9C1C9)' }}>Journal</th>
@@ -324,16 +306,16 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
               </div>
             </div>
             <div role="table" style={{ borderTop: '2px solid #101B27' }}>
-              <div role="row" style={{ display: 'grid', gridTemplateColumns: '80px minmax(0,1fr) 130px 140px', gap: 16, padding: '10px 0', borderBottom: '1px solid var(--line-strong,#B9C1C9)', fontSize: 12, color: 'var(--muted,#505C68)', textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600 }}>
+              <div role="row" className="au-cfp-r" style={{ display: 'grid', gridTemplateColumns: '80px minmax(0,1fr) 130px 140px', gap: 16, padding: '10px 0', borderBottom: '1px solid var(--line-strong,#B9C1C9)', fontSize: 12, color: 'var(--muted,#505C68)', textTransform: 'uppercase', letterSpacing: '.04em', fontWeight: 600 }}>
                 <span role="columnheader">Journal</span>
                 <span role="columnheader">Theme</span>
-                <span role="columnheader">Status</span>
-                <span role="columnheader">Deadline ↑</span>
+                <span role="columnheader" className="au-cfp-hx">Status</span>
+                <span role="columnheader" className="au-cfp-hx">Deadline ↑</span>
               </div>
               {cfps.map((c) => {
                 const [bg, fg] = c.status === null ? ['transparent', 'transparent'] : chip(c.status)
                 return (
-                  <div key={c.id} role="row" style={{ display: 'grid', gridTemplateColumns: '80px minmax(0,1fr) 130px 140px', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--line,#DCE1E6)', alignItems: 'baseline' }}>
+                  <div key={c.id} role="row" className="au-cfp-r" style={{ display: 'grid', gridTemplateColumns: '80px minmax(0,1fr) 130px 140px', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--line,#DCE1E6)', alignItems: 'baseline' }}>
                     <span role="cell" style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>{c.code}</span>
                     <div role="cell" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <Link href={c.href} style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 600, color: 'var(--ink,#101B27)', lineHeight: 1.35 }}>{c.theme}</Link>
@@ -347,7 +329,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
                         </>
                       ) : null}
                     </span>
-                    <span role="cell" style={{ fontSize: 14, color: 'var(--ink-2,#1F2A36)' }}>{c.deadline}</span>
+                    <span role="cell" style={{ fontSize: 14, color: 'var(--ink-2,#1F2A36)' }}><span className="au-m-only">Deadline: </span>{c.deadline}</span>
                   </div>
                 )
               })}
@@ -360,7 +342,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
 
           <section id="policies" style={{ scrollMarginTop: 20 }}>
             <h2 style={{ margin: '0 0 16px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Policies and ethics</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', columnGap: 40 }}>
+            <div className="au-pol" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', columnGap: 40 }}>
               {policyGroups.map((g) => (
                 <div key={g.h}>
                   <span style={{ display: 'block', fontSize: 12, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-3,#3C4854)', fontWeight: 600, paddingBottom: 8, borderBottom: '2px solid var(--accent,#0B7265)' }}>{g.h}</span>
@@ -395,32 +377,13 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             </div>
           </section>
 
-          <section id="alerts" style={{ scrollMarginTop: 20, border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, padding: 24 }}>
-            <h2 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Email alerts</h2>
-            <p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Receive new tables of contents and calls for papers for the journals you choose. Unsubscribe at any time.</p>
-            {done ? (
-              <div role="status" style={{ border: '1px solid #B9DCC4', background: '#E7F3EB', color: '#1E6B3A', borderRadius: 3, padding: '12px 14px', fontSize: 14 }}>Check your inbox: we sent a confirmation link to {email}. Alerts start once you confirm.</div>
-            ) : (
-              <form onSubmit={onAlert} noValidate style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, flex: 1, minWidth: 240 }}>
-                  <label htmlFor="al-email" style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink,#101B27)' }}>Email address</label>
-                  <input id="al-email" type="email" value={email} onChange={(e) => { setEmail(e.target.value); setErr(null) }} aria-invalid={emailInvalid ? 'true' : 'false'} aria-describedby="al-err" style={{ font: 'inherit', fontSize: 14, padding: '9px 12px', border: `1px solid ${emailBorder}`, borderRadius: 3 }} />
-                  {err !== null ? (
-                    <span id="al-err" style={{ fontSize: 13, color: '#A52A2A' }}>
-                      {err === 'rate' ? (
-                        <>Too many sign-ups from this connection just now. Try again in a few minutes, or email <a href={`mailto:${editorialEmail}`} style={{ color: '#A52A2A', textDecoration: 'underline' }}>{editorialEmail}</a> and we will add you.</>
-                      ) : err === 'down' ? (
-                        <>The alerts service is temporarily unavailable. Email <a href={`mailto:${editorialEmail}`} style={{ color: '#A52A2A', textDecoration: 'underline' }}>{editorialEmail}</a> and we will set up your alerts.</>
-                      ) : (
-                        err
-                      )}
-                    </span>
-                  ) : null}
-                </div>
-                <button type="submit" disabled={busy} style={{ marginTop: 22, border: 0, background: 'var(--accent-dark,#0A685C)', color: '#fff', borderRadius: 3, padding: '10px 18px', font: 'inherit', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Subscribe</button>
-              </form>
-            )}
-          </section>
+          <FormLauncher
+            id="alerts"
+            href="/alerts/form"
+            title="Email alerts"
+            description="Receive new tables of contents and calls for papers for the journals you choose. Unsubscribe at any time."
+            label="Subscribe to alerts"
+          />
         </div>
       </div>
     </>

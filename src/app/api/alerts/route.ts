@@ -4,6 +4,7 @@ import { Validator } from '@/lib/validate'
 import { journalSlugs } from '@/data/registry'
 import { sendTransactionalEmail } from '@/lib/email'
 import { absoluteUrl } from '@/lib/site'
+import { requireMember } from '@/lib/auth/require'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,9 @@ type Body = { email?: string; journalSlug?: string; scope?: string }
 export const POST = handler(async (request) => {
   const limit = rateLimit(`alerts:${clientIp(request)}`, 5, 300_000)
   if (!limit.ok) return jsonError('rate-limited', 429, { retryAfter: limit.retryAfter })
+
+  const member = await requireMember()
+  if (member instanceof Response) return member
 
   const body = await readJson<Body>(request)
   const v = new Validator()

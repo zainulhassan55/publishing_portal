@@ -45,7 +45,7 @@ export default async function SearchRoute() {
   }
 
   return (
-    <Suspense fallback={<p style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 32px', fontSize: 15, color: 'var(--muted, #505C68)' }}>Loading search…</p>}>
+    <Suspense fallback={<p style={{ maxWidth: 1280, margin: '0 auto', padding: '40px var(--shell-pad)', fontSize: 15, color: 'var(--muted, #505C68)' }}>Loading search…</p>}>
       <SearchMockupPage index={index} extras={extras} />
     </Suspense>
   )

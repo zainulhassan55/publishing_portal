@@ -1,5 +1,6 @@
 import type { Series } from '@/types/publishing'
 import { editorTable, editorialEmail, page, plain, seriesFacts } from '../pages'
+import { seriesTemplates } from '../templates'
 
 /**
  * Text supplied by the publisher (October 2026) and reproduced as given, except
@@ -31,11 +32,10 @@ const topics = [
 
 const editors = [
   { name: 'Nadia Nedjah', affiliation: 'State University of Rio de Janeiro, Brazil' },
-  { name: 'Priyanka Chaurasia', affiliation: 'University of Ulster, UK' },
 ]
 
 const editorsNote =
-  'The Series Editors guide the academic direction of the series, assess proposals, and oversee editorial quality and independent peer review.'
+  'The Series Editor guides the academic direction of the series, assesses proposals, and oversees editorial quality and independent peer review.'
 
 export const aiisc: Series = {
   slug: 'aiisc',
@@ -58,7 +58,7 @@ export const aiisc: Series = {
       { label: 'Published volumes', pageId: 'volumes' },
     ],
     facts: seriesFacts,
-    editorsLabel: 'Series Editors',
+    editorsLabel: 'Series Editor',
     editors,
     editorsNote,
   },
@@ -76,8 +76,8 @@ export const aiisc: Series = {
         closing: ['Each volume should offer a coherent scholarly contribution for researchers, postgraduate students, or practitioners.'],
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial Board', 'The Series Editors of AIISC.', [
-      { title: 'Series Editors', table: editorTable(editors), paragraphs: [], closing: [editorsNote] },
+    page('editorial-board', 'Editorial board', 'Editorial Board', 'The Series Editor of AIISC.', [
+      { title: 'Series Editor', table: editorTable(editors), paragraphs: [], closing: [editorsNote] },
     ]),
     page('propose-volume', 'Propose a volume', 'Propose a Volume', 'What to include in an AIISC volume proposal.', [
       plain(['Proposals are welcome throughout the year. Please include:'], {
@@ -103,6 +103,7 @@ export const aiisc: Series = {
           'Manuscripts must be original, clearly organised, and appropriately referenced. Authors should explain their methods, present supporting evidence, acknowledge limitations, and provide data or code availability information where applicable.',
           'Contributors must disclose funding, conflicts of interest, and substantive use of generative AI, and obtain necessary permissions for third-party material. Volume editors coordinate contributors, maintain thematic coherence, and oversee completion of revisions.',
         ]),
+        seriesTemplates('aiisc', 'AIISC'),
       ],
     ),
     page('peer-review-ethics', 'Peer review & ethics', 'Peer Review and Ethics', 'How AIISC volumes are reviewed.', [

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { AsideBox, AsideLinks, PublisherPage } from '@/components/content/PublisherPage'
-import { SpecialIssueForm } from '@/components/forms/SpecialIssueForm'
+import { FormLauncher } from '@/components/forms/FormLauncher'
 import { specialIssueGuidelines, specialIssueLead } from '@/data/publisher'
-import { journalCode, journals } from '@/data/registry'
+import { journals } from '@/data/registry'
 
 export const metadata: Metadata = {
   title: 'Special issue guidelines',
@@ -26,11 +26,12 @@ export default function SpecialIssuesPage() {
         </AsideBox>
       }
     >
-      <section id="proposal-form" aria-labelledby="proposal-form-h" style={{ scrollMarginTop: 24, marginTop: 8 }}>
-        <h2 id="proposal-form-h" style={{ margin: '0 0 6px', fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 600 }}>Propose a special issue</h2>
-        <p style={{ margin: '0 0 20px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Fields marked * are required. You can also send your proposal by email.</p>
-        <SpecialIssueForm journals={journals.map((j) => ({ value: j.slug, label: `${j.title} (${journalCode(j)})` }))} />
-      </section>
+      <FormLauncher
+        id="proposal-form"
+        href="/editors/special-issues/form"
+        title="Propose a special issue"
+        description="The form asks for the target journal, proposed title, aims, scope and topics, the guest editors with brief biographies, and your timeline, expected number of submissions and promotion plan."
+      />
     </PublisherPage>
   )
 }

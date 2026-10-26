@@ -75,7 +75,7 @@ export default async function JournalContentPage({
               title: 'Propose a special issue',
               text: 'Send your proposal online, following the Special Issue Guidelines.',
               label: 'Proposal form',
-              href: '/editors/special-issues#proposal-form',
+              href: '/editors/special-issues/form',
             }
           : {
               title: 'Ready to submit?',

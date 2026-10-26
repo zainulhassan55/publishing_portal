@@ -13,10 +13,12 @@
  * simply a member who has agreed to be asked.
  */
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { safeNext, signInHref } from '@/lib/auth/links'
 import { useSession } from '@/components/auth/SessionProvider'
+import { Turnstile, captchaRequired, type TurnstileHandle } from '@/components/auth/Turnstile'
 import { COUNTRIES } from '@/data/countries'
 import type { JournalRef } from './DashboardPage'
 
@@ -98,6 +100,8 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
   const [busy, setBusy] = useState(false)
   const [errors, setErrors] = useState<FieldError[]>([])
   const [failure, setFailure] = useState<string | null>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captcha = useRef<TurnstileHandle>(null)
 
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setF((s) => ({ ...s, [k]: e.target.value }))
@@ -121,6 +125,10 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
       setErrors([{ field: 'passwordConfirm', message: 'The two passwords do not match. Type the same password in both boxes.' }])
       return
     }
+    if (captchaRequired && !captchaToken) {
+      setFailure('Please complete the security check, then create your account.')
+      return
+    }
 
     setBusy(true)
 
@@ -130,7 +138,7 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
         headers: { 'Content-Type': 'application/json' },
         // Journal *titles*, because that is what OJS labels its enrolment
         // checkboxes with and what the relay matches on.
-        body: JSON.stringify({ ...f, journals: picked, asReviewer }),
+        body: JSON.stringify({ ...f, journals: picked, asReviewer, captchaToken }),
       })
 
       const data = (await response.json()) as {
@@ -142,6 +150,9 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
       }
 
       if (!response.ok || !data.ok) {
+        // Field and rate-limit refusals come before the captcha check, so the
+        // token is still good; anything later spent it.
+        if (response.status !== 422 && response.status !== 429) captcha.current?.reset()
         if (data.errors?.length) setErrors(data.errors)
         else if (data.message) setFailure(data.message)
         else if (data.error === 'rate-limited') setFailure('Too many attempts. Please try again in a few minutes.')
@@ -149,15 +160,19 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
         return
       }
 
+      // A visitor sent here from a form ("No account? Create one") goes back to
+      // that form. Read at submit time, so the page needs no Suspense boundary.
+      const next = safeNext(new URLSearchParams(window.location.search).get('next'))
       if (data.signedIn) {
         refresh()
-        router.push('/dashboard')
+        router.push(next)
       } else {
         // The account exists but the automatic sign-in did not land. Saying so
         // beats a silent redirect to a page that will ask who they are.
-        router.push('/sign-in?registered=1')
+        router.push(`${signInHref(next)}&registered=1`)
       }
     } catch {
+      captcha.current?.reset()
       setFailure('Registration could not be completed. Please check your connection and try again.')
     } finally {
       setBusy(false)
@@ -165,7 +180,7 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
   }
 
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 100px' }}>
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 100px' }}>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
@@ -222,7 +237,7 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
             </p>
           ) : null}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div className="m-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <label style={label}>
               <span>
                 First name
@@ -297,7 +312,7 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
             {errorFor('country') ? <Err>{errorFor('country')}</Err> : null}
           </label>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div className="m-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <label style={label}>
               <span>
                 Username
@@ -418,6 +433,8 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
               </span>
             </span>
           </label>
+
+          <Turnstile ref={captcha} action="register" onToken={setCaptchaToken} />
 
           <button
             type="submit"

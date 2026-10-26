@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function PoliciesIndex() {
   return (
-    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 0' }}>
+    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
       <style>{`.pol-card:hover{border-color:var(--accent,#1D5DA8)!important}`}</style>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
         <Link href="/">Home</Link>

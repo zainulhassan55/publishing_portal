@@ -1,0 +1,123 @@
+%% {{CODE}} manuscript template -- {{PUBNAME}}
+%%
+%% Submit this file compiled with the `anonymous` option, which removes the
+%% author block for double-blind review. Give author names, affiliations and
+%% acknowledgements in titlepage.tex instead, and submit that separately.
+%% `lineno` adds line numbers for the reviewers; keep it for submission.
+\documentclass[journal,anonymous,lineno,{{CITEOPT}}]{nextgeniq}
+
+\publication{{{PUBNAME}}}{{{CODE}}}
+\articletype{Research Article} % or Review Article, Conceptual Paper, Case Study, Short Communication
+\shorttitle{A short running title of up to 50 characters}
+
+\title{Title of the Article: Concise, Specific and Informative}
+
+% Author details are hidden by the `anonymous` option. Fill them in anyway:
+% the same block is used for the accepted version.
+\author[1]{First Author}
+\author[2]{Second Author}
+\author[1]{Third Author}
+\affil[1]{Department, University, City, Country}
+\affil[2]{Department, Institution, City, Country}
+\correspondence{First Author, \texttt{first.author@example.org}}
+
+\keywords{keyword one; keyword two; keyword three; keyword four; keyword five}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+State the problem, the approach, the main findings and their implications in a
+single paragraph of 150--250 words. Do not cite references, and spell out
+abbreviations at first use. A structured abstract (Purpose, Design/methodology,
+Findings, Originality) is also acceptable.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Explain the research question, why it matters, and what the article
+contributes. Close the introduction with a short outline of the sections that
+follow. Cite sources as \citet{smith2024} or \citep{lee2023,garcia2022}.
+
+\section{Related Work}
+\label{sec:related}
+
+Position the study in the existing literature and identify the gap it
+addresses \citep{garcia2022}.
+
+\section{Methods}
+\label{sec:methods}
+
+Describe the data, materials and procedures in enough detail for the study to
+be reproduced. Number displayed equations so they can be referred to, as in
+Equation~\eqref{eq:example}.
+\begin{equation}
+  \hat{y} = \arg\max_{y \in \mathcal{Y}} \; P(y \mid x; \theta)
+  \label{eq:example}
+\end{equation}
+
+\subsection{Data collection}
+Use subsections where they help the reader; avoid going deeper than three
+levels.
+
+\section{Results}
+\label{sec:results}
+
+Present the findings. Refer to every table and figure in the text, for
+example Table~\ref{tab:results} and Figure~\ref{fig:example}.
+
+\begin{table}[ht]
+  \centering
+  \caption{Table captions go above the table. Use horizontal rules only.}
+  \label{tab:results}
+  \begin{tabular}{lccc}
+    \toprule
+    Method        & Precision & Recall & F1 \\
+    \midrule
+    Baseline      & 0.81      & 0.77   & 0.79 \\
+    Proposed      & 0.88      & 0.85   & 0.86 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.6\linewidth]{example-image}
+  \caption{Figure captions go below the figure. Supply figures at 300\,dpi or
+  as vector graphics, and make sure text in them is legible at print size.}
+  \label{fig:example}
+\end{figure}
+
+\section{Discussion}
+\label{sec:discussion}
+
+Interpret the results, compare them with earlier work, and state the
+limitations of the study and its practical implications.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Summarise the contribution and suggest directions for future research.
+
+\begin{declarations}
+  \declaration{Funding} Name the funders and grant numbers, or state that the
+  research received no external funding. Anonymise funder details that would
+  identify the authors during review.
+  \declaration{Conflicts of interest} Declare any competing interests, or
+  state that there are none.
+  \declaration{Data availability} State where the data supporting the
+  findings can be found, or why they cannot be shared.
+  \declaration{Ethics approval} Give the approving body and reference for
+  research involving human participants or animals, or state that approval
+  was not required.
+  \declaration{Use of generative AI} Describe any substantive use of
+  generative AI tools in the research or writing, or state that none was used.
+  \declaration{Author contributions} Add these in the title page for review;
+  they are moved here in the accepted version.
+\end{declarations}
+
+\bibliography{references}
+
+\end{document}

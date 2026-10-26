@@ -51,15 +51,16 @@ export function IssuePage({ masthead, vol, num, monthYear, sections, count, arch
 
   return (
     <>
+      <style>{`@media (max-width:760px){.iss-appear{gap:6px!important}}`}</style>
       <JournalMasthead {...masthead} />
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 32px 0', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 56 }}>
+      <div className="m-1col" style={{ maxWidth: 1280, margin: '0 auto', padding: '40px var(--shell-pad) 0', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 56 }}>
         <div id="main-content" style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', gap: 24, paddingBottom: 24, borderBottom: '2px solid var(--accent,#0B7265)', flexWrap: 'wrap' }}>
             <div style={{ width: 96, height: 128, background: 'var(--brand,#0F2B46)', borderTop: `5px solid ${j.color}`, borderRadius: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 9, boxSizing: 'border-box' }}>
               <span style={{ fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 600, color: '#fff' }}>{j.code}</span>
               <span style={{ fontSize: 9, color: '#C3CFDB' }}>Vol. {vol} · Issue {num}</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 240 }}>
+            <div className="m-full" style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minWidth: 240 }}>
               <span style={{ fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 500 }}>Current issue</span>
               <h1 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 32, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Volume {vol}, Issue {num}</h1>
               <span style={{ fontSize: 14, color: 'var(--ink-3,#3C4854)' }}>{monthYear} · {count} articles · Published continuously 1 May – 30 June 2026</span>
@@ -101,7 +102,7 @@ export function IssuePage({ masthead, vol, num, monthYear, sections, count, arch
 
           <div style={{ marginTop: 28, borderTop: '2px solid #101B27' }}>
             {appear.map((r) => (
-              <div key={r.h} style={{ display: 'grid', gridTemplateColumns: '200px minmax(0,1fr)', gap: 20, padding: '16px 0', borderBottom: '1px solid var(--line,#DCE1E6)' }}>
+              <div key={r.h} className="m-1col iss-appear" style={{ display: 'grid', gridTemplateColumns: '200px minmax(0,1fr)', gap: 20, padding: '16px 0', borderBottom: '1px solid var(--line,#DCE1E6)' }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--warm,#B5400F)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{r.h}</span>
                 <span style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--ink-2,#1F2A36)' }}>{r.p}</span>
               </div>

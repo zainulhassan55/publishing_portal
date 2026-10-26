@@ -61,6 +61,14 @@
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
 }
 
+/* Every page shell (.shell and the inline maxWidth containers) pads with
+   var(--shell-pad), so the phone gutter is set once here. */
+@media (max-width: 640px) {
+  :root {
+    --shell-pad: 18px;
+  }
+}
+
 
 @theme inline {
   --color-page: var(--page);
@@ -188,12 +196,6 @@
     padding-inline: var(--shell-pad);
   }
 
-  @media (max-width: 640px) {
-    .shell {
-      padding-inline: 20px;
-    }
-  }
-
   .card {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -253,6 +255,62 @@
   .skip-link:focus {
     left: 16px;
     top: 16px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Mobile layout hooks. Page layout lives in inline styles copied from the
+   mockups, and inline styles cannot carry media queries, so these classes
+   override them on narrow screens — hence !important.
+     .m-1col   grid collapses to a single column
+     .m-col    flex row becomes a column
+     .m-wrap   flex row wraps
+     .m-hide   hidden on phones
+     .m-full   takes the full width on phones
+     .m-2col   grid becomes two equal columns (.m-span-all spans both)
+--------------------------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  .m-1col {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .m-1col > * {
+    grid-column: auto !important;
+  }
+
+  .m-col {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .m-col > * {
+    width: auto !important;
+    max-width: 100% !important;
+    flex-basis: auto !important;
+  }
+
+  .m-wrap {
+    flex-wrap: wrap !important;
+  }
+
+  .m-hide {
+    display: none !important;
+  }
+
+  .m-full {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .m-2col {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .m-span-all {
+    grid-column: 1 / -1 !important;
+    min-width: 0 !important;
   }
 }
 

@@ -56,7 +56,8 @@ const td: React.CSSProperties = {
 
 export default function IndexingPage() {
   return (
-    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 0' }}>
+    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
+      <style>{`@media (max-width:760px){.idxTbl{min-width:0!important}.idxTbl thead{display:none}.idxTbl tr{display:block;padding:12px 0;border-bottom:1px solid var(--line,#DCE1E6)}.idxTbl td{display:block;border:0!important;padding:3px 0!important}}`}</style>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
@@ -76,7 +77,7 @@ export default function IndexingPage() {
       <section style={{ marginTop: 32, maxWidth: 960 }}>
         <h2 style={{ margin: '0 0 16px', fontFamily: 'var(--font-serif)', fontSize: 26, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Service by service</h2>
         <div style={{ overflowX: 'auto', borderTop: '2px solid #101B27' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 640 }}>
+          <table className="idxTbl" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 640 }}>
             <thead>
               <tr>
                 {services.head.map((h) => (

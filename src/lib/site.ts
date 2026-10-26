@@ -2,6 +2,9 @@
 export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.nextgeniqpress.com').replace(/\/$/, '')
 
 export const siteName = 'NextGenIQ Press'
+/** The company that operates the imprint. Shown in every footer, web and email. */
+export const operatorName = 'NextInfinitiQ Global Ltd'
+export const operatorLine = `${siteName} | Operated by ${operatorName}`
 export const siteTagline = 'Open-access journals, book series and proceedings'
 export const siteDescription =
   'NextGenIQ Press publishes open-access journals, research books, monographs, and conference proceedings across digital, computational, and interdisciplinary fields.'

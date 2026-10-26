@@ -392,9 +392,9 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
 
   return (
     <>
-      <style>{`@keyframes ngiqDrop{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}@keyframes ngiqFadeA{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes ngiqZoom{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}.art-author-link:hover{color:var(--accent,#1D5DA8)!important}.art-kw:hover{border-color:var(--accent,#1D5DA8)!important;color:var(--accent,#1D5DA8)!important}`}</style>
+      <style>{`@keyframes ngiqDrop{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}@keyframes ngiqFadeA{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes ngiqZoom{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}.art-author-link:hover{color:var(--accent,#1D5DA8)!important}.art-kw:hover{border-color:var(--accent,#1D5DA8)!important;color:var(--accent,#1D5DA8)!important}@media (max-width:760px){.art-aside{position:static!important}.art-h1{font-size:27px!important}.art-decl{grid-template-columns:minmax(0,1fr)!important;gap:4px!important}.art-doi{overflow-wrap:anywhere}}`}</style>
 
-      <div style={{ maxWidth: 1320, margin: '0 auto', padding: '16px 32px 0' }}>
+      <div style={{ maxWidth: 1320, margin: '0 auto', padding: '16px var(--shell-pad) 0' }}>
         <nav
           aria-label="Breadcrumb"
           style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted, #505C68)', flexWrap: 'wrap' }}
@@ -410,7 +410,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
       </div>
 
       {article.notice ? (
-        <div role="alert" style={{ maxWidth: 1320, margin: '16px auto 0', padding: '0 32px' }}>
+        <div role="alert" style={{ maxWidth: 1320, margin: '16px auto 0', padding: '0 var(--shell-pad)' }}>
           <div
             style={{
               border: '1px solid #E3B3B3',
@@ -456,7 +456,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
         style={{
           maxWidth: 1320,
           margin: '0 auto',
-          padding: '24px 32px 0',
+          padding: '24px var(--shell-pad) 0',
           display: 'flex',
           gap: 40,
           alignItems: 'flex-start',
@@ -465,6 +465,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
       >
         <nav
           aria-label="Article contents"
+          className="m-hide"
           style={{
             width: 210,
             flexShrink: 0,
@@ -507,7 +508,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
           ))}
         </nav>
 
-        <main id="main-content" style={{ flex: 1, minWidth: 300, maxWidth: 740 }}>
+        <main id="main-content" className="m-full" style={{ flex: 1, minWidth: 300, maxWidth: 740 }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', fontSize: 12 }}>
             <span
               style={{
@@ -553,6 +554,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
             {article.pages ? `, pp. ${article.pages}` : ''}
           </p>
           <h1
+            className="art-h1"
             style={{
               margin: '10px 0 0',
               fontFamily: 'var(--font-serif)',
@@ -696,6 +698,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
                   href={doiUrl(article.doi)}
                   rel="noreferrer"
                   target="_blank"
+                  className="art-doi"
                   style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}
                 >
                   https://doi.org/{article.doi}
@@ -923,6 +926,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
                 {decl.map(([h, t]) => (
                   <div
                     key={h}
+                    className="art-decl"
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '190px minmax(0,1fr)',
@@ -1136,6 +1140,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
 
         <aside
           aria-label="Article actions"
+          className="art-aside m-full"
           style={{
             width: 250,
             flexShrink: 0,

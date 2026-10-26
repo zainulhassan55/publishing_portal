@@ -8,7 +8,7 @@ const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(mi
 /** The portfolio as cards: cover and name. Each title's description is on its own home page. */
 export function JournalsPage({ journals, series }: { journals: JournalsCard[]; series: JournalsCard[] }) {
   return (
-    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 0' }}>
+    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>

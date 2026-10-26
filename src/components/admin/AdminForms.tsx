@@ -33,7 +33,7 @@ function PayloadView({ value }: { value: unknown }) {
   }
   if (typeof value === 'object') {
     return (
-      <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: 'minmax(120px,max-content) minmax(0,1fr)', gap: '4px 14px' }}>
+      <dl className="m-1col" style={{ margin: 0, display: 'grid', gridTemplateColumns: 'minmax(120px,max-content) minmax(0,1fr)', gap: '4px 14px' }}>
         {Object.entries(value as Record<string, unknown>).map(([k, v]) => (
           <div key={k} style={{ display: 'contents' }}>
             <dt style={{ color: 'var(--muted,#505C68)', fontSize: 13 }}>{labelOf(k)}</dt>
@@ -156,7 +156,8 @@ export function AdminForms({ csrfToken }: { csrfToken: string }) {
       {records === null && !error ? <p>Loading…</p> : null}
       {records !== null && shown.length === 0 ? <p style={{ color: 'var(--ink-3,#3C4854)' }}>Nothing has been submitted yet.</p> : null}
       {shown.length > 0 ? (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className="scroll-x">
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
           <thead>
             <tr>
               {['Reference', 'Title', 'For', 'From', 'Received', 'Status'].map((h) => (
@@ -220,6 +221,7 @@ export function AdminForms({ csrfToken }: { csrfToken: string }) {
             })}
           </tbody>
         </table>
+        </div>
       ) : null}
     </section>
   )

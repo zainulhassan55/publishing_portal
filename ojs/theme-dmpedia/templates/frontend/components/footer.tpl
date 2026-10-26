@@ -28,7 +28,7 @@
 		<div class="dmp_footer_grid">
 			<div class="dmp_footer_brand">
 				<a class="dmp_footer_logo" href="{$portalUrl|escape}/">
-					<span class="dmp_topbar_mark" aria-hidden="true">NG</span>
+					<img class="dmp_topbar_mark" src="{$portalUrl|escape}/brand/logo-mark.png" alt="" width="247" height="256">
 					<span>NextGenIQ Press</span>
 				</a>
 				<p>Peer-reviewed, APC-free open-access journals published by NextGenIQ Press.</p>
@@ -71,7 +71,7 @@
 		{/if}
 
 		<div class="dmp_footer_bottom">
-			<p>&copy; NextGenIQ Press. All rights reserved.</p>
+			<p>&copy; NextGenIQ Press | Operated by NextInfinitiQ Global Ltd. All rights reserved.</p>
 			<div class="pkp_brand_footer">
 				<a href="{url page="about" op="aboutThisPublishingSystem"}">
 					<img alt="{translate key="about.aboutThisPublishingSystem"}" src="{$baseUrl}/{$brandImage}">

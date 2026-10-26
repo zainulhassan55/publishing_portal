@@ -1,6 +1,7 @@
 import type { JournalDetail } from '@/types/content'
 import { electronicIssn, issnLabel, printIssn } from '../issn'
 import { editorTable, editorialEmail, journalFacts, page, plain } from '../pages'
+import { journalTemplates } from '../templates'
 
 /**
  * Text supplied by the publisher (October 2026) and reproduced as given, except
@@ -34,17 +35,13 @@ const topics = [
 ]
 
 const editors = [
-  { name: 'Amiya Nayak', affiliation: 'School of Electrical Engineering and Computer Science, University of Ottawa, Canada' },
-  { name: 'Abhay Ratnaparkhi', affiliation: 'eBay Inc., USA' },
-  { name: 'Ayan Mondal', affiliation: 'Indian Institute of Technology Indore, India' },
-  { name: 'Vijayakumar Pandi', affiliation: 'SRM University, India' },
+  { name: 'Amiya Nayak', affiliation: 'University of Ottawa, Canada' },
   { name: 'Jinsong Wu', affiliation: 'University of Chile, Chile' },
-  { name: 'Surya Prakash', affiliation: 'Institute of Technology Indore, India' },
+  { name: 'Brij B. Gupta', affiliation: 'Asia University, Taiwan' },
+  { name: 'Kwok Tai Chui', affiliation: 'Hong Kong Metropolitan University, Hong Kong' },
+  { name: 'Bharat S. Rawal', affiliation: 'Grambling State University, Grambling, LA, USA' },
+  { name: 'Priyanka Chaurasia', affiliation: 'University of Ulster, UK' },
   { name: 'Marjan Kuchaki Rafsanjani', affiliation: 'Shahid Bahonar University of Kerman, Kerman, Iran' },
-  {
-    name: 'Imran Razzak',
-    affiliation: 'Mohamed bin Zayed University of Artificial Intelligence (MBZUAI), Abu Dhabi, UAE',
-  },
 ]
 
 export const ijicDetail: JournalDetail = {
@@ -104,6 +101,7 @@ export const ijicDetail: JournalDetail = {
         'Submissions must be original, written in English, and not under consideration elsewhere. Authors should clearly describe their contribution, methods, results, limitations, and relevant comparisons.',
         'Submit an anonymised manuscript for double-blind review, with author details provided separately. Include funding, conflicts of interest, data availability, relevant ethical approvals, and substantive AI-use disclosures.',
       ]),
+      journalTemplates(slug, 'IJIC'),
     ]),
     page('peer-review-ethics', 'Peer review & ethics', 'Peer Review and Ethics', 'How IJIC manuscripts are reviewed.', [
       plain([

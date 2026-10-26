@@ -93,6 +93,11 @@ export function ContactForm({ journals }: { journals: { slug: string; label: str
         return
       }
 
+      if (response.status === 401) {
+        setFailure('Your session has ended, so the message was not sent. Sign in again in another tab, then send it from here.')
+        return
+      }
+
       if (response.status === 429) {
         setFailure(`Too many messages from this connection. Try again in ${data.retryAfter ?? 60} seconds.`)
         return

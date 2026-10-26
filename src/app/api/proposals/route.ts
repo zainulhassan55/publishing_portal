@@ -4,6 +4,7 @@ import { insert } from '@/lib/db'
 import { Validator } from '@/lib/validate'
 import { subjectList } from '@/data/subjects'
 import { sendEditorialEmail, sendTransactionalEmail } from '@/lib/email'
+import { requireMember, submittedBy } from '@/lib/auth/require'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,6 +25,9 @@ type Body = {
 export const POST = handler(async (request) => {
   const limit = rateLimit(`proposals:${clientIp(request)}`, 3, 600_000)
   if (!limit.ok) return jsonError('rate-limited', 429, { retryAfter: limit.retryAfter })
+
+  const member = await requireMember()
+  if (member instanceof Response) return member
 
   const body = await readJson<Body>(request)
   const v = new Validator()
@@ -63,7 +67,7 @@ export const POST = handler(async (request) => {
       eicOrcid || null,
       proposerName,
       proposerEmail,
-      JSON.stringify(body),
+      JSON.stringify({ ...body, submittedBy: submittedBy(member) }),
     ],
   )
 
