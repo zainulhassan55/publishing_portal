@@ -68,8 +68,8 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
 
   return (
     <>
-      <style>{`.pol-other:hover{color:var(--accent,#1D5DA8)}`}</style>
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 0' }}>
+      <style>{`.pol-other:hover{color:var(--accent,#1D5DA8)}@media (max-width:760px){.pol-aside{position:static!important}}`}</style>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
         <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)', flexWrap: 'wrap' }}>
           <Link href="/">Home</Link>
           <span aria-hidden="true">/</span>
@@ -79,7 +79,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
         </nav>
       </div>
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '24px 32px 0', display: 'flex', gap: 56, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '24px var(--shell-pad) 0', display: 'flex', gap: '32px 56px', alignItems: 'flex-start', flexWrap: 'wrap' }} className="m-col">
         <article id="main-content" style={{ flex: 1, minWidth: 300, maxWidth: 720 }}>
           <span style={{ fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 500 }}>{policy.group}</span>
           <h1 style={{ margin: '6px 0 10px', fontFamily: 'var(--font-serif)', fontSize: 36, lineHeight: 1.15, fontWeight: 600, color: 'var(--ink,#101B27)', letterSpacing: '-.01em' }}>{policy.title}</h1>
@@ -146,7 +146,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
           </nav>
         </article>
 
-        <aside style={{ width: 220, flexShrink: 0, position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <aside className="m-full pol-aside" style={{ width: 220, flexShrink: 0, position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 24 }}>
           {toc.length > 1 ? <SectionToc entries={toc} /> : null}
           <div style={{ border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Need to ask about this?</span>

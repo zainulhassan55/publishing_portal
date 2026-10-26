@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { AsideBox, AsideLinks, PublisherPage } from '@/components/content/PublisherPage'
-import { EditorialApplicationForm } from '@/components/forms/EditorialApplicationForm'
+import { FormLauncher } from '@/components/forms/FormLauncher'
 import { audiences } from '@/data/publisher'
-import { journals, publicationOptions, series, seriesPageHref } from '@/data/registry'
+import { journals, series, seriesPageHref } from '@/data/registry'
 import { editorialEmail } from '@/lib/site'
 
 const editors = audiences.find((a) => a.id === 'editors')!
@@ -25,7 +25,7 @@ export default function EditorsPage() {
           id: 'join-a-board',
           title: 'Join an editorial board',
           paragraphs: [
-            `To express your interest in joining the editorial board of a journal or book series, complete the application below or email ${editorialEmail} with the title you are interested in, your affiliation, areas of expertise, and a brief academic profile.`,
+            `To express your interest in joining the editorial board of a journal or book series, fill in the application form or email ${editorialEmail} with the title you are interested in, your affiliation, areas of expertise, and a brief academic profile.`,
           ],
           links: [
             ...journals.map((j) => ({ label: `${j.shortTitle} editorial board`, href: `/journals/${j.slug}/editorial-board` })),
@@ -38,7 +38,10 @@ export default function EditorsPage() {
           paragraphs: [
             'NextGenIQ Press welcomes special issue proposals on emerging, significant, and interdisciplinary topics relevant to the scope of its journals.',
           ],
-          links: [{ label: 'Special Issue Guidelines', href: '/editors/special-issues' }],
+          links: [
+            { label: 'Special Issue Guidelines', href: '/editors/special-issues' },
+            { label: 'Propose a special issue', href: '/editors/special-issues/form' },
+          ],
         },
         {
           id: 'books-and-proceedings',
@@ -52,7 +55,10 @@ export default function EditorsPage() {
           id: 'new-journal',
           title: 'Submit a new journal proposal',
           paragraphs: ['Researchers and societies may propose a new open-access journal.'],
-          links: [{ label: 'Submit a New Journal proposal', href: '/propose-journal' }],
+          links: [
+            { label: 'Journal proposal guidance', href: '/propose-journal' },
+            { label: 'Submit a New Journal proposal', href: '/propose-journal/form' },
+          ],
         },
       ]}
       aside={
@@ -68,11 +74,12 @@ export default function EditorsPage() {
         </AsideBox>
       }
     >
-      <section id="board-application" aria-labelledby="board-application-h" style={{ scrollMarginTop: 24, marginTop: 8 }}>
-        <h2 id="board-application-h" style={{ margin: '0 0 6px', fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 600 }}>Editorial board application</h2>
-        <p style={{ margin: '0 0 20px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Fields marked * are required.</p>
-        <EditorialApplicationForm targets={publicationOptions()} role="board" />
-      </section>
+      <FormLauncher
+        id="board-application"
+        href="/editors/form"
+        title="Editorial board application"
+        description="Tell us which journal or book series you are interested in, your affiliation, areas of expertise, ORCID iD and a brief academic profile, and upload your CV."
+      />
     </PublisherPage>
   )
 }

@@ -27,7 +27,7 @@ export const audiences: Audience[] = [
     text: 'Contribute your expertise to rigorous and constructive peer review. Explore our reviewer guidelines, ethical responsibilities, and opportunities to review submissions in your field.',
     links: [
       { label: 'Reviewer guidelines', href: '/reviewers' },
-      { label: 'Become a reviewer', href: '/reviewers#apply' },
+      { label: 'Become a reviewer', href: '/reviewers/form' },
     ],
   },
   {
@@ -35,10 +35,10 @@ export const audiences: Audience[] = [
     who: 'For editors',
     text: 'Help shape the direction of scholarly publishing in your field. Express your interest in joining an editorial board, propose a journal special issue, or submit a proposal for an edited book or conference proceedings.',
     links: [
-      { label: 'Join an editorial board', href: '/editors#board-application' },
+      { label: 'Join an editorial board', href: '/editors/form' },
       { label: 'Special Issue Guidelines', href: '/editors/special-issues' },
-      { label: 'Propose a special issue', href: '/editors/special-issues#proposal-form' },
-      { label: 'Submit a New Journal proposal', href: '/propose-journal' },
+      { label: 'Propose a special issue', href: '/editors/special-issues/form' },
+      { label: 'Submit a New Journal proposal', href: '/propose-journal/form' },
     ],
   },
   {

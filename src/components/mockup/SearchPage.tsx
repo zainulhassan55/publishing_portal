@@ -48,6 +48,8 @@ export function SearchPage({ index, extras }: Props) {
   const [applied, setApplied] = useState(sp.get('q') ?? '')
   const [tab, setTab] = useState<SearchTab>(initialTab)
   const [sort, setSort] = useState<SortId>('relevance')
+  // Phones only: the facet list collapses behind a toggle above the results.
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [selections, setSelections] = useState<Selections>(() => {
     const base = emptySelections()
     const j = sp.get('journal')
@@ -136,8 +138,14 @@ export function SearchPage({ index, extras }: Props) {
   }
 
   return (
-    <main id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 0' }}>
-      <style>{`.sr-title:hover{color:var(--accent,#1D5DA8)!important}`}</style>
+    <main id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
+      <style>{`.sr-title:hover{color:var(--accent,#1D5DA8)!important}
+.sr-ftoggle{display:none}
+@media (max-width:760px){
+.sr-grid{gap:20px!important}
+.sr-ftoggle{display:inline-block}
+.sr-facets[data-open="false"]{display:none}
+}`}</style>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted, #505C68)' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
@@ -220,7 +228,7 @@ export function SearchPage({ index, extras }: Props) {
       </div>
 
       {tab === 'articles' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: '260px minmax(0,1fr)', gap: 40, paddingTop: 24 }}>
+        <div className="sr-grid m-1col" style={{ display: 'grid', gridTemplateColumns: '260px minmax(0,1fr)', gap: 40, paddingTop: 24 }}>
           <aside aria-label="Filters" style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             <div
               style={{
@@ -242,76 +250,99 @@ export function SearchPage({ index, extras }: Props) {
               >
                 Refine results
               </h2>
-              {anyFilter ? (
+              <span style={{ display: 'flex', gap: 14, alignItems: 'baseline' }}>
+                {anyFilter ? (
+                  <button
+                    onClick={clearAll}
+                    style={{
+                      border: 0,
+                      background: 'none',
+                      color: 'var(--accent, #1D5DA8)',
+                      font: 'inherit',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    Clear all
+                  </button>
+                ) : null}
                 <button
-                  onClick={clearAll}
+                  type="button"
+                  className="sr-ftoggle"
+                  aria-expanded={filtersOpen}
+                  aria-controls="sr-facets"
+                  onClick={() => setFiltersOpen((o) => !o)}
                   style={{
                     border: 0,
                     background: 'none',
                     color: 'var(--accent, #1D5DA8)',
                     font: 'inherit',
                     fontSize: 13,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     padding: 0,
                   }}
                 >
-                  Clear all
+                  {filtersOpen ? 'Hide filters' : 'Show filters'}
                 </button>
-              ) : null}
+              </span>
             </div>
-            {facetGroups.map((f) => (
-              <fieldset
-                key={f.id}
-                style={{ border: 0, borderBottom: '1px solid var(--line, #DCE1E6)', margin: 0, padding: '14px 0' }}
-              >
-                <legend
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: 'var(--ink, #101B27)',
-                    padding: 0,
-                    marginBottom: 8,
-                    float: 'left',
-                    width: '100%',
-                  }}
+            <div id="sr-facets" className="sr-facets" data-open={filtersOpen}>
+              {facetGroups.map((f) => (
+                <fieldset
+                  key={f.id}
+                  style={{ border: 0, borderBottom: '1px solid var(--line, #DCE1E6)', margin: 0, padding: '14px 0' }}
                 >
-                  {f.label}
-                </legend>
-                <div style={{ clear: 'both', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {f.options.map((o) => (
-                    <label
-                      key={o.value}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        fontSize: 14,
-                        color: 'var(--ink-2, #1F2A36)',
-                        padding: '4px 0',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={(selections[f.id] ?? []).includes(o.value)}
-                        onChange={() => toggle(f.id, o.value)}
-                        style={{ width: 16, height: 16, accentColor: 'var(--accent, #1D5DA8)', margin: 0 }}
-                      />
-                      <span style={{ flex: 1 }}>
-                        {f.id === 'journal'
-                          ? `${o.label} · ${journalSubject(o.value)?.subject ?? ''}`
-                          : o.label}
-                      </span>
-                      <span
-                        style={{ fontSize: 12, color: 'var(--muted, #505C68)', fontVariantNumeric: 'tabular-nums' }}
+                  <legend
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: 'var(--ink, #101B27)',
+                      padding: 0,
+                      marginBottom: 8,
+                      float: 'left',
+                      width: '100%',
+                    }}
+                  >
+                    {f.label}
+                  </legend>
+                  <div style={{ clear: 'both', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {f.options.map((o) => (
+                      <label
+                        key={o.value}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          fontSize: 14,
+                          color: 'var(--ink-2, #1F2A36)',
+                          padding: '4px 0',
+                          cursor: 'pointer',
+                        }}
                       >
-                        {o.count}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-            ))}
+                        <input
+                          type="checkbox"
+                          checked={(selections[f.id] ?? []).includes(o.value)}
+                          onChange={() => toggle(f.id, o.value)}
+                          style={{ width: 16, height: 16, accentColor: 'var(--accent, #1D5DA8)', margin: 0 }}
+                        />
+                        <span style={{ flex: 1 }}>
+                          {f.id === 'journal'
+                            ? `${o.label} · ${journalSubject(o.value)?.subject ?? ''}`
+                            : o.label}
+                        </span>
+                        <span
+                          style={{ fontSize: 12, color: 'var(--muted, #505C68)', fontVariantNumeric: 'tabular-nums' }}
+                        >
+                          {o.count}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ))}
+            </div>
           </aside>
           <div style={{ minWidth: 0 }}>
             <div
@@ -464,6 +495,7 @@ export function SearchPage({ index, extras }: Props) {
                         fontWeight: 400,
                         fontSize: 12,
                         color: 'var(--muted, #505C68)',
+                        overflowWrap: 'anywhere',
                       }}
                     >
                       https://doi.org/{a.doi}

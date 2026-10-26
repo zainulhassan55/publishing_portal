@@ -63,6 +63,9 @@ export type ContentTable = {
   caption?: string
 }
 
+/** A file under /public offered from a page; `format` names the file type, as in "Word (.docx)". */
+export type ContentDownload = { label: string; href: string; format: string; note?: string }
+
 export type ContentBlock = {
   /** An empty title renders the block without a heading and keeps it out of the page's table of contents. */
   title: string
@@ -75,6 +78,8 @@ export type ContentBlock = {
   /** Paragraphs that follow the bullet list, such as a closing note after a topic list. */
   closing?: string[]
   table?: ContentTable
+  /** Files offered for download, such as manuscript templates, listed under the paragraphs. */
+  downloads?: ContentDownload[]
   subsections?: {
     title: string
     paragraphs?: string[]

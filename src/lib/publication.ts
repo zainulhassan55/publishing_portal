@@ -115,6 +115,7 @@ export function toPageBlocks(blocks: ContentBlock[]): PageBlock[] {
       topics: b.topicList ?? false,
       closing: b.closing ?? [],
       table: b.table ? { head: b.table.head, rows: b.table.rows } : null,
+      downloads: b.downloads ?? [],
       sub: (b.subsections ?? []).map((s, k) => ({
         id: `s${i + 1}-${k + 1}`,
         n: `${n}.${k + 1}`,

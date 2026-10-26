@@ -1,0 +1,105 @@
+%% {{CODE}} chapter template -- {{PUBNAME}}
+%%
+%% For chapters in edited volumes and papers in proceedings. Remove `lineno`
+%% from the options for the final version if the volume editor asks.
+\documentclass[chapter,lineno,{{CITEOPT}}]{nextgeniq}
+
+\publication{{{PUBNAME}}}{{{CODE}}}
+\volumetitle{Title of the Volume}
+\shorttitle{A short running title of up to 50 characters}
+
+\title{Title of the Chapter: Concise, Specific and Informative}
+
+\author[1]{First Author}
+\author[2]{Second Author}
+\affil[1]{Department, University, City, Country}
+\affil[2]{Department, Institution, City, Country}
+\correspondence{First Author, \texttt{first.author@example.org}}
+
+\keywords{keyword one; keyword two; keyword three; keyword four}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Summarise the chapter's aim, approach and main contribution in 150--250 words.
+Do not cite references in the abstract.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Introduce the problem and explain how the chapter contributes to the theme of
+the volume. Cite sources as \citet{smith2024} or \citep{lee2023,garcia2022}.
+Explain specialised terms for readers from other disciplines.
+
+\section{Background}
+\label{sec:background}
+
+Review the work the chapter builds on \citep{garcia2022}.
+
+\section{Approach}
+\label{sec:approach}
+
+Describe and justify the methods. Number displayed equations so they can be
+referred to, as in Equation~\eqref{eq:example}.
+\begin{equation}
+  \hat{y} = \arg\max_{y \in \mathcal{Y}} \; P(y \mid x; \theta)
+  \label{eq:example}
+\end{equation}
+
+\subsection{A subsection}
+Use subsections where they help the reader; avoid going deeper than three
+levels.
+
+\section{Findings}
+\label{sec:findings}
+
+Present the evidence, referring to every table and figure in the text, for
+example Table~\ref{tab:results} and Figure~\ref{fig:example}.
+
+\begin{table}[ht]
+  \centering
+  \caption{Table captions go above the table. Use horizontal rules only.}
+  \label{tab:results}
+  \begin{tabular}{lccc}
+    \toprule
+    Method        & Precision & Recall & F1 \\
+    \midrule
+    Baseline      & 0.81      & 0.77   & 0.79 \\
+    Proposed      & 0.88      & 0.85   & 0.86 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.6\linewidth]{example-image}
+  \caption{Figure captions go below the figure. Supply figures at 300\,dpi or
+  as vector graphics. Permission is needed for figures taken from other works.}
+  \label{fig:example}
+\end{figure}
+
+\section{Discussion and Conclusion}
+\label{sec:conclusion}
+
+Discuss the implications and limitations, and suggest directions for further
+research.
+
+\begin{declarations}
+  \declaration{Acknowledgements} Thank people and organisations who helped
+  with the work.
+  \declaration{Funding} Name the funders and grant numbers, or state that the
+  research received no external funding.
+  \declaration{Conflicts of interest} Declare any competing interests, or
+  state that there are none.
+  \declaration{Ethics approval} Give the approving body and reference where
+  required, or state that approval was not required.
+  \declaration{Use of generative AI} Describe any substantive use of
+  generative AI tools, or state that none was used.
+\end{declarations}
+
+\bibliography{references}
+
+\end{document}

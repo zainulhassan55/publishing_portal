@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { BookProposalForm } from '@/components/forms/BookProposalForm'
+import { FormLauncher } from '@/components/forms/FormLauncher'
 import { JournalStaticPage, type PageListItem } from '@/components/mockup/JournalStaticPage'
 import { getSeriesPage, seriesPageNeighbours } from '@/data/registry'
 import { openCalls, publishedVolumes, type BookVolume } from '@/lib/books/volumes'
@@ -53,7 +53,7 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
         title: 'Have a volume in mind?',
         text: `${pub.code} welcomes proposals throughout the year.`,
         label: 'Propose a volume',
-        href: pageId === 'propose-volume' ? '#proposal-form' : pub.pageHref('propose-volume'),
+        href: `${pub.pageHref('propose-volume')}/form`,
       }}
       list={list}
     >
@@ -77,15 +77,12 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
         </section>
       ) : null}
       {pageId === 'propose-volume' ? (
-        <section id="proposal-form" aria-labelledby="proposal-form-h" style={{ scrollMarginTop: 24 }}>
-          <h2 id="proposal-form-h" style={h2}>
-            Proposal form
-          </h2>
-          <p style={{ margin: '0 0 20px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>
-            You can send your proposal here instead of by email. Fields marked * are required.
-          </p>
-          <BookProposalForm series={pub.slug} code={pub.code} />
-        </section>
+        <FormLauncher
+          id="proposal-form"
+          href={`${href}/form`}
+          title="Proposal form"
+          description="You can send your proposal through the form instead of by email. Have your proposed title, format, table of contents, contributor biographies and timeline ready."
+        />
       ) : null}
     </JournalStaticPage>
   )

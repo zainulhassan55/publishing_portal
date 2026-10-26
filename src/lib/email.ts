@@ -1,5 +1,5 @@
 import { createTransport, type Transporter } from 'nodemailer'
-import { editorialEmail, siteName, siteUrl } from './site'
+import { editorialEmail, operatorLine, siteName, siteUrl } from './site'
 
 /**
  * Transactional email.
@@ -43,7 +43,7 @@ function getTransporter(): Transporter | null {
 
 const fromAddress = () => process.env.SMTP_FROM || `${siteName} <no-reply@nextgeniqpress.com>`
 
-const footer = ['', '—', siteName, siteUrl]
+const footer = ['', '—', operatorLine, siteUrl]
 
 export async function sendTransactionalEmail(message: EmailMessage): Promise<{ sent: boolean; reason?: string }> {
   const mailer = getTransporter()

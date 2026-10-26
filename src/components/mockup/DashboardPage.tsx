@@ -416,8 +416,8 @@ export function DashboardPage({ journals }: Props) {
 
   return (
     <div style={{ background: 'var(--page-2, var(--surface-2, #F5F6F7))', paddingBottom: 48 }}>
-      <style>{`@keyframes ngiqFadeA{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes ngiqFadeB{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes ngiqGrowA{from{transform:scaleY(0)}to{transform:scaleY(1)}}@keyframes ngiqGrowB{from{transform:scaleY(0)}to{transform:scaleY(1)}}body{margin:0;background:var(--page-2,var(--surface-2,#F5F6F7)) !important;color:var(--ink-2,#1F2A36);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}tr.dbRow{background:var(--rb,var(--surface,#fff))}tr.dbRow:hover{background:var(--surface-3,#FAFBFB)}@media (prefers-reduced-motion:reduce){.dbAnim{animation:none !important}}`}</style>
-      <main id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '28px 32px 0' }}>
+      <style>{`@keyframes ngiqFadeA{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes ngiqFadeB{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes ngiqGrowA{from{transform:scaleY(0)}to{transform:scaleY(1)}}@keyframes ngiqGrowB{from{transform:scaleY(0)}to{transform:scaleY(1)}}body{margin:0;background:var(--page-2,var(--surface-2,#F5F6F7)) !important;color:var(--ink-2,#1F2A36);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}tr.dbRow{background:var(--rb,var(--surface,#fff))}tr.dbRow:hover{background:var(--surface-3,#FAFBFB)}@media (prefers-reduced-motion:reduce){.dbAnim{animation:none !important}}@media (max-width:760px){.dbTable{min-width:0 !important}.dbTable th,.dbTable td{padding:10px !important}.dbDetail{position:static !important}}`}</style>
+      <main id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '28px var(--shell-pad) 0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {user ? (
@@ -542,7 +542,7 @@ export function DashboardPage({ journals }: Props) {
                 )}
               </div>
             ) : null}
-            <div role="tablist" style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--line,#DCE1E6)', marginTop: 20 }}>
+            <div role="tablist" className="scroll-x" style={{ display: 'flex', gap: 4, borderBottom: '1px solid var(--line,#DCE1E6)', marginTop: 20 }}>
               {roleTabs.map((t) => (
                 <button
                   key={t.k}
@@ -592,9 +592,9 @@ export function DashboardPage({ journals }: Props) {
                     </button>
                   ))}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.35fr) minmax(0,1fr)', gap: 24, alignItems: 'start' }}>
+                <div className="m-1col" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.35fr) minmax(0,1fr)', gap: 24, alignItems: 'start' }}>
                   <div style={{ background: 'var(--surface,#fff)', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 620 }}>
+                    <table className="dbTable" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 620 }}>
                       <thead>
                         <tr style={{ background: 'var(--surface-3,#FAFBFB)' }}>
                           {['Manuscript', 'Status', 'Updated'].map((h) => (
@@ -728,7 +728,7 @@ export function DashboardPage({ journals }: Props) {
                   {cur ? (
                     <aside
                       aria-label="Submission detail"
-                      className="dbAnim"
+                      className="dbAnim dbDetail"
                       style={{
                         animation: fade,
                         background: 'var(--surface,#fff)',
@@ -1008,6 +1008,7 @@ export function DashboardPage({ journals }: Props) {
                     borderRadius: 3,
                     padding: '14px 20px',
                     fontSize: 14,
+                    gap: 16,
                   }}
                 >
                   <span>Available for new review invitations</span>
@@ -1022,6 +1023,7 @@ export function DashboardPage({ journals }: Props) {
                       border: 0,
                       cursor: 'pointer',
                       position: 'relative',
+                      flexShrink: 0,
                       background: avail ? 'var(--accent,#1D5DA8)' : 'var(--line-strong,#B9C1C9)',
                     }}
                   >

@@ -1,6 +1,7 @@
 import type { JournalDetail } from '@/types/content'
 import { electronicIssn, issnLabel, printIssn } from '../issn'
 import { editorTable, editorialEmail, journalFacts, page, plain } from '../pages'
+import { journalTemplates } from '../templates'
 
 /**
  * Text supplied by the publisher (October 2026) and reproduced as given, except
@@ -34,10 +35,13 @@ const topics = [
 ]
 
 const editors = [
+  { name: 'Tzu-Chuen Lu', affiliation: 'National Chin-Yi University of Technology, Taichung 411030, Taiwan' },
+  { name: 'Vijayan Sugumaran', affiliation: 'Oakland University, Rochester, USA' },
+  { name: 'Shin-Hung Pan', affiliation: 'Chaoyang University of Technology, Taiwan' },
   { name: 'Dragan Peraković', affiliation: 'University of Zagreb, Croatia' },
-  { name: 'Shingo Yamaguchi', affiliation: 'Yamaguchi University, Japan' },
-  { name: 'Chi-Wen Lung', affiliation: 'Asia University, Taiwan' },
+  { name: 'Akshat Gaurav', affiliation: 'Ronin Institute, USA' },
   { name: 'Domenico Santaniello', affiliation: 'University of Salerno, Italy' },
+  { name: 'Chi-Wen Lung', affiliation: 'Asia University, Taiwan' },
   { name: 'Ramakrishnan Raman', affiliation: 'Symbiosis International (Deemed University), Pune, India' },
   { name: 'Francisco José García-Peñalvo', affiliation: 'University of Salamanca, Spain' },
 ]
@@ -99,6 +103,7 @@ export const ijdmDetail: JournalDetail = {
         'Submissions must be original, written in English, and not under consideration elsewhere. Authors should clearly explain the research question, contribution, analytical approach, findings, limitations, and implications for management.',
         'Submit an anonymised manuscript for double-blind review, with author details provided separately. Include funding, conflicts of interest, data availability, relevant ethical approvals, and substantive AI-use disclosures.',
       ]),
+      journalTemplates(slug, 'IJDM'),
     ]),
     page('peer-review-ethics', 'Peer review & ethics', 'Peer Review and Ethics', 'How IJDM manuscripts are reviewed.', [
       plain([

@@ -65,7 +65,7 @@ export default async function JournalIssuesPage({ params }: { params: Promise<{ 
   return (
     <>
       <JournalMasthead {...masthead} />
-      <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 32px 0' }}>
+      <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '40px var(--shell-pad) 0' }}>
         <section id="archive" style={{ maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 12 }}>
           <h1 style={{ margin: 0, fontSize: 13, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--ink,#101B27)', paddingBottom: 10, borderBottom: '2px solid var(--accent,#0B7265)' }}>Issue archive</h1>
           {volumes.map((v) => (

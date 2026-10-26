@@ -5,6 +5,7 @@ import { CONTACT_TOPICS } from '@/lib/forms/options'
 import { honeypotTripped } from '@/lib/forms/server'
 import { Validator } from '@/lib/validate'
 import { getJournal, getSeries, journalSlugs, seriesSlugs } from '@/data/registry'
+import { requireMember } from '@/lib/auth/require'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,6 +32,9 @@ type Body = {
 export const POST = handler(async (request) => {
   const limit = rateLimit(`contact:${clientIp(request)}`, 4, 300_000)
   if (!limit.ok) return jsonError('rate-limited', 429, { retryAfter: limit.retryAfter })
+
+  const member = await requireMember()
+  if (member instanceof Response) return member
 
   const body = await readJson<Body>(request)
   if (honeypotTripped(body as Record<string, unknown>)) return jsonOk({ reference: 'NGIQ-MSG-000000', relayed: true }, 201)

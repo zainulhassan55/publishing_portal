@@ -7,6 +7,7 @@ import { fetchLoginForm, fetchOjsIdentity, postSignIn } from '@/lib/auth/ojs-log
 import { ojsIsSameOrigin, ojsSessionCookie } from '@/lib/auth/ojs-cookie'
 import { PORTAL_SESSION_COOKIE, SESSION_TTL_SECONDS, createSession } from '@/lib/auth/portal-session'
 import { ojsBaseUrl } from '@/lib/ojs/config'
+import { captchaGate } from '@/lib/captcha'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +44,7 @@ type Body = {
   country?: string
   journals?: unknown
   asReviewer?: unknown
+  captchaToken?: string
 }
 
 /** OJS's own floor is 6; `minimum_password_length` is unset on this install. */
@@ -101,6 +103,11 @@ export const POST = handler(async (request) => {
   }
 
   v.throwIfInvalid()
+
+  // Last check before OJS, so a person fixing a field error is not made to
+  // redo the captcha for a mistake the portal could have named first.
+  const blocked = await captchaGate(request, body.captchaToken, 'register')
+  if (blocked) return blocked
 
   // The browser's agent rides along for the same reason it does at sign-in:
   // OJS fingerprints a session by the agent that created it, and the session

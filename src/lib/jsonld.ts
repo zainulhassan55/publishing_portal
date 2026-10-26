@@ -6,10 +6,14 @@ import { absoluteUrl, doiUrl, licenceUrl, siteDescription, siteName, siteUrl } f
 
 type JsonLdObject = Record<string, unknown>
 
+/** The full stacked logo. Google asks for at least 112×112; this is 614×640. */
+const logo = absoluteUrl('/brand/logo.png')
+
 const publisher = {
   '@type': 'Organization',
   name: siteName,
   url: siteUrl,
+  logo,
 }
 
 export const organizationJsonLd = (): JsonLdObject => ({
@@ -20,6 +24,7 @@ export const organizationJsonLd = (): JsonLdObject => ({
   url: siteUrl,
   description: siteDescription,
   email: 'contact@nextgeniqpress.com',
+  logo,
 })
 
 export const websiteJsonLd = (): JsonLdObject => ({

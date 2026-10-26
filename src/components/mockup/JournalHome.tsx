@@ -34,13 +34,16 @@ const h2 = { margin: 0, fontFamily: 'var(--font-serif)', fontSize: 24, fontWeigh
 const head = { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, borderBottom: '2px solid var(--accent,#0B7265)', paddingBottom: 10 } as const
 
 /** Home page of a journal or a book series. */
+/** Editors shown in the sidebar before linking out to the full board. */
+const PREVIEW_EDITORS = 2
+
 export function JournalHome({ masthead, topics, aimsHref, listTitle, listHref, items, emptyText, editorsLabel, editors, editorsNote, boardHref, cta, groups }: JournalHomeProps) {
   const label = masthead.kind === 'journal' ? 'Journal information' : 'Series information'
 
   return (
     <>
       <JournalMasthead {...masthead} />
-      <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 32px 0', display: 'flex', flexWrap: 'wrap', gap: 56, alignItems: 'flex-start' }}>
+      <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '40px var(--shell-pad) 0', display: 'flex', flexWrap: 'wrap', gap: 56, alignItems: 'flex-start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 48, minWidth: 0, flex: '1 1 560px' }}>
           <section style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div style={head}>
@@ -88,20 +91,27 @@ export function JournalHome({ masthead, topics, aimsHref, listTitle, listHref, i
           ) : null}
         </div>
 
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: 32, flex: '1 1 300px', maxWidth: 360 }}>
+        <aside className="m-full" style={{ display: 'flex', flexDirection: 'column', gap: 32, flex: '1 1 300px', maxWidth: 360 }}>
           <section aria-labelledby="board-h" style={{ background: 'var(--accent-tint,#F3F9F8)', border: '1px solid var(--accent-soft,#CDF0E7)', borderTop: '4px solid var(--accent,#0B7265)', borderRadius: 3, padding: '16px 18px 18px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, paddingBottom: 8 }}>
               <h2 id="board-h" style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 600, color: 'var(--ink,#101B27)' }}>{editorsLabel}</h2>
-              <Link href={boardHref} style={{ fontSize: 13, fontWeight: 500 }}>
-                Full board
-              </Link>
+              {editors.length <= PREVIEW_EDITORS ? (
+                <Link href={boardHref} style={{ fontSize: 13, fontWeight: 500 }}>
+                  Full board
+                </Link>
+              ) : null}
             </div>
-            {editors.map((e) => (
+            {editors.slice(0, PREVIEW_EDITORS).map((e) => (
               <div key={e.name} style={{ padding: '9px 0', borderTop: '1px solid var(--accent-soft,#CDF0E7)', display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink,#101B27)' }}>{e.name}</span>
                 <span style={{ fontSize: 12.5, lineHeight: 1.45, color: 'var(--ink-3,#3C4854)' }}>{e.affiliation}</span>
               </div>
             ))}
+            {editors.length > PREVIEW_EDITORS ? (
+              <Link href={boardHref} style={{ display: 'block', paddingTop: 10, borderTop: '1px solid var(--accent-soft,#CDF0E7)', fontSize: 13.5, fontWeight: 600 }}>
+                Full list of editors ({editors.length}) →
+              </Link>
+            ) : null}
             {editorsNote ? <p style={{ margin: '10px 0 0', fontSize: 13, lineHeight: 1.55, color: 'var(--ink-3,#3C4854)' }}>{editorsNote}</p> : null}
           </section>
           <div style={{ border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>

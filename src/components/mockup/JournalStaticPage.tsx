@@ -6,6 +6,8 @@ import { JournalMasthead, type JournalMastheadProps } from './JournalMasthead'
 
 export type PageTable = { head: string[]; rows: string[][] }
 
+export type PageDownload = { label: string; href: string; format: string; note?: string }
+
 export type PageSub = {
   id: string
   n: string
@@ -27,6 +29,7 @@ export type PageBlock = {
   topics: boolean
   closing: string[]
   table: PageTable | null
+  downloads: PageDownload[]
   sub: PageSub[]
 }
 
@@ -59,7 +62,7 @@ export type JournalStaticPageProps = {
 function BlockTable({ table }: { table: PageTable }) {
   return (
     <div style={{ overflowX: 'auto', margin: '4px 0 24px', borderTop: '2px solid #101B27' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 520 }}>
+      <table className={table.head.length > 2 ? 'jsp-tbl jsp-tbl-lab' : 'jsp-tbl'} style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 520 }}>
         <thead>
           <tr>
             {table.head.map((th) => (
@@ -73,7 +76,7 @@ function BlockTable({ table }: { table: PageTable }) {
           {table.rows.map((row, ri) => (
             <tr key={ri}>
               {row.map((cell, ci) => (
-                <td key={ci} style={{ padding: '11px 12px 11px 0', borderBottom: '1px solid var(--line,#DCE1E6)', verticalAlign: 'top', lineHeight: 1.45, fontWeight: ci === 0 ? 600 : 400, color: ci === 0 ? 'var(--ink,#101B27)' : 'var(--ink-2,#1F2A36)' }}>
+                <td key={ci} data-label={table.head[ci]} style={{ padding: '11px 12px 11px 0', borderBottom: '1px solid var(--line,#DCE1E6)', verticalAlign: 'top', lineHeight: 1.45, fontWeight: ci === 0 ? 600 : 400, color: ci === 0 ? 'var(--ink,#101B27)' : 'var(--ink-2,#1F2A36)' }}>
                   {cell}
                 </td>
               ))}
@@ -82,6 +85,25 @@ function BlockTable({ table }: { table: PageTable }) {
         </tbody>
       </table>
     </div>
+  )
+}
+
+function DownloadList({ files }: { files: PageDownload[] }) {
+  return (
+    <ul style={{ listStyle: 'none', margin: '4px 0 24px', padding: 0, borderTop: '1px solid var(--line,#DCE1E6)' }}>
+      {files.map((f) => (
+        <li key={f.href} style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--line,#DCE1E6)' }}>
+          <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink,#101B27)' }}>{f.label}</span>
+            {f.note ? <span style={{ fontSize: 13, lineHeight: 1.45, color: 'var(--muted,#505C68)' }}>{f.note}</span> : null}
+          </span>
+          <a href={f.href} download className="jsp-dl" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 12px', border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 3, fontSize: 14, fontWeight: 500, color: 'var(--ink,#101B27)', textDecoration: 'none' }}>
+            <span aria-hidden="true">↓</span>
+            Download {f.format}
+          </a>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -116,10 +138,10 @@ export function JournalStaticPage({ masthead, group, title, blocks, side, prev, 
 
   return (
     <>
-      <style>{`html{scroll-behavior:smooth}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}.jsp-side a:hover{color:var(--accent,#1D5DA8)}.jsp-pn:hover{border-color:var(--accent,#1D5DA8)!important}`}</style>
+      <style>{`html{scroll-behavior:smooth}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}.jsp-side a:hover{color:var(--accent,#1D5DA8)}.jsp-pn:hover,.jsp-dl:hover{border-color:var(--accent,#1D5DA8)!important}@media (max-width:760px){.jsp-aside{position:static!important}.jsp-h1{font-size:30px!important}.jsp-tbl{min-width:0!important}.jsp-tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.jsp-tbl tr{display:block;padding:10px 0;border-bottom:1px solid var(--line,#DCE1E6)}.jsp-tbl td{display:block;padding:2px 0!important;border:0!important}.jsp-tbl-lab td+td::before{content:attr(data-label) ': ';color:var(--muted,#505C68);font-size:12px;text-transform:uppercase;letter-spacing:.04em}}`}</style>
       <JournalMasthead {...masthead} />
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 32px 0', display: 'flex', gap: 48, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <nav aria-label={masthead.kind === 'journal' ? 'Journal pages' : 'Series pages'} className="jsp-side" style={{ width: 230, flexShrink: 0, position: 'sticky', top: 16, fontSize: 14 }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px var(--shell-pad) 0', display: 'flex', gap: 48, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <nav aria-label={masthead.kind === 'journal' ? 'Journal pages' : 'Series pages'} className="jsp-side m-hide" style={{ width: 230, flexShrink: 0, position: 'sticky', top: 16, fontSize: 14 }}>
           {side.map((g) => (
             <div key={g.group} style={{ padding: '0 0 16px' }}>
               <span style={{ display: 'block', fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 600, padding: '0 0 6px 12px' }}>{g.group}</span>
@@ -137,9 +159,9 @@ export function JournalStaticPage({ masthead, group, title, blocks, side, prev, 
           ))}
         </nav>
 
-        <div id="main-content" style={{ flex: 1, minWidth: 300, maxWidth: 720 }}>
+        <div id="main-content" className="m-full" style={{ flex: 1, minWidth: 300, maxWidth: 720 }}>
           <span style={{ fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 500 }}>{group}</span>
-          <h1 style={{ margin: '6px 0 10px', fontFamily: 'var(--font-serif)', fontSize: 36, lineHeight: 1.15, fontWeight: 600, color: 'var(--ink,#101B27)', letterSpacing: '-.01em' }}>{title}</h1>
+          <h1 className="jsp-h1" style={{ margin: '6px 0 10px', fontFamily: 'var(--font-serif)', fontSize: 36, lineHeight: 1.15, fontWeight: 600, color: 'var(--ink,#101B27)', letterSpacing: '-.01em' }}>{title}</h1>
           <p style={{ margin: '0 0 28px', fontSize: 13, color: 'var(--muted,#505C68)' }}>{j.title}</p>
 
           {blocks.map((b) => (
@@ -177,6 +199,7 @@ export function JournalStaticPage({ masthead, group, title, blocks, side, prev, 
                 </ul>
               ) : null}
               {b.table ? <BlockTable table={b.table} /> : null}
+              {b.downloads.length > 0 ? <DownloadList files={b.downloads} /> : null}
               {b.closing.map((t) => (
                 <p key={t} style={para}>
                   {t}
@@ -235,9 +258,9 @@ export function JournalStaticPage({ masthead, group, title, blocks, side, prev, 
           </nav>
         </div>
 
-        <aside style={{ width: 220, flexShrink: 0, position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <aside className="jsp-aside m-full" style={{ width: 220, flexShrink: 0, position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 24 }}>
           {toc.length > 1 ? (
-            <nav aria-label="On this page">
+            <nav aria-label="On this page" className="m-hide">
               <span style={{ display: 'block', fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 600, marginBottom: 8 }}>On this page</span>
               {toc.map((t) => (
                 <a key={t.id} href={t.href} style={{ display: 'block', fontSize: 13, lineHeight: 1.4, padding: `5px 0 5px ${t.indent}`, borderLeft: `2px solid ${t.bar}`, color: t.fg, fontWeight: t.weight, textDecoration: 'none' }}>

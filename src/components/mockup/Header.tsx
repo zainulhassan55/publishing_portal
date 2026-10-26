@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
@@ -49,7 +50,7 @@ const NAV: NavEntry[] = [
     key: 'reviewers',
     children: [
       { label: 'Reviewer guidelines', href: '/reviewers' },
-      { label: 'Become a reviewer', href: '/reviewers#apply' },
+      { label: 'Become a reviewer', href: '/reviewers/form' },
     ],
   },
   {
@@ -57,11 +58,11 @@ const NAV: NavEntry[] = [
     href: '/editors',
     key: 'editors',
     children: [
-      { label: 'Join an editorial board', href: '/editors#board-application' },
+      { label: 'Join an editorial board', href: '/editors/form' },
       { label: 'Special Issue Guidelines', href: '/editors/special-issues' },
-      { label: 'Propose a special issue', href: '/editors/special-issues#proposal-form' },
+      { label: 'Propose a special issue', href: '/editors/special-issues/form' },
       { label: 'Propose a book volume or proceedings', href: '/editors#books-and-proceedings' },
-      { label: 'Submit a New Journal proposal', href: '/propose-journal' },
+      { label: 'Submit a New Journal proposal', href: '/propose-journal/form' },
     ],
   },
   {
@@ -169,6 +170,10 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
   // The dropdown a click just used. It stays shut, even though the pointer is
   // still over it, until the pointer leaves that menu.
   const [closedNav, setClosedNav] = useState<string | null>(null)
+  // The phone menu is open for the path it was opened on, so navigating
+  // anywhere closes it without an effect.
+  const [menuPath, setMenuPath] = useState<string | null>(null)
+  const mobileOpen = menuPath !== null && menuPath === pathname
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -280,15 +285,50 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
 .ngiqHdrSignOut:hover{background:#FBEAEA!important}
 .ngiqHdrSubmit:hover{background:var(--accent-dark,#174C8A)!important}
 @media (prefers-reduced-motion:reduce){.ngiqHdrAnim{animation:none!important}}
+.ngiqHdrBurger,.ngiqHdrMNav{display:none}
+@media (max-width:900px){
+.ngiqHdrRow{padding:12px var(--shell-pad)!important;gap:12px 16px!important}
+.ngiqHdrBurger{display:inline-flex;align-items:center;gap:8px;margin-left:auto;height:40px;padding:0 12px;border:1px solid var(--line-strong,#B9C1C9);border-radius:3px;background:var(--surface,#fff);font:inherit;font-size:14px;font-weight:500;color:var(--ink,#101B27);cursor:pointer}
+.ngiqHdrNav{display:none}
+.ngiqHdrSearch,.ngiqHdrActions{display:none!important}
+.ngiqHdrRow[data-open="true"] .ngiqHdrSearch{display:block!important;order:3;flex:1 1 100%!important;min-width:0!important}
+.ngiqHdrRow[data-open="true"] .ngiqHdrMNav{display:block;order:4;flex:1 1 100%;margin:0 calc(-1 * var(--shell-pad));border-top:1px solid var(--line,#DCE1E6)}
+.ngiqHdrRow[data-open="true"] .ngiqHdrActions{display:flex!important;order:5;flex:1 1 100%;flex-wrap:wrap;padding-bottom:4px}
+.ngiqHdrRow[data-open="true"] .ngiqHdrSubmit{margin-left:auto}
+}
+.ngiqHdrMNav details,.ngiqHdrMNav>a{border-bottom:1px solid var(--line-soft,#EEF1F4)}
+.ngiqHdrMNav summary,.ngiqHdrMNav>a{display:flex;justify-content:space-between;align-items:center;padding:13px var(--shell-pad);font-size:15px;font-weight:500;color:var(--ink,#101B27);text-decoration:none;cursor:pointer;list-style:none}
+.ngiqHdrMNav summary::-webkit-details-marker{display:none}
+.ngiqHdrMNav summary::after{content:'';width:7px;height:7px;border-right:1.5px solid var(--muted,#505C68);border-bottom:1.5px solid var(--muted,#505C68);transform:rotate(45deg);margin:-4px 4px 0 0;transition:transform .2s}
+.ngiqHdrMNav details[open]>summary::after{transform:rotate(225deg);margin-top:4px}
+.ngiqHdrMNav [aria-current="page"]{color:var(--accent,#0C8375);font-weight:600}
+.ngiqHdrMNav details div{padding:0 0 10px;background:var(--surface-3,#FAFBFB)}
+.ngiqHdrMNav details div a{display:block;padding:9px var(--shell-pad) 9px calc(var(--shell-pad) + 14px);font-size:14px;line-height:1.4;color:var(--ink-2,#1F2A36);text-decoration:none}
 `}</style>
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '16px 32px', display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
+      <div className="ngiqHdrRow" data-open={mobileOpen ? 'true' : 'false'} style={{ maxWidth: 1280, margin: '0 auto', padding: '16px var(--shell-pad)', display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--ink, #101B27)', textDecoration: 'none' }}>
-          <span style={{ width: 34, height: 34, background: 'var(--accent-dark, #0A685C)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-serif)', fontWeight: 600, fontSize: 20, borderRadius: 2 }}>N</span>
+          {/* The book mark from the publisher's logo. The name beside it is live text: the full
+              stacked logo's lettering is unreadable at header height. */}
+          <Image src="/brand/logo-mark.webp" alt="" width={39} height={40} priority style={{ display: 'block' }} />
           <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
             <span style={{ fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 600, letterSpacing: '-.01em' }}>NextGenIQ Press</span>
           </span>
         </Link>
-        <div style={{ flex: 1, minWidth: 280, position: 'relative', zIndex: 40 }}>
+        <button
+          type="button"
+          className="ngiqHdrBurger"
+          aria-expanded={mobileOpen ? 'true' : 'false'}
+          aria-controls="ngiq-mnav"
+          onClick={() => setMenuPath(mobileOpen ? null : pathname)}
+        >
+          <span aria-hidden="true" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {[0, 1, 2].map((i) => (
+              <span key={i} style={{ display: 'block', width: 16, height: 1.5, background: 'currentColor', transition: 'transform .2s,opacity .2s', transform: mobileOpen && i !== 1 ? `translateY(${i === 0 ? 5.5 : -5.5}px) rotate(${i === 0 ? 45 : -45}deg)` : 'none', opacity: mobileOpen && i === 1 ? 0 : 1 }}></span>
+            ))}
+          </span>
+          {mobileOpen ? 'Close' : 'Menu'}
+        </button>
+        <div className="ngiqHdrSearch" style={{ flex: 1, minWidth: 280, position: 'relative', zIndex: 40 }}>
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -374,7 +414,35 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
             </div>
           ) : null}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <nav
+          id="ngiq-mnav"
+          aria-label="Primary"
+          className="ngiqHdrMNav"
+          onClick={(e) => {
+            if ((e.target as Element).closest('a')) setMenuPath(null)
+          }}
+        >
+          {nav.map((item) =>
+            item.children ? (
+              <details key={item.key} open={item.active}>
+                <summary aria-current={item.active ? 'page' : undefined}>{item.label}</summary>
+                <div>
+                  {item.children.some((c) => c.href === item.href) ? null : <Link href={item.href}>{item.label}: overview</Link>}
+                  {item.children.map((c) => (
+                    <Link key={c.href + c.label} href={c.href}>
+                      {c.label}
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            ) : (
+              <Link key={item.key} href={item.href} aria-current={item.active ? 'page' : undefined}>
+                {item.label}
+              </Link>
+            ),
+          )}
+        </nav>
+        <div className="ngiqHdrActions" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           {signedIn ? (
             <div style={{ position: 'relative' }}>
               <button
@@ -431,7 +499,7 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
           <Link href="/submit" className="ngiqHdrSubmit" style={{ background: 'var(--accent, #1D5DA8)', color: '#fff', padding: '9px 16px', borderRadius: 3, fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>Submit manuscript</Link>
         </div>
       </div>
-      <nav aria-label="Primary" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
+      <nav aria-label="Primary" className="ngiqHdrNav" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 var(--shell-pad)' }}>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', gap: '0 26px', flexWrap: 'wrap' }}>
           {nav.map((item) => (
             <li key={item.key} className={`ngiqNavItem${closedNav === item.key ? ' ngiqNavClosed' : ''}`} onMouseLeave={() => setClosedNav(null)}>

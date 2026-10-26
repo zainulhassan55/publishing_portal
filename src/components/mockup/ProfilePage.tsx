@@ -72,7 +72,8 @@ const sw = (v: boolean) => ({
 
 const pageStyle = `body{margin:0;background:var(--page-2,#F5F6F7);color:var(--ink-2,#1F2A36);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}a{color:var(--accent,#1D5DA8);text-decoration:none}a:hover{text-decoration:underline}*:focus-visible{outline:2px solid var(--accent,#1D5DA8);outline-offset:2px}input,select,textarea{box-sizing:border-box}html{scroll-behavior:smooth}
 @keyframes ngiqRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.pf-nav:hover{background:var(--surface-2,#F5F6F7);border-left:3px solid var(--accent,#1D5DA8)}`
+.pf-nav:hover{background:var(--surface-2,#F5F6F7);border-left:3px solid var(--accent,#1D5DA8)}
+@media (max-width:760px){.pf-side{position:static!important;width:100%!important}}`
 
 export function ProfilePage({ journals }: { journals: ProfileJournalRef[] }) {
   const router = useRouter()
@@ -165,7 +166,7 @@ export function ProfilePage({ journals }: { journals: ProfileJournalRef[] }) {
     return (
       <>
         <style>{pageStyle}</style>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 32px 100px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px var(--shell-pad) 100px' }}>
           <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
             <Link href="/">Home</Link>
             <span aria-hidden="true">/</span>
@@ -282,7 +283,7 @@ export function ProfilePage({ journals }: { journals: ProfileJournalRef[] }) {
   return (
     <>
       <style>{pageStyle}</style>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 32px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
         <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
           <Link href="/">Home</Link>
           <span aria-hidden="true">/</span>
@@ -310,8 +311,8 @@ export function ProfilePage({ journals }: { journals: ProfileJournalRef[] }) {
           <Link href="/dashboard" style={{ border: '1px solid var(--line-strong,#B9C1C9)', background: 'var(--surface,#fff)', color: 'var(--ink,#101B27)', padding: '9px 16px', borderRadius: 3, fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>My submissions</Link>
         </div>
       </div>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px 100px', display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <nav aria-label="Profile sections" style={{ width: 220, flexShrink: 0, position: 'sticky', top: 16, background: 'var(--surface,#fff)', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, padding: '6px 0' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 var(--shell-pad) 100px', display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <nav aria-label="Profile sections" className="pf-side" style={{ width: 220, flexShrink: 0, position: 'sticky', top: 16, background: 'var(--surface,#fff)', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, padding: '6px 0' }}>
           {navItems.map((n) => (
             <a key={n.href} href={n.href} className="pf-nav" style={{ display: 'block', padding: '9px 16px', fontSize: 14, color: 'var(--ink-2,#1F2A36)', textDecoration: 'none', borderLeft: '3px solid transparent' }}>{n.t}</a>
           ))}
@@ -319,7 +320,7 @@ export function ProfilePage({ journals }: { journals: ProfileJournalRef[] }) {
             <button onClick={signOut} style={{ width: '100%', textAlign: 'left', border: 0, background: 'none', padding: '9px 16px', font: 'inherit', fontSize: 14, color: '#A52A2A', cursor: 'pointer' }}>Sign out</button>
           </div>
         </nav>
-        <div id="main-content" style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div id="main-content" className="m-full" style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', gap: 20 }}>
           <section id="personal" style={{ scrollMarginTop: 20, background: 'var(--surface,#fff)', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3 }}>
             <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--line,#DCE1E6)' }}>
               <h2 style={{ margin: 0, fontSize: 17, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Personal details</h2>
@@ -501,7 +502,7 @@ export function ProfilePage({ journals }: { journals: ProfileJournalRef[] }) {
       </div>
       {dirty || saving ? (
         <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 30, background: 'var(--surface,#fff)', borderTop: '1px solid var(--line-strong,#B9C1C9)', boxShadow: '0 -8px 24px rgba(16,27,39,.10)', animation: 'ngiqRise .25s ease both' }}>
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '12px 32px', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '12px var(--shell-pad)', display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ flex: 1, fontSize: 14, color: saveErr ? '#A52A2A' : 'var(--ink-2,#1F2A36)' }}>
               {saveErr ?? (changes === 1 ? 'You have 1 unsaved change' : `You have ${changes} unsaved changes`)}
             </span>

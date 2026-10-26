@@ -5,6 +5,7 @@ import { honeypotTripped, notifyReceived, readFileRefs, readList, reference } fr
 import { attachUploads, verifyUploads } from '@/lib/uploads/service'
 import { Validator } from '@/lib/validate'
 import { getSeries, seriesSlugs } from '@/data/registry'
+import { requireMember, submittedBy } from '@/lib/auth/require'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,6 +17,9 @@ export const dynamic = 'force-dynamic'
 export const POST = handler(async (request) => {
   const limit = rateLimit(`forms:${clientIp(request)}`, 5, 600_000)
   if (!limit.ok) return jsonError('rate-limited', 429, { retryAfter: limit.retryAfter })
+
+  const member = await requireMember()
+  if (member instanceof Response) return member
 
   const body = await readJson<Record<string, unknown>>(request)
   if (honeypotTripped(body)) return jsonOk({ reference: 'NGIQ-BC-00000' }, 201)
@@ -66,7 +70,7 @@ export const POST = handler(async (request) => {
   const id = await insert(
     `INSERT INTO book_submissions (kind, series_slug, volume_id, title, corresponding_name, corresponding_email, payload)
      VALUES ('chapter', ?, ?, ?, ?, ?, ?)`,
-    [series, volume!.id, title, corresponding.name, corresponding.email, JSON.stringify(payload)],
+    [series, volume!.id, title, corresponding.name, corresponding.email, JSON.stringify({ ...payload, submittedBy: submittedBy(member) })],
   )
   const ref = reference('BC', id)
   await attachUploads(rows, 'book_submission', id, `chapters/${ref}`)

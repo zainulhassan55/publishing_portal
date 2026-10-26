@@ -5,6 +5,7 @@ import { honeypotTripped, notifyReceived, readFileRefs, reference } from '@/lib/
 import { attachUploads, verifyUploads } from '@/lib/uploads/service'
 import { Validator } from '@/lib/validate'
 import { getJournal, getSeries, journalSlugs, seriesSlugs } from '@/data/registry'
+import { requireMember, submittedBy } from '@/lib/auth/require'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,6 +13,9 @@ export const dynamic = 'force-dynamic'
 export const POST = handler(async (request) => {
   const limit = rateLimit(`forms:${clientIp(request)}`, 5, 600_000)
   if (!limit.ok) return jsonError('rate-limited', 429, { retryAfter: limit.retryAfter })
+
+  const member = await requireMember()
+  if (member instanceof Response) return member
 
   const body = await readJson<Record<string, unknown>>(request)
   if (honeypotTripped(body)) return jsonOk({ reference: 'NGIQ-ED-00000' }, 201)
@@ -38,7 +42,7 @@ export const POST = handler(async (request) => {
   const payload = { role, target, name, email, affiliation, country, orcid, degree, expertise, profile, motivation, boards, profileUrl }
   const id = await insert(
     `INSERT INTO editorial_applications (role, target_slug, name, email, orcid, payload) VALUES (?, ?, ?, ?, ?, ?)`,
-    [role, target, name, email, orcid, JSON.stringify(payload)],
+    [role, target, name, email, orcid, JSON.stringify({ ...payload, submittedBy: submittedBy(member) })],
   )
   const ref = reference('ED', id)
   await attachUploads(rows, 'editorial_application', id, `applications/${ref}`)

@@ -20,9 +20,11 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSession } from '@/components/auth/SessionProvider'
 import { ojsLoginUrl, ojsLostPasswordUrl } from '@/lib/ojs/config'
+import { registerHref, safeNext } from '@/lib/auth/links'
+import { Turnstile, captchaRequired, type TurnstileHandle } from '@/components/auth/Turnstile'
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
@@ -40,12 +42,6 @@ const looksUsable = (value: string): boolean => {
   return v.includes('@') ? EMAIL_RE.test(v) : true
 }
 
-/** Only same-origin absolute paths are followed, so `?next=` cannot be an open redirect. */
-const safeNext = (value: string | null): string => {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/dashboard'
-  return value
-}
-
 /**
  * The three 502s are kept apart on purpose. They used to share one line —
  * "did not respond" — which was true of the first and false of the other two,
@@ -61,6 +57,7 @@ type Failure =
   | 'ojs-error'
   | 'identity'
   | 'rate-limited'
+  | 'captcha'
   | 'generic'
 
 export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean }) {
@@ -75,6 +72,8 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
   const [failure, setFailure] = useState<Failure | null>(null)
   /** OJS's own error text, when it is more specific than "wrong password". */
   const [serverMessage, setServerMessage] = useState<string | null>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captcha = useRef<TurnstileHandle>(null)
 
   const eBad = tried && !looksUsable(email)
   const pBad = tried && !pw
@@ -84,6 +83,11 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
     setTried(true)
     const ok = looksUsable(email) && pw
     if (!ok || busy) return
+    if (captchaRequired && !captchaToken) {
+      setFailure('captcha')
+      setServerMessage(null)
+      return
+    }
     setBusy(true)
     setFailure(null)
     setServerMessage(null)
@@ -91,12 +95,24 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
       const res = await fetch('/api/auth/sign-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password: pw }),
+        body: JSON.stringify({ email, password: pw, captchaToken }),
       })
       if (res.ok) {
         refresh()
         router.push(safeNext(params.get('next')))
         return // stay busy while navigating
+      }
+      // The token was spent if the server got as far as checking it, which is
+      // everything except a field or rate-limit refusal.
+      if (res.status !== 422 && res.status !== 429) captcha.current?.reset()
+      if (res.status === 403 || res.status === 503) {
+        const body = (await res.clone().json().catch(() => null)) as { error?: string; message?: string } | null
+        if (body?.error === 'captcha-failed' || body?.error === 'captcha-unavailable') {
+          setServerMessage(body.message ?? null)
+          setFailure('captcha')
+          setBusy(false)
+          return
+        }
       }
       if (res.status === 401) {
         // Pass OJS's own wording through when it says something more useful
@@ -119,6 +135,7 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
       }
       else setFailure('generic')
     } catch {
+      captcha.current?.reset()
       setFailure('generic')
     }
     setBusy(false)
@@ -126,9 +143,10 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
 
   return (
     <>
-      <style>{`body{margin:0;background:var(--page-2,var(--surface-2,#F5F6F7));color:var(--ink-2,#1F2A36);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}a{color:var(--accent,#1D5DA8);text-decoration:none}a:hover{text-decoration:underline}*:focus-visible{outline:2px solid var(--accent,#1D5DA8);outline-offset:2px}`}</style>
-      <div id="main-content" style={{ maxWidth: 960, margin: '56px auto 0', padding: '0 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,380px),1fr))', gap: 0, background: 'var(--surface,#fff)', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, boxSizing: 'border-box' }}>
-        <section style={{ padding: '36px 40px', borderRight: '1px solid var(--line,#DCE1E6)', display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <style>{`body{margin:0;background:var(--page-2,var(--surface-2,#F5F6F7));color:var(--ink-2,#1F2A36);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}a{color:var(--accent,#1D5DA8);text-decoration:none}a:hover{text-decoration:underline}*:focus-visible{outline:2px solid var(--accent,#1D5DA8);outline-offset:2px}
+@media (max-width:760px){.si-card{margin:24px var(--shell-pad) 0!important;padding:0!important}.si-sec{padding:28px 20px!important;border-right:0!important}.si-sec+.si-sec{border-top:1px solid var(--line,#DCE1E6)}}`}</style>
+      <div id="main-content" className="si-card" style={{ maxWidth: 960, margin: '56px auto 0', padding: '0 var(--shell-pad)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,380px),1fr))', gap: 0, background: 'var(--surface,#fff)', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, boxSizing: 'border-box' }}>
+        <section className="si-sec" style={{ padding: '36px 40px', borderRight: '1px solid var(--line,#DCE1E6)', display: 'flex', flexDirection: 'column', gap: 18 }}>
           <h1 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Sign in</h1>
           <p style={{ margin: '-8px 0 0', fontSize: 14, color: 'var(--ink-3,#3C4854)', lineHeight: 1.5 }}>One account for submitting, reviewing and tracking manuscripts across all NextGenIQ Press journals.</p>
           {!nativeSignIn ? (
@@ -173,6 +191,8 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
                   <>The editorial system accepted your details, but the portal could not read your account from it. <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>Sign in on the editorial system</a> for now — if it asks you to set a new password, do that, then sign in here again.</>
                 ) : failure === 'unavailable' ? (
                   <>Signing in from the portal is not available. <a href={ojsLoginUrl} style={{ color: '#A52A2A', textDecoration: 'underline' }}>Sign in on the editorial system instead</a> — your account works there.</>
+                ) : failure === 'captcha' ? (
+                  <>{serverMessage ?? 'Please complete the security check, then sign in.'}</>
                 ) : failure === 'rate-limited' ? (
                   <>Too many sign-in attempts. Wait a few minutes and try again.</>
                 ) : (
@@ -180,10 +200,14 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
                 )}
               </div>
             ) : null}
+            {/* Only mounted with the form, so the link-out page loads no Cloudflare script. */}
+            {nativeSignIn ? (
+              <Turnstile ref={captcha} action="sign-in" onToken={(t) => { setCaptchaToken(t); if (t && failure === 'captcha') setFailure(null) }} />
+            ) : null}
             <button type="submit" disabled={busy} style={{ border: 0, background: 'var(--accent-dark,#0A685C)', color: '#fff', borderRadius: 3, padding: 11, font: 'inherit', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>{busy ? 'Signing in…' : 'Sign in'}</button>
           </form>
         </section>
-        <section style={{ padding: '36px 40px', display: 'flex', flexDirection: 'column', gap: 14, background: 'var(--surface-3,#FAFBFB)' }}>
+        <section className="si-sec" style={{ padding: '36px 40px', display: 'flex', flexDirection: 'column', gap: 14, background: 'var(--surface-3,#FAFBFB)' }}>
           <h2 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 22, fontWeight: 600, color: 'var(--ink,#101B27)' }}>New to NextGenIQ Press?</h2>
           <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-3,#3C4854)', lineHeight: 1.55 }}>Create an account to submit a manuscript or register as a reviewer. You can hold both roles with one account.</p>
           <ul style={{ margin: 0, paddingLeft: 18, fontSize: 14, lineHeight: 1.8, color: 'var(--ink-2,#1F2A36)' }}>
@@ -191,7 +215,7 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
             <li>Track every submission’s status and decisions</li>
             <li>Link your ORCID iD to receive review recognition</li>
           </ul>
-          <Link href="/register" style={{ marginTop: 6, border: '1px solid var(--line-strong,#B9C1C9)', background: 'var(--surface,#fff)', borderRadius: 3, padding: 10, textAlign: 'center', fontSize: 14, fontWeight: 500, color: 'var(--ink,#101B27)', textDecoration: 'none' }}>Create an account</Link>
+          <Link href={params.get('next') ? registerHref(safeNext(params.get('next'))) : '/register'} style={{ marginTop: 6, border: '1px solid var(--line-strong,#B9C1C9)', background: 'var(--surface,#fff)', borderRadius: 3, padding: 10, textAlign: 'center', fontSize: 14, fontWeight: 500, color: 'var(--ink,#101B27)', textDecoration: 'none' }}>Create an account</Link>
           <p style={{ margin: 'auto 0 0', fontSize: 12, color: 'var(--muted,#505C68)', lineHeight: 1.5 }}>By signing in you agree to the <Link href="/policies/terms">terms of use</Link> and <Link href="/policies/privacy">privacy policy</Link>.</p>
         </section>
       </div>

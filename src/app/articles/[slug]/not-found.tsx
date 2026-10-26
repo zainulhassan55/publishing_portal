@@ -13,7 +13,7 @@ export const metadata: Metadata = {
  */
 export default function ArticleNotFound() {
   return (
-    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 0' }}>
+    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)', flexWrap: 'wrap' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>

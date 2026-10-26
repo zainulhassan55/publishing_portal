@@ -10,8 +10,13 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { FormLauncher } from '@/components/forms/FormLauncher'
 
-type Props = { subjects: string[]; editorialEmail: string }
+/**
+ * `guide` is /propose-journal: the guidance, with a button to the form.
+ * `form` is /propose-journal/form, reachable only when signed in.
+ */
+type Props = { subjects: string[]; editorialEmail: string; view?: 'guide' | 'form' }
 
 type FieldKey = 'title' | 'subject' | 'scope' | 'why' | 'volume' | 'eic' | 'aff' | 'orcid' | 'name' | 'email' | 'agree'
 
@@ -36,7 +41,7 @@ LOCAL_FIELD.agree = 'agree'
 
 const REQUIRED: FieldKey[] = ['title', 'subject', 'scope', 'eic', 'name']
 
-export function ProposeJournalPage({ subjects, editorialEmail }: Props) {
+export function ProposeJournalPage({ subjects, editorialEmail, view = 'guide' }: Props) {
   const [f, setFState] = useState<Record<string, string>>({})
   const [agree, setAgree] = useState(false)
   const [tried, setTried] = useState(false)
@@ -117,6 +122,10 @@ export function ProposeJournalPage({ subjects, editorialEmail }: Props) {
         setApiError({ kind: 'validation', text: data.errors.map((err) => err.message).join(' ') })
         return
       }
+      if (res.status === 401) {
+        setApiError({ kind: 'server', text: data.message ?? 'Please sign in again to send your proposal.' })
+        return
+      }
       if (res.status === 429) {
         setApiError({ kind: 'rate', text: 'Too many proposals from this connection. Please wait a few minutes and try again.' })
         return
@@ -152,13 +161,21 @@ export function ProposeJournalPage({ subjects, editorialEmail }: Props) {
           borderBottom: '1px solid var(--line,#DCE1E6)',
         }}
       >
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 36px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 36px' }}>
           <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
             <Link href="/">Home</Link>
             <span aria-hidden="true">/</span>
             <Link href="/journals">Journals</Link>
             <span aria-hidden="true">/</span>
-            <span style={{ color: 'var(--ink-2,#1F2A36)' }}>Propose a new journal</span>
+            {view === 'form' ? (
+              <>
+                <Link href="/propose-journal">Propose a new journal</Link>
+                <span aria-hidden="true">/</span>
+                <span style={{ color: 'var(--ink-2,#1F2A36)' }}>Form</span>
+              </>
+            ) : (
+              <span style={{ color: 'var(--ink-2,#1F2A36)' }}>Propose a new journal</span>
+            )}
           </nav>
           <h1
             style={{
@@ -192,15 +209,22 @@ export function ProposeJournalPage({ subjects, editorialEmail }: Props) {
         style={{
           maxWidth: 1280,
           margin: '0 auto',
-          padding: '40px 32px 80px',
+          padding: '40px var(--shell-pad) 80px',
           display: 'flex',
           gap: 56,
           alignItems: 'flex-start',
           flexWrap: 'wrap',
         }}
       >
-        <div style={{ flex: 1, minWidth: 320, maxWidth: 720 }}>
-          {sent ? (
+        <div className="m-full" style={{ flex: 1, minWidth: 320, maxWidth: 720 }}>
+          {view === 'guide' ? (
+            <FormLauncher
+              id="proposal-form"
+              href="/propose-journal/form"
+              title="Journal proposal form"
+              description="The form asks for the proposed title and subject area, the aims and scope, why the journal is needed, the expected annual volume, and the proposed Editor-in-Chief. Have these ready before you start."
+            />
+          ) : sent ? (
             <div
               role="status"
               style={{
@@ -539,7 +563,7 @@ export function ProposeJournalPage({ subjects, editorialEmail }: Props) {
             </form>
           )}
         </div>
-        <aside style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 28 }}>
+        <aside className="m-full" style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 28 }}>
           <div>
             <h2
               style={{

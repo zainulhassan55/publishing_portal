@@ -40,7 +40,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { user } = await requireAdminPage()
 
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px 32px 100px' }}>
+    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 100px' }}>
       <header
         style={{
           display: 'flex',

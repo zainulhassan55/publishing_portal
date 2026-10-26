@@ -23,7 +23,7 @@
 		<div class="dmp_topbar">
 			<div class="dmp_topbar_inner">
 				<a class="dmp_topbar_brand" href="{$portalUrl|escape}/">
-					<span class="dmp_topbar_mark" aria-hidden="true">NG</span>
+					<img class="dmp_topbar_mark" src="{$portalUrl|escape}/brand/logo-mark.png" alt="" width="247" height="256">
 					<span>NextGenIQ Press</span>
 				</a>
 				<nav class="dmp_topbar_links" aria-label="NextGenIQ Press portal">

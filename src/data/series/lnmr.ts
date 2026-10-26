@@ -1,5 +1,6 @@
 import type { Series } from '@/types/publishing'
 import { editorTable, editorialEmail, page, plain, seriesFacts } from '../pages'
+import { seriesTemplates } from '../templates'
 
 /**
  * Text supplied by the publisher (October 2026) and reproduced as given, except
@@ -31,11 +32,10 @@ const topics = [
 
 const editors = [
   { name: 'Kwok Tai Chui', affiliation: 'Hong Kong Metropolitan University, Hong Kong' },
-  { name: 'Shin-Hung Pan', affiliation: 'Chaoyang University of Technology, Taiwan' },
 ]
 
 const editorsNote =
-  'The Series Editors guide the academic direction of the series, evaluate proposals, and oversee editorial quality and independent peer review.'
+  'The Series Editor guides the academic direction of the series, evaluates proposals, and oversees editorial quality and independent peer review.'
 
 export const lnmr: Series = {
   slug: 'lnmr',
@@ -58,7 +58,7 @@ export const lnmr: Series = {
       { label: 'Published volumes', pageId: 'volumes' },
     ],
     facts: seriesFacts,
-    editorsLabel: 'Series Editors',
+    editorsLabel: 'Series Editor',
     editors,
     editorsNote,
   },
@@ -76,8 +76,8 @@ export const lnmr: Series = {
         closing: ['Each volume should have a coherent theme, a clearly defined readership, and a substantive scholarly contribution.'],
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial Board', 'The Series Editors of LNMR.', [
-      { title: 'Series Editors', table: editorTable(editors), paragraphs: [], closing: [editorsNote] },
+    page('editorial-board', 'Editorial board', 'Editorial Board', 'The Series Editor of LNMR.', [
+      { title: 'Series Editor', table: editorTable(editors), paragraphs: [], closing: [editorsNote] },
     ]),
     page('propose-volume', 'Propose a volume', 'Propose a Volume', 'What to include in an LNMR volume proposal.', [
       plain(['Proposals are welcome throughout the year. Please include:'], {
@@ -105,6 +105,7 @@ export const lnmr: Series = {
           'Contributors must disclose funding, conflicts of interest, and substantive use of generative AI. Ethical approvals, participant consent, and permissions for third-party material must be obtained where required.',
           'Volume editors coordinate contributors, maintain thematic coherence, and ensure that revisions are completed. Formatting requirements will be provided during the proposal process.',
         ]),
+        seriesTemplates('lnmr', 'LNMR'),
       ],
     ),
     page('peer-review-ethics', 'Peer review & ethics', 'Peer Review and Ethics', 'How LNMR volumes are reviewed.', [

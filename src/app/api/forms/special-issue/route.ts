@@ -4,6 +4,7 @@ import { honeypotTripped, notifyReceived, readFileRefs, readList, reference } fr
 import { attachUploads, verifyUploads } from '@/lib/uploads/service'
 import { Validator } from '@/lib/validate'
 import { getJournal, journalSlugs } from '@/data/registry'
+import { requireMember, submittedBy } from '@/lib/auth/require'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,6 +17,9 @@ export const dynamic = 'force-dynamic'
 export const POST = handler(async (request) => {
   const limit = rateLimit(`forms:${clientIp(request)}`, 5, 600_000)
   if (!limit.ok) return jsonError('rate-limited', 429, { retryAfter: limit.retryAfter })
+
+  const member = await requireMember()
+  if (member instanceof Response) return member
 
   const body = await readJson<Record<string, unknown>>(request)
   if (honeypotTripped(body)) return jsonOk({ reference: 'NGIQ-SI-00000' }, 201)
@@ -60,7 +64,7 @@ export const POST = handler(async (request) => {
   const id = await insert(
     `INSERT INTO editorial_proposals (kind, target_slug, title, submitter_name, submitter_email, payload)
      VALUES ('special_issue', ?, ?, ?, ?, ?)`,
-    [journal, title, submitterName, submitterEmail, JSON.stringify(payload)],
+    [journal, title, submitterName, submitterEmail, JSON.stringify({ ...payload, submittedBy: submittedBy(member) })],
   )
   const ref = reference('SI', id)
   await attachUploads(rows, 'editorial_proposal', id, `proposals/${ref}`)

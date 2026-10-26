@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChapterSubmissionForm } from '@/components/forms/ChapterSubmissionForm'
+import { FormLauncher } from '@/components/forms/FormLauncher'
 import { JournalMasthead } from '@/components/mockup/JournalMasthead'
 import { contributorLine } from '@/components/series/SeriesPageView'
 import { getSeries } from '@/data/registry'
@@ -32,7 +32,7 @@ export default async function SubmitChapterPage({ params }: Params) {
   return (
     <>
       <JournalMasthead {...mastheadFor(pub, 'Contributors')} />
-      <div id="main-content" style={{ maxWidth: 820, margin: '0 auto', padding: '32px 32px 0' }}>
+      <div id="main-content" style={{ maxWidth: 820, margin: '0 auto', padding: '32px var(--shell-pad) 0' }}>
         <span style={{ fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 500 }}>Call for chapters</span>
         <h1 style={{ margin: '6px 0 8px', fontFamily: 'var(--font-serif)', fontSize: 32, lineHeight: 1.2, fontWeight: 600 }}>{v.title}</h1>
         <p style={{ margin: '0 0 4px', fontSize: 15, color: 'var(--ink-2,#1F2A36)' }}>{contributorLine(v)}</p>
@@ -49,7 +49,12 @@ export default async function SubmitChapterPage({ params }: Params) {
           Read the <Link href={`/series/${slug}/author-editor-guidelines`}>author and editor guidelines</Link> and the{' '}
           <Link href={`/series/${slug}/peer-review-ethics`}>peer review and ethics</Link> policy before submitting.
         </p>
-        <ChapterSubmissionForm series={slug} volume={v.slug} volumeTitle={v.title} />
+        <FormLauncher
+          id="submit"
+          href={`/series/${slug}/volumes/${v.slug}/submit-chapter/form`}
+          title="Submit your chapter"
+          description="The form asks for the chapter title, authors and corresponding author, abstract, keywords and declarations, and an anonymised manuscript with a separate title page."
+        />
       </div>
     </>
   )
