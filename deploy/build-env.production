@@ -40,3 +40,10 @@ NEXT_PUBLIC_OJS_PATH=/ojs
 NEXT_PUBLIC_DEMO_CONTENT=0
 
 NEXT_PUBLIC_DOI_PREFIX=10.63521
+
+# Cloudflare Turnstile site key, the captcha on sign-in and register. Public by
+# design: Cloudflare serves it to every visitor. The matching
+# TURNSTILE_SECRET_KEY is a secret and lives only in the server env. Without
+# this line the page shows no widget while the server still demands a token,
+# and every sign-in fails with "Please complete the security check".
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAFm_qAV-52ha1PcW

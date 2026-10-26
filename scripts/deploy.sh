@@ -144,6 +144,15 @@ if ls .next/server/app/articles/*rppg-continuous-heart-rate* >/dev/null 2>&1; th
   exit 1
 fi
 
+# The captcha site key missing from the browser bundle. The server demands a
+# token whenever its env holds TURNSTILE_SECRET_KEY, so a bundle without the
+# key renders no widget and refuses every sign-in and registration. Checked in
+# .next/static, where the client code is, not .next/server.
+if [ -z "${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}" ] || ! grep -rqsF "$NEXT_PUBLIC_TURNSTILE_SITE_KEY" .next/static --include="*.js"; then
+  echo "Build has no Turnstile site key compiled in; set NEXT_PUBLIC_TURNSTILE_SITE_KEY in $BUILD_ENV." >&2
+  exit 1
+fi
+
 # `output: 'standalone'` emits a self-contained server; static and public assets
 # are copied in because the standalone output does not include them.
 STAGE="$(mktemp -d)"
