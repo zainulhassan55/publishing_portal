@@ -55,12 +55,12 @@ const DUR = 6000
 
 /** The editorial path and its target times, shown under "How we publish". */
 const FLOW = [
-  { n: 1, h: 'Submission', t: 'Online, 7 steps' },
-  { n: 2, h: 'Technical check', t: '3 working days' },
-  { n: 3, h: 'Editorial assessment', t: '7 days' },
+  { n: 1, h: 'Submission', t: 'Online' },
+  { n: 2, h: 'Technical check', t: '3–6 working days' },
+  { n: 3, h: 'Editorial assessment', t: '7–12 working days' },
   { n: 4, h: 'Peer review', t: '4–6 weeks' },
-  { n: 5, h: 'First decision', t: 'Target 6 weeks' },
-  { n: 6, h: 'Published online', t: '3 weeks after acceptance' },
+  { n: 5, h: 'First decision', t: '6–8 weeks' },
+  { n: 6, h: 'Published online', t: '1–2 weeks after acceptance' },
 ]
 
 const h2 = { margin: 0, fontFamily: 'var(--font-serif)', fontSize: 26, fontWeight: 600, color: 'var(--ink,#101B27)' } as const
