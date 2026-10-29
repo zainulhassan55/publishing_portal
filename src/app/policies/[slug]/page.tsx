@@ -3,8 +3,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SectionToc } from '@/components/nav/SectionToc'
 import { getPolicy, policies } from '@/data/policies'
-import { formatDate } from '@/lib/format'
+import { anchorIds, formatDate } from '@/lib/format'
 import type { ContentTable } from '@/types/content'
+import { withSharing } from '@/lib/metadata'
 
 export function generateStaticParams() {
   return policies.map((policy) => ({ slug: policy.slug }))
@@ -15,14 +16,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const policy = getPolicy(slug)
   if (!policy) return { title: 'Policy not found' }
 
-  return {
+  return withSharing({
     title: policy.title,
     description: policy.summary,
     alternates: { canonical: `/policies/${policy.slug}` },
-  }
+  })
 }
-
-const sectionId = (index: number) => `s${index + 1}`
 
 /** The numbered-section table from JournalStaticPage. */
 function BlockTable({ table }: { table: ContentTable }) {
@@ -63,7 +62,8 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
 
   if (!policy) notFound()
 
-  const toc = policy.blocks.map((block, i) => ({ id: sectionId(i), label: block.title }))
+  const ids = anchorIds(policy.blocks.map((block) => block.title))
+  const toc = policy.blocks.map((block, i) => ({ id: ids[i], label: block.title }))
   const others = policies.filter((other) => other.slug !== policy.slug && other.group === policy.group)
 
   return (
@@ -90,7 +90,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
           </p>
 
           {policy.blocks.map((block, i) => (
-            <section key={block.title} id={sectionId(i)} data-sec="1" style={{ scrollMarginTop: 24, paddingBottom: 12 }}>
+            <section key={block.title} id={ids[i]} data-sec="1" style={{ scrollMarginTop: 24, paddingBottom: 12 }}>
               <h2 style={{ margin: '0 0 14px', fontFamily: 'var(--font-serif)', fontSize: 24, lineHeight: 1.25, fontWeight: 600, color: 'var(--ink,#101B27)', display: 'flex', gap: 12 }}>
                 <span aria-hidden="true" style={{ color: 'var(--muted,#6B7682)', fontWeight: 400 }}>{i + 1}</span>
                 {block.title}

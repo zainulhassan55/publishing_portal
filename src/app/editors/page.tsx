@@ -4,21 +4,22 @@ import { FormLauncher } from '@/components/forms/FormLauncher'
 import { audiences } from '@/data/publisher'
 import { journals, series, seriesPageHref } from '@/data/registry'
 import { editorialEmail } from '@/lib/site'
+import { withSharing } from '@/lib/metadata'
 
 const editors = audiences.find((a) => a.id === 'editors')!
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'For editors',
   description: editors.text,
   alternates: { canonical: '/editors' },
-}
+})
 
 export default function EditorsPage() {
   return (
     <PublisherPage
       trail={[{ label: 'For editors' }]}
       kicker="For editors"
-      title="For Editors"
+      title="For editors"
       lead={editors.text}
       sections={[
         {
@@ -39,7 +40,7 @@ export default function EditorsPage() {
             'NextGenIQ Press welcomes special issue proposals on emerging, significant, and interdisciplinary topics relevant to the scope of its journals.',
           ],
           links: [
-            { label: 'Special Issue Guidelines', href: '/editors/special-issues' },
+            { label: 'Special issue guidelines', href: '/editors/special-issues' },
             { label: 'Propose a special issue', href: '/editors/special-issues/form' },
           ],
         },
@@ -57,7 +58,7 @@ export default function EditorsPage() {
           paragraphs: ['Researchers and societies may propose a new open-access journal.'],
           links: [
             { label: 'Journal proposal guidance', href: '/propose-journal' },
-            { label: 'Submit a New Journal proposal', href: '/propose-journal/form' },
+            { label: 'Submit a new journal proposal', href: '/propose-journal/form' },
           ],
         },
       ]}
@@ -65,9 +66,9 @@ export default function EditorsPage() {
         <AsideBox title="Related">
           <AsideLinks
             links={[
-              { label: 'Special Issue Guidelines', href: '/editors/special-issues' },
+              { label: 'Special issue guidelines', href: '/editors/special-issues' },
               { label: 'Reviewer guidelines', href: '/reviewers' },
-              { label: 'Publication Ethics', href: '/policies/publication-ethics' },
+              { label: 'Publication ethics', href: '/policies/publication-ethics' },
               { label: 'Complaints and Appeals', href: '/policies/complaints-appeals' },
             ]}
           />

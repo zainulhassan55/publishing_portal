@@ -15,6 +15,7 @@ import {
   type ResolvedMenuGroup,
 } from '@/data/registry'
 import { subjectFor, subjects } from '@/data/subjects'
+import { anchorIds } from '@/lib/format'
 import type { ContentBlock, JournalPage, PublicationProfile } from '@/types/content'
 
 /**
@@ -102,11 +103,13 @@ export const sideGroupsFor = (pub: Publication, currentHref: string): SideGroup[
  */
 export function toPageBlocks(blocks: ContentBlock[]): PageBlock[] {
   let n = 0
+  const ids = anchorIds(blocks.map((b) => b.title))
   return blocks.map((b, i) => {
     const numbered = b.title !== ''
     if (numbered) n += 1
+    const subIds = anchorIds((b.subsections ?? []).map((s) => s.title))
     return {
-      id: `s${i + 1}`,
+      id: ids[i],
       n: numbered ? n : 0,
       h: b.title,
       lead: b.lead ?? '',
@@ -117,7 +120,7 @@ export function toPageBlocks(blocks: ContentBlock[]): PageBlock[] {
       table: b.table ? { head: b.table.head, rows: b.table.rows } : null,
       downloads: b.downloads ?? [],
       sub: (b.subsections ?? []).map((s, k) => ({
-        id: `s${i + 1}-${k + 1}`,
+        id: `${ids[i]}--${subIds[k]}`,
         n: `${n}.${k + 1}`,
         h: s.title,
         p: s.paragraphs ?? [],

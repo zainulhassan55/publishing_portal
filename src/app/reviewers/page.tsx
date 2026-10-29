@@ -2,19 +2,20 @@ import type { Metadata } from 'next'
 import { AsideBox, AsideLinks, PublisherPage } from '@/components/content/PublisherPage'
 import { FormLauncher } from '@/components/forms/FormLauncher'
 import { becomeReviewer, reviewerGuidelines, reviewersLead } from '@/data/publisher'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'Reviewer guidelines',
   description: reviewersLead,
   alternates: { canonical: '/reviewers' },
-}
+})
 
 export default function ReviewersPage() {
   return (
     <PublisherPage
       trail={[{ label: 'For reviewers' }]}
       kicker="For reviewers"
-      title="Reviewer Guidelines"
+      title="Reviewer guidelines"
       lead={reviewersLead}
       sections={[
         ...reviewerGuidelines,
@@ -34,7 +35,7 @@ export default function ReviewersPage() {
             <AsideLinks
               links={[
                 { label: 'Peer Review Policy', href: '/policies/peer-review-policy' },
-                { label: 'Publication Ethics', href: '/policies/publication-ethics' },
+                { label: 'Publication ethics', href: '/policies/publication-ethics' },
                 { label: 'Generative AI Policy', href: '/policies/generative-ai-policy' },
                 { label: 'For editors', href: '/editors' },
               ]}

@@ -3,19 +3,20 @@ import { AsideBox, AsideLinks, PublisherPage } from '@/components/content/Publis
 import { FormLauncher } from '@/components/forms/FormLauncher'
 import { specialIssueGuidelines, specialIssueLead } from '@/data/publisher'
 import { journals } from '@/data/registry'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'Special issue guidelines',
   description: specialIssueLead,
   alternates: { canonical: '/editors/special-issues' },
-}
+})
 
 export default function SpecialIssuesPage() {
   return (
     <PublisherPage
       trail={[{ label: 'For editors', href: '/editors' }, { label: 'Special issue guidelines' }]}
       kicker="For editors"
-      title="Special Issue Guidelines"
+      title="Special issue guidelines"
       lead={specialIssueLead}
       sections={specialIssueGuidelines}
       aside={

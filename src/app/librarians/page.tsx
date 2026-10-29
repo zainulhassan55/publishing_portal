@@ -2,14 +2,15 @@ import type { Metadata } from 'next'
 import { AsideBox, AsideLinks, PublisherPage } from '@/components/content/PublisherPage'
 import { audiences, librarianSections } from '@/data/publisher'
 import { journals, series } from '@/data/registry'
+import { withSharing } from '@/lib/metadata'
 
 const librarians = audiences.find((a) => a.id === 'librarians')!
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'For librarians',
   description: librarians.text,
   alternates: { canonical: '/librarians' },
-}
+})
 
 export default function LibrariansPage() {
   const [browse, indexing, access] = librarianSections
@@ -17,7 +18,7 @@ export default function LibrariansPage() {
     <PublisherPage
       trail={[{ label: 'For librarians' }]}
       kicker="For librarians"
-      title="For Librarians"
+      title="For librarians"
       lead={librarians.text}
       sections={[
         {

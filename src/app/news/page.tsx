@@ -2,13 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getNews } from '@/data/content'
 import { formatDate } from '@/lib/format'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'News and announcements',
   description:
     'Announcements from NextGenIQ Press: calls for papers, editorial appointments, policy updates and platform changes.',
   alternates: { canonical: '/news' },
-}
+})
 
 export default function NewsPage() {
   const items = getNews()

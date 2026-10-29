@@ -3,8 +3,9 @@ import { Suspense } from 'react'
 import { SearchPage as SearchMockupPage, type ArticleExtras } from '@/components/mockup/SearchPage'
 import { getArticles } from '@/data/content'
 import { buildSearchIndex } from '@/lib/search'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'Search',
   description:
     'Search articles, journal scopes and author guidance across the NextGenIQ Press portfolio by title, author, keyword or DOI.',
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   // A results page has no stable content of its own and would compete with the
   // article and journal pages it links to, so it is deliberately not indexed.
   robots: { index: false, follow: true },
-}
+})
 
 /**
  * Faceted search.

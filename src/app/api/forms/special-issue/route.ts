@@ -48,7 +48,7 @@ export const POST = handler(async (request) => {
   const conflicts = v.string({ field: 'conflicts', value: body.conflicts, label: 'Conflicts of interest', max: 2000 })
   const submitterName = v.string({ field: 'submitterName', value: body.submitterName, label: 'Your name', required: true, max: 200 })
   const submitterEmail = v.email('submitterEmail', body.submitterEmail, 'Your email address')
-  v.accepted('guidelines', body.guidelines, 'Please confirm you have read the Special Issue Guidelines')
+  v.accepted('guidelines', body.guidelines, 'Please confirm you have read the special issue guidelines')
   const refs = readFileRefs(
     body.files,
     [

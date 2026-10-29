@@ -7,6 +7,7 @@ import { getJournal, journalCode, journalSlugs } from '@/data/registry'
 import { authorsShort, clampText, formatDate } from '@/lib/format'
 import { journalJsonLd } from '@/lib/jsonld'
 import { getPublication, mastheadFor } from '@/lib/publication'
+import { withSharing } from '@/lib/metadata'
 
 export function generateStaticParams() {
   return journalSlugs.map((slug) => ({ slug }))
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!journal) return {}
 
   const code = journalCode(journal)
-  return {
+  return withSharing({
     title: `${journal.title} (${code})`,
     description: clampText(journal.scope),
     alternates: { canonical: `/journals/${slug}` },
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: clampText(journal.scope),
       url: `/journals/${slug}`,
     },
-  }
+  })
 }
 
 export default async function JournalHomePage({ params }: { params: Promise<{ slug: string }> }) {

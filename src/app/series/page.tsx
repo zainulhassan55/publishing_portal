@@ -2,13 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { series, seriesPageHref } from '@/data/registry'
 import { subjects } from '@/data/subjects'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'Book series',
   description:
     'Open-access, peer-reviewed book series from NextGenIQ Press publishing research monographs, edited volumes and conference proceedings.',
   alternates: { canonical: '/series' },
-}
+})
 
 export default function SeriesIndex() {
   return (

@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { JournalStaticPage } from '@/components/mockup/JournalStaticPage'
 import { getJournal, getJournalPage, journalCode, journalPageNeighbours, journals, journalSubmitHref } from '@/data/registry'
 import { getPublication, groupOf, mastheadFor, sideGroupsFor, toPageBlocks } from '@/lib/publication'
+import { withSharing } from '@/lib/metadata'
 
 export function generateStaticParams() {
   return journals.flatMap((journal) => (journal.pages ?? []).map((page) => ({ slug: journal.slug, pageId: page.id })))
@@ -25,7 +26,7 @@ export async function generateMetadata({
   const page = getJournalPage(slug, pageId)
   if (!journal || !page) return {}
 
-  return {
+  return withSharing({
     title: `${page.title} — ${journalCode(journal)}`,
     description: page.summary,
     alternates: { canonical: `/journals/${slug}/${pageId}` },
@@ -35,7 +36,7 @@ export async function generateMetadata({
       description: page.summary,
       url: `/journals/${slug}/${pageId}`,
     },
-  }
+  })
 }
 
 export default async function JournalContentPage({
@@ -54,10 +55,7 @@ export default async function JournalContentPage({
   const href = `/journals/${slug}/${pageId}`
   const group = groupOf(pub, href)
 
-  // Prev/next wrap around the full page order.
   const { previous, next } = journalPageNeighbours(slug, pageId)
-  const wrapPrev = previous ?? pub.pages[pub.pages.length - 1]
-  const wrapNext = next ?? pub.pages[0]
 
 
   return (
@@ -67,13 +65,13 @@ export default async function JournalContentPage({
       title={page.title}
       blocks={toPageBlocks(page.blocks)}
       side={sideGroupsFor(pub, href)}
-      prev={{ href: pub.pageHref(wrapPrev.id), title: wrapPrev.label }}
-      next={{ href: pub.pageHref(wrapNext.id), title: wrapNext.label }}
+      prev={previous ? { href: pub.pageHref(previous.id), title: previous.label } : undefined}
+      next={next ? { href: pub.pageHref(next.id), title: next.label } : undefined}
       cta={
         pageId === 'special-issue-guidelines'
           ? {
               title: 'Propose a special issue',
-              text: 'Send your proposal online, following the Special Issue Guidelines.',
+              text: 'Send your proposal online, following the special issue guidelines.',
               label: 'Proposal form',
               href: '/editors/special-issues/form',
             }

@@ -508,7 +508,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
           ))}
         </nav>
 
-        <main id="main-content" className="m-full" style={{ flex: 1, minWidth: 300, maxWidth: 740 }}>
+        <div id="main-content" className="m-full" style={{ flex: 1, minWidth: 300, maxWidth: 740 }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', fontSize: 12 }}>
             <span
               style={{
@@ -1136,7 +1136,7 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
               ))}
             </section>
           ) : null}
-        </main>
+        </div>
 
         <aside
           aria-label="Article actions"

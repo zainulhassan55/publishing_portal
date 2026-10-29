@@ -256,6 +256,13 @@
     left: 16px;
     top: 16px;
   }
+
+  /* For a borderless input inside a bordered box: the box draws the focus
+     ring, since the input's own outline would be clipped or look detached. */
+  .focus-ring:focus-within {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -286,6 +293,7 @@
 
   .m-col > * {
     width: auto !important;
+    min-width: 0 !important;
     max-width: 100% !important;
     flex-basis: auto !important;
   }

@@ -14,7 +14,7 @@ const COLUMNS: { label: string; links: [string, string][] }[] = [
     label: 'Contribute',
     links: [
       ['Submit a manuscript', '/submit'],
-      ['Propose a volume', '/series'],
+      ['Propose a volume', '/editors#books-and-proceedings'],
       ['For reviewers', '/reviewers'],
       ['For editors', '/editors'],
     ],
@@ -23,16 +23,16 @@ const COLUMNS: { label: string; links: [string, string][] }[] = [
     label: 'Policies',
     links: [
       ['Publication ethics', '/policies/publication-ethics'],
-      ['Peer review', '/policies/peer-review-policy'],
+      ['Peer review policy', '/policies/peer-review-policy'],
+      ['Generative AI policy', '/policies/generative-ai-policy'],
       ['Open access and licensing', '/policies/open-access'],
-      ['Generative AI', '/policies/generative-ai-policy'],
       ['Complaints and appeals', '/policies/complaints-appeals'],
     ],
   },
   {
     label: 'Publisher',
     links: [
-      ['About', '/#about'],
+      ['About', '/about'],
       ['For librarians', '/librarians'],
       ['For authors', '/authors'],
       ['Contact', '/contact'],

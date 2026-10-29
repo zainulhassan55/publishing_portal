@@ -4,8 +4,8 @@
  * Authors.dc.html, replicated verbatim per docs/REPLICATION.md.
  *
  * The only departures from the mockup markup:
- * - the template "Download" links pointed at the section itself (no files
- *   exist), so each row carries an "In preparation" label instead;
+ * - the template rows list each journal's real files from src/data/templates.ts
+ *   (the mockup's generic rows linked to the section itself);
  * - the email-alert form posts to /api/alerts (202 → the mockup's success
  *   state) instead of flipping local state;
  * - the days-left countdown is computed client-side after mount so the
@@ -16,7 +16,9 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useToday } from '@/lib/hooks/client-state'
 import { daysUntil } from '@/lib/format'
+import { journalTemplates } from '@/data/templates'
 import { FormLauncher } from '@/components/forms/FormLauncher'
+import { SectionToc } from '@/components/nav/SectionToc'
 
 export type AuthorsJournalRef = { slug: string; code: string; title: string }
 
@@ -57,7 +59,7 @@ const nav = [
   ['#policies', 'Policies and ethics'],
   ['#reviewers', 'Reviewers and editors'],
   ['#alerts', 'Email alerts'],
-].map(([href, label]) => ({ href, label }))
+].map(([href, label]) => ({ id: href.slice(1), label }))
 
 const steps = [
   { n: '01', h: 'Journal and section', p: 'Choose the journal, article type and, if relevant, a special issue.' },
@@ -69,27 +71,26 @@ const steps = [
   { n: '07', h: 'Review and submit', p: 'Check everything in one view and submit. You receive a submission ID by email.' },
 ]
 
-const templates = [
-  { ext: 'DOCX', name: 'Word manuscript template', meta: 'All journals · 64 KB' },
-  { ext: 'ZIP', name: 'LaTeX template and class file', meta: 'Overleaf compatible · 212 KB' },
-  { ext: 'DOCX', name: 'Title page and declarations form', meta: '38 KB' },
-  { ext: 'PDF', name: 'Pre-submission checklist', meta: '1 page · 92 KB' },
-]
+/** File extension badge from a download's format label, e.g. "Word (.docx)" → "DOCX". */
+const extOf = (format: string) => (/\.(\w+)\)/.exec(format)?.[1] ?? '').toUpperCase()
+
+/** "Manuscript template" → "manuscript template", for "IJIC manuscript template"; "LaTeX" keeps its casing. */
+const lowerFirst = (label: string) => (label.startsWith('LaTeX') ? label : label.charAt(0).toLowerCase() + label.slice(1))
 
 /** data.js typesTable, copied literally (see REPLICATION.md data map). */
 const typesHead = ['Article type', 'Word limit', 'Abstract', 'Structure', 'Review model']
 const typesRows = [
   ['Research Article', '8,000', 'Structured, 250 words', 'Introduction, Methods, Results, Discussion', 'Double-blind, 2+ reviewers'],
   ['Review', '10,000', 'Unstructured, 250 words', 'Free, with stated search method', 'Double-blind, 2+ reviewers'],
-  ['Short Communication', '3,000', 'Unstructured, 150 words', 'Condensed IMRaD', 'Double-blind, 2 reviewers'],
-  ['Case Study', '5,000', 'Unstructured, 200 words', 'Context, Case, Analysis, Lessons', 'Double-blind, 2 reviewers'],
-  ['Perspective', '3,000', 'Unstructured, 150 words', 'Free', 'Double-blind, 1–2 reviewers'],
+  ['Short Communication', '3,000', 'Unstructured, 150 words', 'Condensed IMRaD', 'Double-blind, 2+ reviewers'],
+  ['Case Study', '5,000', 'Unstructured, 200 words', 'Context, Case, Analysis, Lessons', 'Double-blind, 2+ reviewers'],
+  ['Perspective', '3,000', 'Unstructured, 150 words', 'Free', 'Double-blind, 2+ reviewers'],
   ['Editorial', '1,500', 'None', 'Free', 'Editor review'],
 ]
 
 const policyGroups = [
   {
-    h: 'Publishing ethics',
+    h: 'Ethics and integrity',
     items: [
       { t: 'Publication ethics', href: '/policies/publication-ethics' },
       { t: 'Peer review policy', href: '/policies/peer-review-policy' },
@@ -148,7 +149,6 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
       <style>{`body{margin:0;background:var(--page,#fff);color:var(--ink-2,#1F2A36);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}a{color:var(--accent,#1D5DA8);text-decoration:none}a:hover{text-decoration:underline}*:focus-visible{outline:2px solid var(--accent,#1D5DA8);outline-offset:2px}html{scroll-behavior:smooth}
 @keyframes ngiqPulse{0%,100%{box-shadow:0 0 0 0 rgba(165,42,42,.45)}50%{box-shadow:0 0 0 6px rgba(165,42,42,0)}}
 .au-quick:hover{background:var(--surface-3,#FAFBFB)}
-.au-nav:hover{color:var(--accent,#1D5DA8);border-left:2px solid var(--accent,#1D5DA8)}
 .au-policy:hover{color:var(--accent,#1D5DA8)}
 .au-m-only{display:none}
 @media (max-width:760px){
@@ -173,7 +173,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             <span style={{ color: 'var(--ink-2,#1F2A36)' }}>For authors</span>
           </nav>
           <h1 style={{ margin: '18px 0 10px', fontFamily: 'var(--font-serif)', fontSize: 40, fontWeight: 600, color: 'var(--ink,#101B27)', letterSpacing: '-.01em' }}>For authors</h1>
-          <p style={{ margin: 0, fontSize: 17, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '64ch' }}>Everything you need to prepare and submit a manuscript to a NextGenIQ Press journal: article types, templates, fees, ethics requirements and open calls. Book series proposals are made on each series’ Propose a Volume page.</p>
+          <p style={{ margin: 0, fontSize: 17, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '64ch' }}>Everything you need to prepare and submit a manuscript to a NextGenIQ Press journal: article types, templates, fees, ethics requirements and open calls. Book series proposals are made on each series’ Propose a volume page.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 0, marginTop: 28, border: '1px solid var(--line,#DCE1E6)', background: 'var(--surface,#fff)', borderRadius: 3 }}>
             {quick.map((q) =>
               q.href.startsWith('#') ? (
@@ -192,14 +192,12 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
         </div>
       </div>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '40px var(--shell-pad) 0', display: 'flex', gap: 56, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <nav aria-label="On this page" className="au-toc" style={{ width: 200, flexShrink: 0, position: 'sticky', top: 16 }}>
-          <span style={{ display: 'block', fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 600, marginBottom: 8 }}>On this page</span>
-          {nav.map((n) => (
-            <a key={n.href} href={n.href} className="au-nav" style={{ display: 'block', fontSize: 14, padding: '6px 0 6px 12px', borderLeft: '2px solid var(--line,#DCE1E6)', color: 'var(--ink-3,#3C4854)' }}>{n.label}</a>
-          ))}
-        </nav>
-        <div id="main-content" style={{ flex: 1, minWidth: 300, maxWidth: 880, display: 'flex', flexDirection: 'column', gap: 64 }}>
-          <section id="steps" style={{ scrollMarginTop: 20 }}>
+        {/* Kept on phones: here the list sits above the content, not below it. */}
+        <div className="au-toc" style={{ width: 200, flexShrink: 0, position: 'sticky', top: 16 }}>
+          <SectionToc entries={nav} hideOnMobile={false} />
+        </div>
+        <div id="main-content" className="m-full" style={{ flex: 1, minWidth: 300, maxWidth: 880, display: 'flex', flexDirection: 'column', gap: 64 }}>
+          <section id="steps" data-sec="1" style={{ scrollMarginTop: 20 }}>
             <h2 style={{ margin: '0 0 6px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Submitting in seven steps</h2>
             <p style={{ margin: '0 0 20px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '66ch' }}>The submission system saves your progress after every step. Most authors complete it in 20–30 minutes once files are prepared.</p>
             <ol style={{ listStyle: 'none', margin: 0, padding: 0, borderTop: '2px solid #101B27' }}>
@@ -217,24 +215,30 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             </div>
           </section>
 
-          <section id="templates" style={{ scrollMarginTop: 20 }}>
-            <h2 style={{ margin: '0 0 16px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Templates and checklist</h2>
+          <section id="templates" data-sec="1" style={{ scrollMarginTop: 20 }}>
+            <h2 style={{ margin: '0 0 6px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Templates</h2>
+            <p style={{ margin: '0 0 18px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '66ch' }}>Each journal has its own Word and LaTeX templates, set up for double-blind review. Book series chapter templates are on each series’ <Link href="/series">author and editor guidelines</Link> page.</p>
             <div style={{ border: '1px solid var(--line,#DCE1E6)', borderRadius: 3 }}>
-              {templates.map((t) => (
-                <div key={t.name} className="au-tpl" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 18px', borderBottom: '1px solid var(--line-soft,#EEF1F4)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, padding: '3px 6px', border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 2, width: 44, textAlign: 'center' }}>{t.ext}</span>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink,#101B27)' }}>{t.name}</span>
-                    <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>{t.meta}</span>
+              {journals.flatMap((j) =>
+                (journalTemplates(j.slug, j.code).downloads ?? []).map((d) => (
+                  <div key={d.href} className="au-tpl" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 18px', borderBottom: '1px solid var(--line-soft,#EEF1F4)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, padding: '3px 6px', border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 2, width: 44, textAlign: 'center' }}>{extOf(d.format)}</span>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink,#101B27)' }}>
+                        {j.code} {lowerFirst(d.label)}
+                      </span>
+                      <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>{d.format}</span>
+                    </div>
+                    <a href={d.href} download className="au-tpl-st" style={{ fontSize: 13, fontWeight: 500 }}>
+                      Download<span className="sr-only"> {j.code} {lowerFirst(d.label)}</span>
+                    </a>
                   </div>
-                  {/* The download files do not exist yet, so no fake href. */}
-                  <span className="au-tpl-st" style={{ fontSize: 13, fontWeight: 500, color: 'var(--muted,#505C68)' }}>In preparation</span>
-                </div>
-              ))}
+                )),
+              )}
             </div>
           </section>
 
-          <section id="types" style={{ scrollMarginTop: 20 }}>
+          <section id="types" data-sec="1" style={{ scrollMarginTop: 20 }}>
             <h2 style={{ margin: '0 0 16px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Article types</h2>
             <div style={{ overflowX: 'auto', borderTop: '2px solid #101B27' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 640 }}>
@@ -258,7 +262,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             </div>
           </section>
 
-          <section id="apc" style={{ scrollMarginTop: 20 }}>
+          <section id="apc" data-sec="1" style={{ scrollMarginTop: 20 }}>
             <h2 style={{ margin: '0 0 6px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Open access and fees</h2>
             <p style={{ margin: '0 0 18px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '66ch' }}>All articles are published open access under CC BY 4.0. Copyright ownership and publishing rights are specified in the applicable publishing agreement and displayed with the work.</p>
             <div style={{ overflowX: 'auto', borderTop: '2px solid #101B27' }}>
@@ -287,7 +291,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             <p style={{ margin: '14px 0 0', fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '72ch' }}>Any introduction of, or change to, article processing charges (APCs) will be announced at least six months before taking effect and will apply only to manuscripts submitted on or after the effective date. Full or partial waivers will be available under the publisher’s published waiver policy, with priority given to authors based in low- and lower-middle-income countries and those facing financial hardship. Waiver requests will be handled confidentially by the publishing office and will not be disclosed to handling editors or reviewers. Editorial decisions will be made independently of authors’ ability to pay.</p>
           </section>
 
-          <section id="cfp" style={{ scrollMarginTop: 20 }}>
+          <section id="cfp" data-sec="1" style={{ scrollMarginTop: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap', marginBottom: 12 }}>
               <h2 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Calls for papers and special issues</h2>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -340,7 +344,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             <p style={{ margin: '14px 0 0', fontSize: 14, color: 'var(--ink-3,#3C4854)' }}>Planning a special issue? <Link href="/editors/special-issues">Read the special issue guidelines</Link>.</p>
           </section>
 
-          <section id="policies" style={{ scrollMarginTop: 20 }}>
+          <section id="policies" data-sec="1" style={{ scrollMarginTop: 20 }}>
             <h2 style={{ margin: '0 0 16px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Policies and ethics</h2>
             <div className="au-pol" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', columnGap: 40 }}>
               {policyGroups.map((g) => (
@@ -354,7 +358,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
             </div>
           </section>
 
-          <section id="reviewers" style={{ scrollMarginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 32, borderTop: '2px solid #101B27', paddingTop: 24 }}>
+          <section id="reviewers" data-sec="1" style={{ scrollMarginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 32, borderTop: '2px solid #101B27', paddingTop: 24 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: 'var(--ink,#101B27)' }}>For reviewers</h2>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Contribute your expertise to rigorous and constructive peer review. Explore our reviewer guidelines, ethical responsibilities, and opportunities to review submissions in your field.</p>
@@ -365,8 +369,8 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: 'var(--ink,#101B27)' }}>For editors</h2>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>Help shape the direction of scholarly publishing in your field. Express your interest in joining an editorial board, propose a journal special issue, or submit a proposal for an edited book or conference proceedings.</p>
               <Link href="/editors#join-a-board" style={{ fontSize: 14, fontWeight: 500 }}>Join an editorial board</Link>
-              <Link href="/editors/special-issues" style={{ fontSize: 14, fontWeight: 500 }}>Special Issue Guidelines</Link>
-              <Link href="/propose-journal" style={{ fontSize: 14, fontWeight: 500 }}>Submit a New Journal proposal</Link>
+              <Link href="/editors/special-issues" style={{ fontSize: 14, fontWeight: 500 }}>Special issue guidelines</Link>
+              <Link href="/propose-journal" style={{ fontSize: 14, fontWeight: 500 }}>Submit a new journal proposal</Link>
             </div>
             <div id="librarians" style={{ display: 'flex', flexDirection: 'column', gap: 8, scrollMarginTop: 20 }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: 'var(--ink,#101B27)' }}>For librarians</h2>

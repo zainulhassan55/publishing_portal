@@ -93,3 +93,25 @@ export function clampText(text: string, max = 155): string {
   const cut = text.slice(0, max)
   return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:]$/, '')}…`
 }
+
+/**
+ * In-page anchor ids from section headings: "Article processing charges"
+ * becomes "article-processing-charges", so a shared link says where it points
+ * and survives sections being reordered. Untitled sections fall back to
+ * "section-N"; repeats get a numeric suffix.
+ */
+export function anchorIds(titles: string[]): string[] {
+  const seen = new Map<string, number>()
+  return titles.map((title, i) => {
+    const base =
+      title
+        .toLowerCase()
+        .normalize('NFKD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || `section-${i + 1}`
+    const count = seen.get(base) ?? 0
+    seen.set(base, count + 1)
+    return count === 0 ? base : `${base}-${count + 1}`
+  })
+}

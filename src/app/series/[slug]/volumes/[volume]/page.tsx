@@ -12,6 +12,7 @@ import { clampText, formatDate } from '@/lib/format'
 import { VOLUME_FORMATS } from '@/lib/forms/options'
 import { getPublication, mastheadFor } from '@/lib/publication'
 import { doiUrl } from '@/lib/site'
+import { withSharing } from '@/lib/metadata'
 
 /** Rendered on request and cached; the admin volume screen purges it on every change. */
 export const revalidate = 3600
@@ -24,13 +25,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const v = series ? await publishedVolume(slug, volume) : undefined
   if (!series || !v) return {}
   const title = v.subtitle ? `${v.title}: ${v.subtitle}` : v.title
-  return {
+  return withSharing({
     title: `${title} — ${series.code}`,
     description: clampText(v.abstract ?? `${title}, a volume in ${series.title}.`),
     alternates: { canonical: volumeUrl(v) },
     openGraph: { type: 'book', title, url: volumeUrl(v) },
     other: volumeCitationMeta(v, series),
-  }
+  })
 }
 
 const dt = { fontSize: 13, color: 'var(--muted,#505C68)' } as const

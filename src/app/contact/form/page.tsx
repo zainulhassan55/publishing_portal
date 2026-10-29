@@ -3,8 +3,9 @@ import { ContactForm } from '@/components/contact/ContactForm'
 import { FormPage, formPageRobots } from '@/components/forms/FormPage'
 import { publicationOptions } from '@/data/registry'
 import { requireMemberPage } from '@/lib/auth/require'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = { title: 'Message the editorial office', robots: formPageRobots }
+export const metadata: Metadata = withSharing({ title: 'Message the editorial office', robots: formPageRobots })
 
 export default async function ContactFormPage() {
   const user = await requireMemberPage('/contact/form')

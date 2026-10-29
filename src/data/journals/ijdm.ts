@@ -82,7 +82,7 @@ export const ijdmDetail: JournalDetail = {
     editors,
   },
   pages: [
-    page('aims-scope', 'Aims & scope', 'Aims and Scope', 'The research areas covered by IJDM.', [
+    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by IJDM.', [
       {
         title: '',
         lead: 'The international journal for research on digital technologies, organisations and management practice',
@@ -95,29 +95,29 @@ export const ijdmDetail: JournalDetail = {
         closing: ['Submissions should demonstrate a clear managerial or organisational contribution supported by sound theory, methods, or evidence.'],
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial Board', 'The editors of IJDM.', [
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of IJDM.', [
       { title: 'Editors', table: editorTable(editors) },
     ]),
-    page('author-guidelines', 'Author guidelines', 'Author Guidelines', 'How to prepare a manuscript for IJDM.', [
+    page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for IJDM.', [
       plain([
         'Submissions must be original, written in English, and not under consideration elsewhere. Authors should clearly explain the research question, contribution, analytical approach, findings, limitations, and implications for management.',
         'Submit an anonymised manuscript for double-blind review, with author details provided separately. Include funding, conflicts of interest, data availability, relevant ethical approvals, and substantive AI-use disclosures.',
       ]),
       journalTemplates(slug, 'IJDM'),
     ]),
-    page('peer-review-ethics', 'Peer review & ethics', 'Peer Review and Ethics', 'How IJDM manuscripts are reviewed.', [
+    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How IJDM manuscripts are reviewed.', [
       plain([
         'Suitable manuscripts undergo independent double-blind peer review following editorial screening. Decisions consider originality, theoretical grounding, methodological quality, clarity, and practical significance.',
         'All contributors must follow NextGenIQ Press publication ethics policies. Conflicts of interest are disclosed, and submissions involving editors are handled independently. Authors must protect participants’ privacy and confidential organisational information.',
       ]),
     ]),
-    page('open-access-fees', 'Open access & fees', 'Open Access and Fees', 'Licensing and charges for IJDM articles.', [
+    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for IJDM articles.', [
       plain([
         'Articles are freely available under CC BY 4.0, permitting sharing and adaptation with appropriate attribution. Third-party material may carry separate restrictions.',
         'Current charges and waiver arrangements are disclosed on the fees page. Any new or revised APC will be announced at least six months before taking effect and will apply only to manuscripts submitted on or after the effective date. Editorial decisions are independent of payment.',
       ]),
     ]),
-    page('special-issue-guidelines', 'Special issues', 'Special Issues', 'Proposing a special issue of IJDM.', [
+    page('special-issue-guidelines', 'Special issues', 'Special issues', 'Proposing a special issue of IJDM.', [
       plain([
         'IJDM welcomes proposals on focused and emerging topics in digital management. Proposals should include the theme, rationale, topics, guest editor biographies, and timeline. All submissions follow the journal’s standard review and ethics requirements.',
       ]),

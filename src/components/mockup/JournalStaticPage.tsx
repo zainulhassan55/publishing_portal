@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { SectionToc } from '@/components/nav/SectionToc'
 import { JournalMasthead, type JournalMastheadProps } from './JournalMasthead'
 
 export type PageTable = { head: string[]; rows: string[][] }
@@ -50,8 +51,9 @@ export type JournalStaticPageProps = {
   title: string
   blocks: PageBlock[]
   side: SideGroup[]
-  prev: PageNavItem
-  next: PageNavItem
+  /** Absent on the first and last page; the order does not wrap. */
+  prev?: PageNavItem
+  next?: PageNavItem
   cta: PageCta
   /** Records listed under the page text, such as a journal's published articles. */
   list?: PageListItem[]
@@ -112,33 +114,13 @@ const list = { margin: '0 0 20px', paddingLeft: 22, fontSize: 17, lineHeight: 1.
 
 export function JournalStaticPage({ masthead, group, title, blocks, side, prev, next, cta, list: records, children }: JournalStaticPageProps) {
   const j = masthead.j
-  const [active, setActive] = useState('s1')
-
-  useEffect(() => {
-    const onScroll = () => {
-      const els = Array.from(document.querySelectorAll('[data-sec]'))
-      let cur = els[0] && els[0].id
-      for (const el of els) if (el.getBoundingClientRect().top < 140) cur = el.id
-      if (cur) setActive((prevActive) => (cur !== prevActive ? cur : prevActive))
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
   const toc = blocks
     .filter((b) => b.h !== '')
-    .flatMap((b) => [{ id: b.id, label: b.h, indent: '12px' }].concat(b.sub.map((s) => ({ id: s.id, label: s.h, indent: '24px' }))))
-    .map((t) => ({
-      ...t,
-      href: '#' + t.id,
-      bar: t.id === active ? 'var(--accent,#1D5DA8)' : 'var(--line,#DCE1E6)',
-      fg: t.id === active ? 'var(--ink,#101B27)' : 'var(--ink-3,#3C4854)',
-      weight: t.id === active ? 600 : 400,
-    }))
+    .flatMap((b) => [{ id: b.id, label: b.h, indent: 12 }].concat(b.sub.map((s) => ({ id: s.id, label: s.h, indent: 24 }))))
 
   return (
     <>
-      <style>{`html{scroll-behavior:smooth}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}.jsp-side a:hover{color:var(--accent,#1D5DA8)}.jsp-pn:hover,.jsp-dl:hover{border-color:var(--accent,#1D5DA8)!important}@media (max-width:760px){.jsp-aside{position:static!important}.jsp-h1{font-size:30px!important}.jsp-tbl{min-width:0!important}.jsp-tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.jsp-tbl tr{display:block;padding:10px 0;border-bottom:1px solid var(--line,#DCE1E6)}.jsp-tbl td{display:block;padding:2px 0!important;border:0!important}.jsp-tbl-lab td+td::before{content:attr(data-label) ': ';color:var(--muted,#505C68);font-size:12px;text-transform:uppercase;letter-spacing:.04em}}`}</style>
+      <style>{`html{scroll-behavior:smooth}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}.jsp-side a:hover{color:var(--accent,#1D5DA8)}.jsp-pn:hover,.jsp-dl:hover{border-color:var(--accent,#1D5DA8)!important}@media (max-width:760px){.jsp-aside{position:static!important}.jsp-h1{font-size:30px!important}.jsp-pager{grid-template-columns:1fr!important;gap:10px!important}.jsp-pager>span:empty{display:none}.jsp-tbl{min-width:0!important}.jsp-tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.jsp-tbl tr{display:block;padding:10px 0;border-bottom:1px solid var(--line,#DCE1E6)}.jsp-tbl td{display:block;padding:2px 0!important;border:0!important}.jsp-tbl-lab td+td::before{content:attr(data-label) ': ';color:var(--muted,#505C68);font-size:12px;text-transform:uppercase;letter-spacing:.04em}}`}</style>
       <JournalMasthead {...masthead} />
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px var(--shell-pad) 0', display: 'flex', gap: 48, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <nav aria-label={masthead.kind === 'journal' ? 'Journal pages' : 'Series pages'} className="jsp-side m-hide" style={{ width: 230, flexShrink: 0, position: 'sticky', top: 16, fontSize: 14 }}>
@@ -246,29 +228,33 @@ export function JournalStaticPage({ masthead, group, title, blocks, side, prev, 
 
           {children ? <div style={{ marginTop: 16 }}>{children}</div> : null}
 
-          <nav aria-label="Previous and next page" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 40, borderTop: '1px solid var(--line,#DCE1E6)', paddingTop: 20 }}>
-            <Link href={prev.href} className="jsp-pn" style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '14px 16px', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, textDecoration: 'none' }}>
-              <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>← Previous</span>
-              <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--ink,#101B27)' }}>{prev.title}</span>
-            </Link>
-            <Link href={next.href} className="jsp-pn" style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '14px 16px', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, textAlign: 'right', textDecoration: 'none' }}>
-              <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>Next →</span>
-              <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--ink,#101B27)' }}>{next.title}</span>
-            </Link>
-          </nav>
+          {prev || next ? (
+            <nav aria-label="Previous and next page" className="jsp-pager" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 40, borderTop: '1px solid var(--line,#DCE1E6)', paddingTop: 20 }}>
+              {/* The label and title are separate lines visually; the ": " keeps them apart for screen readers and copied text. */}
+              {prev ? (
+                <Link href={prev.href} className="jsp-pn" style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '14px 16px', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, textDecoration: 'none' }}>
+                  <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>
+                    <span aria-hidden="true">← </span>Previous<span className="sr-only">: </span>
+                  </span>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--ink,#101B27)' }}>{prev.title}</span>
+                </Link>
+              ) : (
+                <span />
+              )}
+              {next ? (
+                <Link href={next.href} className="jsp-pn" style={{ display: 'flex', flexDirection: 'column', gap: 4, padding: '14px 16px', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, textAlign: 'right', textDecoration: 'none' }}>
+                  <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>
+                    Next<span aria-hidden="true"> →</span><span className="sr-only">: </span>
+                  </span>
+                  <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--ink,#101B27)' }}>{next.title}</span>
+                </Link>
+              ) : null}
+            </nav>
+          ) : null}
         </div>
 
         <aside className="jsp-aside m-full" style={{ width: 220, flexShrink: 0, position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {toc.length > 1 ? (
-            <nav aria-label="On this page" className="m-hide">
-              <span style={{ display: 'block', fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 600, marginBottom: 8 }}>On this page</span>
-              {toc.map((t) => (
-                <a key={t.id} href={t.href} style={{ display: 'block', fontSize: 13, lineHeight: 1.4, padding: `5px 0 5px ${t.indent}`, borderLeft: `2px solid ${t.bar}`, color: t.fg, fontWeight: t.weight, textDecoration: 'none' }}>
-                  {t.label}
-                </a>
-              ))}
-            </nav>
-          ) : null}
+          {toc.length > 1 ? <SectionToc entries={toc} /> : null}
           <div style={{ border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink,#101B27)' }}>{cta.title}</span>
             <span style={{ fontSize: 13, color: 'var(--ink-3,#3C4854)', lineHeight: 1.5 }}>{cta.text}</span>

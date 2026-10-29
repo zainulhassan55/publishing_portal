@@ -80,7 +80,7 @@ export const ijicDetail: JournalDetail = {
     editors,
   },
   pages: [
-    page('aims-scope', 'Aims & scope', 'Aims and Scope', 'The research areas covered by IJIC.', [
+    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by IJIC.', [
       {
         title: '',
         lead: 'The international journal for research on artificial intelligence, computational methods and intelligent systems',
@@ -93,29 +93,29 @@ export const ijicDetail: JournalDetail = {
         closing: ['Submissions should demonstrate a clear contribution to intelligent computing beyond routine application of existing methods.'],
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial Board', 'The editors of IJIC.', [
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of IJIC.', [
       { title: 'Editors', table: editorTable(editors) },
     ]),
-    page('author-guidelines', 'Author guidelines', 'Author Guidelines', 'How to prepare a manuscript for IJIC.', [
+    page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for IJIC.', [
       plain([
         'Submissions must be original, written in English, and not under consideration elsewhere. Authors should clearly describe their contribution, methods, results, limitations, and relevant comparisons.',
         'Submit an anonymised manuscript for double-blind review, with author details provided separately. Include funding, conflicts of interest, data availability, relevant ethical approvals, and substantive AI-use disclosures.',
       ]),
       journalTemplates(slug, 'IJIC'),
     ]),
-    page('peer-review-ethics', 'Peer review & ethics', 'Peer Review and Ethics', 'How IJIC manuscripts are reviewed.', [
+    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How IJIC manuscripts are reviewed.', [
       plain([
         'Suitable manuscripts undergo independent double-blind peer review following editorial screening. Decisions consider originality, technical quality, significance, and clarity.',
         'All contributors must follow NextGenIQ Press publication ethics policies. Conflicts of interest are disclosed, and submissions involving editors are handled independently.',
       ]),
     ]),
-    page('open-access-fees', 'Open access & fees', 'Open Access and Fees', 'Licensing and charges for IJIC articles.', [
+    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for IJIC articles.', [
       plain([
         'Articles are freely available under CC BY 4.0, permitting sharing and adaptation with appropriate attribution. Third-party material may carry separate restrictions.',
         'Current charges and waiver arrangements are disclosed on the fees page. Any new or revised APC will be announced at least six months in advance and apply only to subsequent submissions. Editorial decisions are independent of payment.',
       ]),
     ]),
-    page('special-issue-guidelines', 'Special issues', 'Special Issues', 'Proposing a special issue of IJIC.', [
+    page('special-issue-guidelines', 'Special issues', 'Special issues', 'Proposing a special issue of IJIC.', [
       plain([
         'Proposals should include a focused theme, rationale, topics, guest editor biographies, and timeline. Special issue manuscripts follow the journal’s standard review and ethics requirements.',
       ]),

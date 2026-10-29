@@ -36,9 +36,9 @@ export const audiences: Audience[] = [
     text: 'Help shape the direction of scholarly publishing in your field. Express your interest in joining an editorial board, propose a journal special issue, or submit a proposal for an edited book or conference proceedings.',
     links: [
       { label: 'Join an editorial board', href: '/editors/form' },
-      { label: 'Special Issue Guidelines', href: '/editors/special-issues' },
+      { label: 'Special issue guidelines', href: '/editors/special-issues' },
       { label: 'Propose a special issue', href: '/editors/special-issues/form' },
-      { label: 'Submit a New Journal proposal', href: '/propose-journal/form' },
+      { label: 'Submit a new journal proposal', href: '/propose-journal/form' },
     ],
   },
   {
@@ -61,18 +61,18 @@ export const about = {
   ],
   sections: [
     {
-      title: 'Editorial Quality and Integrity',
+      title: 'Editorial quality and integrity',
       // The publisher's draft reads "addWrittenress"; "address" is the evident intent.
       text: 'Editorial assessment and publication decisions are led by subject experts. Our policies are informed by the COPE Core Practices and address peer review, research integrity, conflicts of interest, authorship, and the correction of the scholarly record.',
       link: { label: 'Policies', href: '/policies' },
     },
     {
-      title: 'Access and Discoverability',
+      title: 'Access and discoverability',
       text: 'Individual publication pages provide information about access options, licensing, identifiers, and confirmed indexing coverage. We encourage authors to use ORCID iDs to support accurate attribution and identification of their work.',
       link: { label: 'For librarians', href: '/librarians' },
     },
     {
-      title: 'Publish with Us',
+      title: 'Publish with us',
       text: 'We welcome manuscript submissions, book and special issue proposals, and enquiries about conference proceedings. Researchers may also express their interest in contributing as reviewers or editors.',
       link: { label: 'For authors', href: '/authors' },
     },
@@ -83,28 +83,28 @@ export const about = {
 export const reviewerGuidelines: PublisherSection[] = [
   {
     id: 'accepting-an-invitation',
-    title: 'Accepting an Invitation',
+    title: 'Accepting an invitation',
     paragraphs: [
       'Accept a review invitation only if the submission falls within your expertise and you can meet the deadline. Disclose any potential conflict of interest and notify the editor promptly if you need additional time.',
     ],
   },
   {
     id: 'assessing-the-submission',
-    title: 'Assessing the Submission',
+    title: 'Assessing the submission',
     paragraphs: [
       'Evaluate its relevance, originality, methodological soundness, presentation of results, and support for its conclusions. Consider the quality of references, acknowledgement of limitations, and significance of the contribution. Provide specific, actionable suggestions for improvement.',
     ],
   },
   {
     id: 'confidentiality-and-research-integrity',
-    title: 'Confidentiality and Research Integrity',
+    title: 'Confidentiality and research integrity',
     paragraphs: [
       'Keep submissions and review correspondence confidential. Do not share unpublished material or use it for personal advantage. Report suspected plagiarism, duplicate publication, data manipulation, or other ethical concerns privately to the editor. Recommend additional citations only when they are relevant and justified.',
     ],
   },
   {
     id: 'use-of-ai-tools',
-    title: 'Use of AI Tools',
+    title: 'Use of AI tools',
     paragraphs: [
       'Do not upload confidential submissions or review materials to public or third-party generative AI tools. Follow the publisher’s Generative AI Policy and remain personally responsible for the accuracy and originality of your assessment.',
     ],
@@ -112,7 +112,7 @@ export const reviewerGuidelines: PublisherSection[] = [
   },
   {
     id: 'review-recommendation',
-    title: 'Review Recommendation',
+    title: 'Review recommendation',
     paragraphs: [
       'Select the recommendation requested by the submission system, such as Accept, Minor Revision, Major Revision, or Reject, and explain your reasoning. Keep feedback professional and distinguish essential revisions from optional suggestions.',
     ],
@@ -130,7 +130,7 @@ export const specialIssueLead =
 export const specialIssueGuidelines: PublisherSection[] = [
   {
     id: 'submitting-a-proposal',
-    title: 'Submitting a Proposal',
+    title: 'Submitting a proposal',
     paragraphs: [`To express your interest, register through the relevant submission system or email ${editorialEmail} with:`],
     bullets: [
       'Target journal, proposed title, aims, scope, and topics of interest.',
@@ -140,14 +140,14 @@ export const specialIssueGuidelines: PublisherSection[] = [
   },
   {
     id: 'editorial-standards',
-    title: 'Editorial Standards',
+    title: 'Editorial standards',
     paragraphs: [
       'Proposals are subject to editorial approval. All submissions must meet the journal’s publication ethics requirements and undergo its standard peer-review process. Inclusion in a special issue does not guarantee acceptance. The Editor-in-Chief retains final editorial oversight.',
     ],
   },
   {
     id: 'guest-editor-responsibilities',
-    title: 'Guest Editor Responsibilities',
+    title: 'Guest editor responsibilities',
     paragraphs: [
       'Guest editors help develop the issue, invite relevant submissions, and coordinate timely, impartial reviews. They must disclose conflicts of interest and must not handle or make decisions on their own submissions or those involving a conflict. Such manuscripts will be assigned to an independent editor.',
     ],

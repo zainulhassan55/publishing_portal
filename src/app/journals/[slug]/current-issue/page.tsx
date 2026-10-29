@@ -6,6 +6,7 @@ import { getJournal, journalCode, journalSlugs } from '@/data/registry'
 import { getPublication, mastheadFor } from '@/lib/publication'
 import { authorsShort, formatDate, formatMonthYear, volumeIssueLabel } from '@/lib/format'
 import type { Article } from '@/types/publishing'
+import { withSharing } from '@/lib/metadata'
 
 export function generateStaticParams() {
   return journalSlugs.map((slug) => ({ slug }))
@@ -27,13 +28,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const issue = currentIssue(slug)
   const title = issue ? `${volumeIssueLabel(issue.volume, issue.number)} — ${code}` : `Current issue — ${code}`
 
-  return {
+  return withSharing({
     title,
     description: issue
       ? `Table of contents for ${volumeIssueLabel(issue.volume, issue.number)} of ${journal.title}.`
       : `Articles published in ${journal.title}.`,
     alternates: { canonical: `/journals/${slug}/current-issue` },
-  }
+  })
 }
 
 const toItem = (a: Article): IssueArticle => ({

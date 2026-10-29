@@ -3,8 +3,9 @@ import { FormPage, formPageRobots } from '@/components/forms/FormPage'
 import { SpecialIssueForm } from '@/components/forms/SpecialIssueForm'
 import { journalCode, journals } from '@/data/registry'
 import { requireMemberPage } from '@/lib/auth/require'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = { title: 'Propose a special issue', robots: formPageRobots }
+export const metadata: Metadata = withSharing({ title: 'Propose a special issue', robots: formPageRobots })
 
 export default async function SpecialIssueFormPage() {
   const user = await requireMemberPage('/editors/special-issues/form')

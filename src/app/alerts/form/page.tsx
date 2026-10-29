@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import { AlertsForm } from '@/components/forms/AlertsForm'
 import { FormPage, formPageRobots } from '@/components/forms/FormPage'
 import { requireMemberPage } from '@/lib/auth/require'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = { title: 'Email alerts', robots: formPageRobots }
+export const metadata: Metadata = withSharing({ title: 'Email alerts', robots: formPageRobots })
 
 export default async function AlertsFormPage() {
   const user = await requireMemberPage('/alerts/form')

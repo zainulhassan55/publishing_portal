@@ -406,7 +406,7 @@ export function ProfilePage({ journals }: { journals: ProfileJournalRef[] }) {
             <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink,#101B27)' }}>Keywords</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: 6, border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 3, alignItems: 'center', background: 'var(--surface,#fff)' }}>
+                <div className="focus-ring" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: 6, border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 3, alignItems: 'center', background: 'var(--surface,#fff)' }}>
                   {f.keywords.map((k) => (
                     <span key={k} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px 3px 9px', background: 'var(--line-soft,#EEF1F4)', borderRadius: 2, fontSize: 13, animation: 'ngiqRise .25s ease both' }}>
                       {k}

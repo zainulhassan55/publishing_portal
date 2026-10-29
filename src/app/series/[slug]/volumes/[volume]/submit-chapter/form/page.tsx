@@ -7,12 +7,13 @@ import { getSeries } from '@/data/registry'
 import { requireMemberPage } from '@/lib/auth/require'
 import { volumeWithOpenCall } from '@/lib/books/volumes'
 import { getPublication, mastheadFor } from '@/lib/publication'
+import { withSharing } from '@/lib/metadata'
 
 export const dynamic = 'force-dynamic'
 
 type Params = { params: Promise<{ slug: string; volume: string }> }
 
-export const metadata: Metadata = { title: 'Submit a chapter', robots: formPageRobots }
+export const metadata: Metadata = withSharing({ title: 'Submit a chapter', robots: formPageRobots })
 
 /** The chapter submission form for one volume. A closed call is a 404, as on the call page. */
 export default async function SubmitChapterFormPage({ params }: Params) {

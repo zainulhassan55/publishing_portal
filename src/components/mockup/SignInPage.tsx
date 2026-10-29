@@ -144,8 +144,8 @@ export function SignInPage({ nativeSignIn = false }: { nativeSignIn?: boolean })
   return (
     <>
       <style>{`body{margin:0;background:var(--page-2,var(--surface-2,#F5F6F7));color:var(--ink-2,#1F2A36);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}a{color:var(--accent,#1D5DA8);text-decoration:none}a:hover{text-decoration:underline}*:focus-visible{outline:2px solid var(--accent,#1D5DA8);outline-offset:2px}
-@media (max-width:760px){.si-card{margin:24px var(--shell-pad) 0!important;padding:0!important}.si-sec{padding:28px 20px!important;border-right:0!important}.si-sec+.si-sec{border-top:1px solid var(--line,#DCE1E6)}}`}</style>
-      <div id="main-content" className="si-card" style={{ maxWidth: 960, margin: '56px auto 0', padding: '0 var(--shell-pad)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,380px),1fr))', gap: 0, background: 'var(--surface,#fff)', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, boxSizing: 'border-box' }}>
+@media (max-width:760px){.si-card{margin:24px auto 0!important}.si-sec{padding:28px 20px!important;border-right:0!important}.si-sec+.si-sec{border-top:1px solid var(--line,#DCE1E6)}}`}</style>
+      <div id="main-content" className="si-card" style={{ maxWidth: 960, width: 'calc(100% - 2 * var(--shell-pad))', margin: '56px auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,380px),1fr))', gap: 0, background: 'var(--surface,#fff)', border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, boxSizing: 'border-box' }}>
         <section className="si-sec" style={{ padding: '36px 40px', borderRight: '1px solid var(--line,#DCE1E6)', display: 'flex', flexDirection: 'column', gap: 18 }}>
           <h1 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Sign in</h1>
           <p style={{ margin: '-8px 0 0', fontSize: 14, color: 'var(--ink-3,#3C4854)', lineHeight: 1.5 }}>One account for submitting, reviewing and tracking manuscripts across all NextGenIQ Press journals.</p>
