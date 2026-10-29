@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import { RegisterPage } from '@/components/mockup/RegisterPage'
 import { journalCode, journals } from '@/data/registry'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'Create an account',
   description:
     'Create a NextGenIQ Press account to submit manuscripts, track editorial decisions and accept review invitations across every journal.',
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
   // An account form has nothing to index, and a crawler following it would
   // only find a sign-up it cannot complete.
   robots: { index: false, follow: true },
-}
+})
 
 /**
  * Server wrapper. The journal list is passed in rather than fetched client

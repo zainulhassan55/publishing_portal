@@ -9,6 +9,7 @@ import { buildAllCitations } from '@/lib/citation'
 import { authorsShort, formatDate } from '@/lib/format'
 import { articleJsonLd, breadcrumbJsonLd } from '@/lib/jsonld'
 import { absoluteUrl, siteName } from '@/lib/site'
+import { withSharing } from '@/lib/metadata'
 
 /**
  * The full-text article view.
@@ -65,7 +66,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const description = truncate(article.abstract, 300)
   const path = `/articles/${article.slug}`
 
-  return {
+  return withSharing({
     title: article.title,
     description,
     alternates: { canonical: path },
@@ -81,7 +82,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       tags: article.keywords,
     },
     other,
-  }
+  })
 }
 
 export default async function ArticleRoute({ params }: { params: Promise<{ slug: string }> }) {

@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { policies, policyGroups } from '@/data/policies'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'Policies',
   description:
-    'Publishing ethics, access and data, and publisher policies that apply to every NextGenIQ Press journal and book series.',
+    'Ethics and integrity, access and data, and publisher policies that apply to every NextGenIQ Press journal and book series.',
   alternates: { canonical: '/policies' },
-}
+})
 
 export default function PoliciesIndex() {
   return (

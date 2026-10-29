@@ -204,7 +204,7 @@ export function ProposeJournalPage({ subjects, editorialEmail, view = 'guide' }:
           </p>
         </div>
       </div>
-      <main
+      <div
         id="main-content"
         style={{
           maxWidth: 1280,
@@ -637,7 +637,7 @@ export function ProposeJournalPage({ subjects, editorialEmail, view = 'guide' }:
             </span>
           </div>
         </aside>
-      </main>
+      </div>
     </div>
   )
 }

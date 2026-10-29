@@ -16,6 +16,7 @@ import {
   type SortId,
 } from '@/lib/search-core'
 import { authorsShort, formatDate } from '@/lib/format'
+import { electronicIssn } from '@/data/issn'
 
 /**
  * Search.dc.html replicated verbatim (docs/REPLICATION.md). Matching, faceting
@@ -138,7 +139,7 @@ export function SearchPage({ index, extras }: Props) {
   }
 
   return (
-    <main id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
+    <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
       <style>{`.sr-title:hover{color:var(--accent,#1D5DA8)!important}
 .sr-ftoggle{display:none}
 @media (max-width:760px){
@@ -166,6 +167,7 @@ export function SearchPage({ index, extras }: Props) {
         <form
           onSubmit={onSubmit}
           role="search"
+          className="focus-ring"
           style={{
             display: 'flex',
             maxWidth: 760,
@@ -618,7 +620,7 @@ export function SearchPage({ index, extras }: Props) {
                   {j.title}
                 </Link>
                 <span style={{ fontSize: 13, color: 'var(--muted, #505C68)' }}>
-                  {j.subject} · ISSN applied for · Open access
+                  {j.subject} · ISSN {electronicIssn(j.slug) ?? 'applied for'} · Open access
                 </span>
                 <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: 'var(--ink-3, #3C4854)' }}>{j.scope}</p>
               </div>
@@ -669,6 +671,6 @@ export function SearchPage({ index, extras }: Props) {
           ) : null}
         </div>
       ) : null}
-    </main>
+    </div>
   )
 }

@@ -2,13 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FormLauncher } from '@/components/forms/FormLauncher'
 import { editorialEmail } from '@/lib/site'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'Contact the editorial office',
   description:
     'Send a message to the NextGenIQ Press editorial office about a submission, a policy, a proposal or a technical problem.',
   alternates: { canonical: '/contact' },
-}
+})
 
 const asides = [
   {

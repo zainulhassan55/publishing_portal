@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { SeriesPageView } from '@/components/series/SeriesPageView'
 import { getSeries, series } from '@/data/registry'
+import { withSharing } from '@/lib/metadata'
 
 export function generateStaticParams() {
   return series.map((s) => ({ slug: s.slug }))
@@ -17,11 +18,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const item = getSeries(slug)
   if (!item) return {}
-  return {
+  return withSharing({
     title: `Published volumes — ${item.code}`,
     description: `Volumes published in ${item.title}.`,
     alternates: { canonical: `/series/${slug}/volumes` },
-  }
+  })
 }
 
 export default async function SeriesVolumesPage({ params }: { params: Promise<{ slug: string }> }) {

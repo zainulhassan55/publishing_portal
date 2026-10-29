@@ -7,6 +7,7 @@ import { SessionProvider } from '@/components/auth/SessionProvider'
 import { siteDescription, siteName, siteTagline, siteUrl } from '@/lib/site'
 import { organizationJsonLd, websiteJsonLd } from '@/lib/jsonld'
 import { JsonLd } from '@/components/seo/JsonLd'
+import { shareImage } from '@/lib/metadata'
 
 // next/font downloads and self-hosts at build time, so the CSP can keep
 // font-src to 'self' and there is no render-blocking request to Google.
@@ -49,8 +50,9 @@ export const metadata: Metadata = {
     title: `${siteName} — ${siteTagline}`,
     description: siteDescription,
     locale: 'en_GB',
+    images: [shareImage],
   },
-  twitter: { card: 'summary_large_image' },
+  twitter: { card: 'summary_large_image', images: [shareImage.url] },
   robots: { index: true, follow: true },
   formatDetection: { telephone: false },
 }

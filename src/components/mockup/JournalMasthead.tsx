@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
 export type MastheadJournal = {
@@ -65,7 +66,11 @@ export function JournalMasthead({ j, kind, tab, groups, profile, showIntro = fal
 
   const homeHref = kind === 'journal' ? `/journals/${j.slug}` : `/series/${j.slug}`
   const parent = kind === 'journal' ? { label: 'Journals', href: '/journals' } : { label: 'Book series', href: '/series' }
-  const [primary, ...secondary] = profile.ctas
+  /* The filled button reads as "you are here", so on a page one of the buttons
+     leads to, that button is the filled one; elsewhere the first is. */
+  const pathname = usePathname()
+  const currentCta = profile.ctas.find((c) => c.href === pathname)
+  const filled = currentCta ?? profile.ctas[0]
 
   const tabs: { label: string; key: string; isLink?: boolean; href?: string }[] = [
     { label: kind === 'journal' ? 'Journal home' : 'Series home', key: 'home', isLink: true, href: homeHref },
@@ -123,25 +128,28 @@ export function JournalMasthead({ j, kind, tab, groups, profile, showIntro = fal
             ) : null}
           </div>
           <div className="jm-ctas" style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 200 }}>
-            {primary ? (
-              <Link
-                href={primary.href}
-                className="jm-cta-primary"
-                style={{ background: 'var(--accent,#1D5DA8)', color: '#fff', padding: '10px 16px', borderRadius: 3, fontSize: 14, fontWeight: 500, textAlign: 'center', textDecoration: 'none' }}
-              >
-                {primary.label}
-              </Link>
-            ) : null}
-            {secondary.map((c) => (
-              <Link
-                key={c.href}
-                href={c.href}
-                className="jm-cta-secondary"
-                style={{ border: '1px solid var(--line-strong,#B9C1C9)', color: 'var(--ink,#101B27)', padding: '9px 16px', borderRadius: 3, fontSize: 14, fontWeight: 500, textAlign: 'center', textDecoration: 'none' }}
-              >
-                {c.label}
-              </Link>
-            ))}
+            {profile.ctas.map((c) =>
+              c === filled ? (
+                <Link
+                  key={c.href}
+                  href={c.href}
+                  aria-current={c === currentCta ? 'page' : undefined}
+                  className="jm-cta-primary"
+                  style={{ background: 'var(--accent,#1D5DA8)', color: '#fff', padding: '10px 16px', borderRadius: 3, fontSize: 14, fontWeight: 500, textAlign: 'center', textDecoration: 'none' }}
+                >
+                  {c.label}
+                </Link>
+              ) : (
+                <Link
+                  key={c.href}
+                  href={c.href}
+                  className="jm-cta-secondary"
+                  style={{ border: '1px solid var(--line-strong,#B9C1C9)', color: 'var(--ink,#101B27)', padding: '9px 16px', borderRadius: 3, fontSize: 14, fontWeight: 500, textAlign: 'center', textDecoration: 'none' }}
+                >
+                  {c.label}
+                </Link>
+              ),
+            )}
           </div>
         </div>
         <dl className="jm-facts m-2col" style={{ margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', borderTop: '1px solid var(--line,#DCE1E6)' }}>
@@ -187,7 +195,7 @@ export function JournalMasthead({ j, kind, tab, groups, profile, showIntro = fal
           })}
           <div className="jm-spacer" style={{ flex: 1 }}></div>
           {kind === 'journal' ? (
-            <form action="/search" role="search" className="jm-search" onPointerEnter={(e) => { if (e.pointerType === 'mouse') setOpen(null) }} style={{ display: 'flex', border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 3, overflow: 'hidden', height: 32, margin: '6px 0', background: 'var(--surface,#fff)' }}>
+            <form action="/search" role="search" className="jm-search focus-ring" onPointerEnter={(e) => { if (e.pointerType === 'mouse') setOpen(null) }} style={{ display: 'flex', border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 3, overflow: 'hidden', height: 32, margin: '6px 0', background: 'var(--surface,#fff)' }}>
               <input
                 aria-label="Search this journal"
                 name="q"

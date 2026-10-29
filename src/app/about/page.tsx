@@ -2,12 +2,13 @@ import type { Metadata } from 'next'
 import { AsideBox, AsideLinks, PublisherPage } from '@/components/content/PublisherPage'
 import { about } from '@/data/publisher'
 import { journals, series } from '@/data/registry'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'About',
   description: about.paragraphs[0],
   alternates: { canonical: '/about' },
-}
+})
 
 export default function AboutPage() {
   const [lead, ...rest] = about.paragraphs

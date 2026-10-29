@@ -27,8 +27,19 @@ export const journalSubject = (slug: string) => subjectFor(slug)
 export const getJournalPage = (slug: string, pageId: string): JournalPage | undefined =>
   getJournal(slug)?.pages?.find((p) => p.id === pageId)
 
-/** Flat page order within a journal, used for prev/next navigation. */
-export const journalPageOrder = (slug: string): JournalPage[] => getJournal(slug)?.pages ?? []
+/**
+ * Reading order for prev/next: the sub-navigation's order, group by group, then
+ * any page the menu does not list. Following the stored `pages` array instead
+ * sent "Previous" from a Contributors page to an About page.
+ */
+function menuOrder(menu: JournalMenuGroup[], pages: JournalPage[]): JournalPage[] {
+  const ids = menu.flatMap((g) => g.items.flatMap((item) => (item.kind === 'page' ? [item.id] : [])))
+  const listed = ids.flatMap((id) => pages.filter((p) => p.id === id))
+  return [...listed, ...pages.filter((p) => !ids.includes(p.id))]
+}
+
+/** Page order within a journal, used for prev/next navigation. */
+export const journalPageOrder = (slug: string): JournalPage[] => menuOrder(journalMenu, getJournal(slug)?.pages ?? [])
 
 export const journalPageNeighbours = (slug: string, pageId: string) => neighbours(journalPageOrder(slug), pageId)
 
@@ -136,7 +147,7 @@ export const getSeries = (slug: string) => series.find((s) => s.slug === slug.to
 export const getSeriesPage = (slug: string, pageId: string): JournalPage | undefined =>
   getSeries(slug)?.pages.find((p) => p.id === pageId)
 
-export const seriesPageNeighbours = (slug: string, pageId: string) => neighbours(getSeries(slug)?.pages ?? [], pageId)
+export const seriesPageNeighbours = (slug: string, pageId: string) => neighbours(menuOrder(seriesMenu, getSeries(slug)?.pages ?? []), pageId)
 
 export const seriesPageHref = (slug: string, pageId: string) => `/series/${slug}/${pageId}`
 

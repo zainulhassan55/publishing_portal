@@ -180,14 +180,14 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
   }
 
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 100px' }}>
+    <div style={{ maxWidth: 'calc(620px + 2 * var(--shell-pad))', margin: '0 auto', padding: '20px var(--shell-pad) 100px' }}>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
         <span style={{ color: 'var(--ink-2,#1F2A36)' }}>Create an account</span>
       </nav>
 
-      <div style={{ maxWidth: 620, margin: '28px auto 0' }}>
+      <div style={{ marginTop: 28 }}>
         <h1 style={{ margin: '0 0 8px', fontSize: 28, lineHeight: 1.2, color: 'var(--ink,#101B27)' }}>
           Create an account
         </h1>

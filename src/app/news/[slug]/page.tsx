@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getNews } from '@/data/content'
 import { formatDate } from '@/lib/format'
+import { withSharing } from '@/lib/metadata'
 
 export function generateStaticParams() {
   return getNews().map((item) => ({ slug: item.slug }))
@@ -13,12 +14,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const item = getNews().find((n) => n.slug === slug)
   if (!item) return { title: 'Announcement not found' }
 
-  return {
+  return withSharing({
     title: item.title,
     description: item.body?.[0]?.slice(0, 160) ?? item.title,
     alternates: { canonical: `/news/${item.slug}` },
     openGraph: { type: 'article', title: item.title, publishedTime: item.dateIso },
-  }
+  })
 }
 
 export default async function NewsItemPage({ params }: { params: Promise<{ slug: string }> }) {

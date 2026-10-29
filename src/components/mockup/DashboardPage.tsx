@@ -417,7 +417,7 @@ export function DashboardPage({ journals }: Props) {
   return (
     <div style={{ background: 'var(--page-2, var(--surface-2, #F5F6F7))', paddingBottom: 48 }}>
       <style>{`@keyframes ngiqFadeA{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes ngiqFadeB{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes ngiqGrowA{from{transform:scaleY(0)}to{transform:scaleY(1)}}@keyframes ngiqGrowB{from{transform:scaleY(0)}to{transform:scaleY(1)}}body{margin:0;background:var(--page-2,var(--surface-2,#F5F6F7)) !important;color:var(--ink-2,#1F2A36);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}tr.dbRow{background:var(--rb,var(--surface,#fff))}tr.dbRow:hover{background:var(--surface-3,#FAFBFB)}@media (prefers-reduced-motion:reduce){.dbAnim{animation:none !important}}@media (max-width:760px){.dbTable{min-width:0 !important}.dbTable th,.dbTable td{padding:10px !important}.dbDetail{position:static !important}}`}</style>
-      <main id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '28px var(--shell-pad) 0' }}>
+      <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '28px var(--shell-pad) 0' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {user ? (
@@ -1108,7 +1108,7 @@ export function DashboardPage({ journals }: Props) {
             ) : null}
           </>
         ) : null}
-      </main>
+      </div>
     </div>
   )
 }

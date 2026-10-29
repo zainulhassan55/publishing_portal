@@ -3,8 +3,9 @@ import { EditorialApplicationForm } from '@/components/forms/EditorialApplicatio
 import { FormPage, formPageRobots } from '@/components/forms/FormPage'
 import { publicationOptions } from '@/data/registry'
 import { requireMemberPage } from '@/lib/auth/require'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = { title: 'Reviewer application', robots: formPageRobots }
+export const metadata: Metadata = withSharing({ title: 'Reviewer application', robots: formPageRobots })
 
 export default async function ReviewerFormPage() {
   const user = await requireMemberPage('/reviewers/form')

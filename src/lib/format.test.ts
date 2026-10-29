@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  anchorIds,
   authorsShort,
   citationAuthor,
   daysUntil,
@@ -81,4 +82,9 @@ test('formatFileSize crosses units at 1024', () => {
   assert.equal(formatFileSize(512), '512 B')
   assert.equal(formatFileSize(2048), '2 KB')
   assert.equal(formatFileSize(14_900_000), '14.2 MB')
+})
+
+test('anchorIds slugs headings and keeps them unique', () => {
+  assert.deepEqual(anchorIds(['Article processing charges', 'Licence']), ['article-processing-charges', 'licence'])
+  assert.deepEqual(anchorIds(['Contact', '', 'Contact', 'Peer review & ethics']), ['contact', 'section-2', 'contact-2', 'peer-review-ethics'])
 })

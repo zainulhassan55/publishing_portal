@@ -8,6 +8,7 @@ import { getSeries } from '@/data/registry'
 import { volumeWithOpenCall } from '@/lib/books/volumes'
 import { formatDate } from '@/lib/format'
 import { getPublication, mastheadFor } from '@/lib/publication'
+import { withSharing } from '@/lib/metadata'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const series = getSeries(slug)
   const v = series ? await volumeWithOpenCall(slug, volume) : undefined
   if (!series || !v) return { title: 'Call for chapters' }
-  return { title: `Call for chapters: ${v.title} — ${series.code}`, alternates: { canonical: `/series/${slug}/volumes/${v.slug}/submit-chapter` } }
+  return withSharing({ title: `Call for chapters: ${v.title} — ${series.code}`, alternates: { canonical: `/series/${slug}/volumes/${v.slug}/submit-chapter` } })
 }
 
 /** The call for chapters for one volume, and the submission form. A closed call is a 404. */

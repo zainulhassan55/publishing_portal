@@ -5,12 +5,13 @@ import { useEffect, useState } from 'react'
 export type SectionTocEntry = { id: string; label: string; indent?: number }
 
 /**
- * Sticky "On this page" navigation, following the TOC pattern in
- * src/components/mockup/JournalStaticPage.tsx: the active section is the last
+ * The site's one "On this page" navigation (policies, journal and series
+ * pages, publisher pages, the author hub): the active section is the last
  * `[data-sec]` element whose top has passed 140px, and the active entry gets
- * the accent rule, ink text and 600 weight.
+ * the accent rule, ink text and 600 weight. Hidden on phones by default, where
+ * a sidebar list ends up below the content it indexes.
  */
-export function SectionToc({ entries, label = 'On this page' }: { entries: SectionTocEntry[]; label?: string }) {
+export function SectionToc({ entries, label = 'On this page', hideOnMobile = true }: { entries: SectionTocEntry[]; label?: string; hideOnMobile?: boolean }) {
   const [active, setActive] = useState(entries[0]?.id ?? '')
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export function SectionToc({ entries, label = 'On this page' }: { entries: Secti
   }, [])
 
   return (
-    <nav aria-label={label}>
+    <nav aria-label={label} className={hideOnMobile ? 'm-hide' : undefined}>
       <style>{`.stoc a:hover{color:var(--accent,#1D5DA8)}`}</style>
       <span style={{ display: 'block', fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 600, marginBottom: 8 }}>{label}</span>
       <div className="stoc">

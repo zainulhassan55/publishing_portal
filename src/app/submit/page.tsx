@@ -2,13 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { journalCode, journals } from '@/data/registry'
 import { ojsHandoffUrl, ojsSubmitUrl } from '@/lib/ojs/config'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'Submit a manuscript',
   description:
     'Choose the NextGenIQ Press journal that fits your work and start your submission in the editorial system, where drafts save automatically and you can resume at any time.',
   alternates: { canonical: '/submit' },
-}
+})
 
 /**
  * Journal picker — the whole submission itself happens in OJS.

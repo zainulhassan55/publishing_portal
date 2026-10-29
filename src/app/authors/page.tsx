@@ -4,13 +4,14 @@ import { getCalls } from '@/data/content'
 import { isStanding } from '@/data/content/cfps'
 import { journalCode, journals } from '@/data/registry'
 import { formatDate } from '@/lib/format'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'For authors',
   description:
     'Everything you need to prepare and submit a manuscript to a NextGenIQ Press journal: scope, article types, templates, fees, ethics requirements and open calls.',
   alternates: { canonical: '/authors' },
-}
+})
 
 export default function Page() {
   const journalRefs: AuthorsJournalRef[] = journals.map((j) => ({

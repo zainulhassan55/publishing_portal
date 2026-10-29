@@ -16,9 +16,9 @@ import { editorialEmail, licenceShort, licenceUrl, siteName } from '@/lib/site'
  * terms, cookies and accessibility carry the publisher's full text as given.
  */
 
-export type PolicyGroup = 'Publishing ethics' | 'Access and data' | 'Publisher policies'
+export type PolicyGroup = 'Ethics and integrity' | 'Access and data' | 'Publisher policies'
 
-export const policyGroups: PolicyGroup[] = ['Publishing ethics', 'Access and data', 'Publisher policies']
+export const policyGroups: PolicyGroup[] = ['Ethics and integrity', 'Access and data', 'Publisher policies']
 
 export type PolicyPage = {
   slug: string
@@ -35,11 +35,11 @@ export type PolicyPage = {
 const OCT_2026 = '2026-10-25'
 
 export const policies: PolicyPage[] = [
-  /* ---------------------------- Publishing ethics --------------------------- */
+  /* -------------------------- Ethics and integrity -------------------------- */
   {
     slug: 'publication-ethics',
-    title: 'Publication Ethics',
-    group: 'Publishing ethics',
+    title: 'Publication ethics',
+    group: 'Ethics and integrity',
     summary:
       'NextGenIQ Press expects authors, reviewers, and editors to uphold research integrity, accurate reporting, and responsible authorship. Plagiarism, fabricated or manipulated findings, duplicate publication, and undisclosed conflicts of interest are unacceptable. Concerns are assessed fairly, with reference to relevant COPE guidance.',
     updatedIso: OCT_2026,
@@ -79,17 +79,31 @@ export const policies: PolicyPage[] = [
   },
   {
     slug: 'peer-review-policy',
-    title: 'Peer Review Policy',
-    group: 'Publishing ethics',
+    title: 'Peer review policy',
+    group: 'Ethics and integrity',
     summary:
       'Submissions undergo editorial screening and peer review appropriate to the publication type. Reviewers assess originality, methodological soundness, clarity, and the strength of the evidence. Each title specifies its review model, and editorial decisions are based on scholarly merit independently of publication payments.',
     updatedIso: OCT_2026,
-    blocks: [],
+    blocks: [
+      {
+        title: 'Journals',
+        paragraphs: [
+          'Journal submissions are reviewed double-blind: authors and reviewers are not told each other’s identities. Every peer-reviewed article type receives reports from at least two independent reviewers; editorials are reviewed by the editors.',
+          'Target times are a technical check within 3–6 working days, an editorial assessment within 7–12 working days, peer review of 4–6 weeks, and a first decision 6–10 weeks after submission. Median performance will be published once 50 decisions have been made.',
+        ],
+      },
+      {
+        title: 'Book series',
+        paragraphs: [
+          'Volume proposals, chapters and proceedings papers are reviewed as set out on each series’ peer review and ethics page.',
+        ],
+      },
+    ],
   },
   {
     slug: 'generative-ai-policy',
-    title: 'Generative AI Policy',
-    group: 'Publishing ethics',
+    title: 'Generative AI policy',
+    group: 'Ethics and integrity',
     summary:
       'Authors must disclose substantive use of generative AI and remain responsible for the accuracy, originality, and integrity of their submissions. AI tools cannot be credited as authors. Editors and reviewers must not upload confidential submissions or review materials to public or third-party generative AI services.',
     updatedIso: OCT_2026,
@@ -120,8 +134,8 @@ export const policies: PolicyPage[] = [
   },
   {
     slug: 'corrections-retractions',
-    title: 'Corrections and Retractions',
-    group: 'Publishing ethics',
+    title: 'Corrections and retractions',
+    group: 'Ethics and integrity',
     summary:
       'Errors or concerns affecting published work are investigated and addressed through corrections, expressions of concern, or retractions, as appropriate. Notices explain the reason for the action and are linked to the original publication. Retractions are clearly identified to maintain a transparent scholarly record.',
     updatedIso: OCT_2026,
@@ -150,7 +164,7 @@ export const policies: PolicyPage[] = [
   /* ----------------------------- Access and data ---------------------------- */
   {
     slug: 'open-access',
-    title: 'Open Access and Licensing',
+    title: 'Open access and licensing',
     group: 'Access and data',
     summary:
       'NextGenIQ Press publications are freely available to read online. Each publication identifies its applicable licence and permitted uses. Where a Creative Commons licence applies, readers may reuse the material according to its conditions, including appropriate attribution.',
@@ -172,7 +186,7 @@ export const policies: PolicyPage[] = [
   },
   {
     slug: 'copyright-licensing',
-    title: 'Copyright and Permissions',
+    title: 'Copyright and permissions',
     group: 'Access and data',
     summary:
       'Copyright ownership and publishing rights are specified in the applicable publishing agreement and displayed with the work. Authors must obtain permission for third-party material where required. Reuse beyond the applicable licence requires permission from the relevant rights holder.',
@@ -181,12 +195,18 @@ export const policies: PolicyPage[] = [
   },
   {
     slug: 'research-data-policy',
-    title: 'Research Data Policy',
+    title: 'Research data policy',
     group: 'Access and data',
     summary:
       'Authors are encouraged to make supporting data, code, and research materials available through suitable repositories and include a data availability statement where applicable. Restrictions arising from privacy, consent, confidentiality, or legal obligations should be explained. Individual publications may set additional requirements.',
     updatedIso: OCT_2026,
     blocks: [
+      {
+        title: 'Data availability statement',
+        paragraphs: [
+          'Journal submissions include a data availability statement, given with the declarations at submission. It says where the supporting data and code can be accessed, or why they cannot be shared.',
+        ],
+      },
       {
         title: 'Deposit and citation',
         paragraphs: [
@@ -203,7 +223,7 @@ export const policies: PolicyPage[] = [
   },
   {
     slug: 'archiving-preservation',
-    title: 'Archiving and Preservation',
+    title: 'Archiving and preservation',
     group: 'Access and data',
     summary:
       'Long-term access arrangements are described on individual publication pages. These identify any preservation services in use and the content they cover. Authors should consult the applicable licence and repository policy when depositing copies of their work.',
@@ -214,7 +234,7 @@ export const policies: PolicyPage[] = [
   /* --------------------------- Publisher policies --------------------------- */
   {
     slug: 'complaints-appeals',
-    title: 'Complaints and Appeals',
+    title: 'Complaints and appeals',
     group: 'Publisher policies',
     summary: `Authors may appeal editorial decisions by providing a reasoned explanation and supporting evidence. Complaints about publishing practices or ethical conduct should include sufficient details for investigation. Appeals and complaints are reviewed impartially, with independent editorial involvement where a conflict exists. Contact ${editorialEmail}.`,
     updatedIso: OCT_2026,
@@ -222,7 +242,7 @@ export const policies: PolicyPage[] = [
   },
   {
     slug: 'privacy',
-    title: 'Privacy Policy',
+    title: 'Privacy policy',
     group: 'Publisher policies',
     summary:
       'This policy explains how personal information is collected and used when people visit our website, submit manuscripts, review content, or contact us. It also describes service-provider access, data retention, security measures, and how individuals can raise privacy concerns or exercise applicable rights.',
@@ -230,19 +250,19 @@ export const policies: PolicyPage[] = [
     updatedIso: OCT_2026,
     blocks: [
       {
-        title: 'Information We Collect and Use',
+        title: 'Information we collect and use',
         paragraphs: [
           'We collect information provided when you create an account, submit or review a manuscript, subscribe to alerts, or contact us. This may include your name, email address, affiliation, ORCID iD, submission materials, and correspondence. We use it to manage publishing activities, deliver requested communications, and respond to enquiries.',
         ],
       },
       {
-        title: 'Sharing and Retention',
+        title: 'Sharing and retention',
         paragraphs: [
           'Relevant information may be shared with editors, reviewers, and service providers as needed to support publishing, subject to confidentiality requirements. We do not sell personal data. Information is retained as necessary for editorial administration, research integrity, and applicable legal obligations. You may unsubscribe from alerts at any time.',
         ],
       },
       {
-        title: 'Your Rights',
+        title: 'Your rights',
         paragraphs: [
           `To request access, correction, or deletion of your personal information, contact ${editorialEmail}. Requests are considered under applicable law. Some information may need to be retained to preserve the scholarly record or meet legal obligations; changes to published content are handled through the relevant editorial policies.`,
         ],
@@ -251,26 +271,26 @@ export const policies: PolicyPage[] = [
   },
   {
     slug: 'terms',
-    title: 'Terms of Use',
+    title: 'Terms of use',
     group: 'Publisher policies',
     summary: 'The terms on which the NextGenIQ Press website and its content may be used.',
     intro: 'These terms apply to the NextGenIQ Press website and its journals and series.',
     updatedIso: OCT_2026,
     blocks: [
       {
-        title: 'Content and Licensing',
+        title: 'Content and licensing',
         paragraphs: [
           'Published content may be accessed and reused under the licence stated on each work. Content licensed under CC BY 4.0 may be shared and adapted, including commercially, with appropriate attribution, a link to the licence, and an indication of any changes. Third-party material may carry separate restrictions. Website design and other publisher-owned material are not covered unless expressly stated.',
         ],
       },
       {
-        title: 'Acceptable Use',
+        title: 'Acceptable use',
         paragraphs: [
           'Use the website lawfully and avoid disrupting its operation or compromising its security. Automated access for research and indexing should respect published access instructions and reasonable rate limits. Access may be restricted where activity affects service performance or security.',
         ],
       },
       {
-        title: 'Accuracy and Availability',
+        title: 'Accuracy and availability',
         paragraphs: [
           'Concerns about published content are addressed through our corrections and retractions policy. We aim to maintain reliable access but cannot guarantee uninterrupted availability.',
         ],
@@ -283,21 +303,21 @@ export const policies: PolicyPage[] = [
   },
   {
     slug: 'cookies',
-    title: 'Cookies and Local Storage',
+    title: 'Cookies and local storage',
     group: 'Publisher policies',
     summary: 'The cookie and browser storage this website uses. We do not use analytics, advertising, or cross-site tracking cookies.',
     intro: 'This policy applies to the NextGenIQ Press website and its journals and series.',
     updatedIso: OCT_2026,
     blocks: [
       {
-        title: 'What We Use',
+        title: 'What we use',
         paragraphs: [
           'We use a session cookie to keep you signed in. It is removed when you sign out. Your selected appearance settings, such as colour palette and display mode, are saved in your browser’s local storage and are not sent to our servers.',
           'We do not use analytics, advertising, or cross-site tracking cookies.',
         ],
       },
       {
-        title: 'Your Choices',
+        title: 'Your choices',
         paragraphs: [
           'You can manage cookies and clear local storage through your browser settings. Blocking the session cookie may prevent sign-in features from working, while clearing local storage will reset your appearance preferences.',
           'If we introduce technologies that require consent, we will request it before activating them.',
@@ -311,7 +331,7 @@ export const policies: PolicyPage[] = [
   },
   {
     slug: 'advertising',
-    title: 'Advertising Policy',
+    title: 'Advertising policy',
     group: 'Publisher policies',
     summary:
       'Any advertising or sponsored content must be clearly identified and distinguishable from scholarly material. Advertising does not influence peer review, editorial decisions, or publication priority. The publisher may decline or remove misleading, inappropriate, or conflicting advertisements.',
@@ -320,7 +340,7 @@ export const policies: PolicyPage[] = [
   },
   {
     slug: 'accessibility',
-    title: 'Accessibility Statement',
+    title: 'Accessibility statement',
     group: 'Publisher policies',
     summary: `NextGenIQ Press aims to make its website and publications accessible to a broad readership. We welcome reports of accessibility barriers and requests for assistance. Please contact ${editorialEmail}, identifying the page or publication and describing the difficulty encountered.`,
     intro:
@@ -328,19 +348,19 @@ export const policies: PolicyPage[] = [
     updatedIso: OCT_2026,
     blocks: [
       {
-        title: 'Our Approach',
+        title: 'Our approach',
         paragraphs: [
           'We aim to meet WCAG 2.2 Level AA, with attention to readable text, colour contrast, keyboard navigation, accessible controls, image descriptions, and reduced-motion preferences. Independent verification of conformance has not yet been completed.',
         ],
       },
       {
-        title: 'Current Limitations',
+        title: 'Current limitations',
         paragraphs: [
           'Some author-supplied PDFs may lack accessibility features. Where available, readers may find the HTML version more accessible. Third-party submission and peer-review systems may also have limitations.',
         ],
       },
       {
-        title: 'Report an Accessibility Issue',
+        title: 'Report an accessibility issue',
         paragraphs: [
           `Please email ${editorialEmail} with the relevant page or publication, the difficulty encountered, and any assistance you need. We will review your report and explain the steps we can take to help.`,
         ],

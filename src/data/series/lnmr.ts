@@ -58,12 +58,12 @@ export const lnmr: Series = {
       { label: 'Published volumes', pageId: 'volumes' },
     ],
     facts: seriesFacts,
-    editorsLabel: 'Series Editor',
+    editorsLabel: 'Series editor',
     editors,
     editorsNote,
   },
   pages: [
-    page('aims-scope', 'Aims & scope', 'Aims and Scope', 'The research areas covered by LNMR.', [
+    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by LNMR.', [
       {
         title: '',
         lead: 'A book series connecting perspectives across disciplines',
@@ -76,10 +76,10 @@ export const lnmr: Series = {
         closing: ['Each volume should have a coherent theme, a clearly defined readership, and a substantive scholarly contribution.'],
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial Board', 'The Series Editor of LNMR.', [
-      { title: 'Series Editor', table: editorTable(editors), paragraphs: [], closing: [editorsNote] },
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The Series Editor of LNMR.', [
+      { title: 'Series editor', table: editorTable(editors), paragraphs: [], closing: [editorsNote] },
     ]),
-    page('propose-volume', 'Propose a volume', 'Propose a Volume', 'What to include in an LNMR volume proposal.', [
+    page('propose-volume', 'Propose a volume', 'Propose a volume', 'What to include in an LNMR volume proposal.', [
       plain(['Proposals are welcome throughout the year. Please include:'], {
         bullets: [
           'Proposed title, publication format, aims, and intended readership.',
@@ -108,25 +108,25 @@ export const lnmr: Series = {
         seriesTemplates('lnmr', 'LNMR'),
       ],
     ),
-    page('peer-review-ethics', 'Peer review & ethics', 'Peer Review and Ethics', 'How LNMR volumes are reviewed.', [
+    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How LNMR volumes are reviewed.', [
       plain([
         'All volumes undergo editorial assessment and independent peer review. Monographs are assessed as complete works; chapters and proceedings papers are reviewed individually, alongside assessment of the volume’s overall coherence.',
         'Where appropriate, reviewers from complementary disciplines assess the contribution. Submissions involving an editor’s own work or a conflict of interest are handled independently. All contributions must comply with NextGenIQ Press publication ethics policies.',
       ]),
     ]),
-    page('open-access-fees', 'Open access & fees', 'Open Access and Fees', 'Licensing and charges for LNMR volumes.', [
+    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for LNMR volumes.', [
       plain([
         'Published volumes are freely available online under CC BY 4.0, permitting sharing and adaptation with appropriate attribution. Third-party material may carry separate restrictions.',
         'There is no submission fee. Any publication charges, funding arrangements, or available waivers will be disclosed before a publishing agreement is signed. Editorial decisions are independent of payment.',
       ]),
     ]),
-    page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and Abstracting', 'Indexing status of LNMR.', [
+    page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and abstracting', 'Indexing status of LNMR.', [
       plain([
         'LNMR is a new series, and no indexing coverage is currently confirmed. Eligible publications may be submitted to relevant indexing services for independent assessment; inclusion is not guaranteed.',
         'Confirmed coverage will be reported here, specifying whether it applies to the series, individual volumes, or chapters. Publication identifiers will be displayed once assigned.',
       ]),
     ]),
-    page('volumes', 'Published volumes', 'Published Volumes', 'Volumes published in LNMR.', [
+    page('volumes', 'Published volumes', 'Published volumes', 'Volumes published in LNMR.', [
       plain([
         'Published volumes will be listed here as they become available. We currently welcome proposals for monographs, edited collections, and proceedings from conferences, symposia, and workshops within the series scope.',
       ]),

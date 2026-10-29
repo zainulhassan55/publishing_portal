@@ -2,8 +2,9 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { DashboardPage } from '@/components/mockup/DashboardPage'
 import { journalCode, journals } from '@/data/registry'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'My submissions',
   description:
     'Track your NextGenIQ Press submissions and review invitations, and resume incomplete submissions in the editorial system.',
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   // A per-user workspace must never be indexed, and there is nothing here for a
   // crawler to follow either.
   robots: { index: false, follow: false },
-}
+})
 
 /**
  * Server wrapper for the replicated Dashboard.dc.html page. The route stays a

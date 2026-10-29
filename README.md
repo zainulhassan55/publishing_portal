@@ -1,12 +1,31 @@
 # NextGenIQ Press — publishing portal
 
-The public platform for an independent open-access publisher: ten peer-reviewed
-journals, two book series and two proceedings series. Next.js 16 (App Router),
-React 19, TypeScript, Tailwind v4.
+The public website of NextGenIQ Press, an independent open-access publisher, at
+**https://www.nextgeniqpress.com**. It is a Next.js 16 (App Router) application,
+written in React 19 and TypeScript, styled with Tailwind v4, and backed by MySQL
+and Cloudflare R2.
 
-OJS 3.5 runs alongside it as a separate service and remains the system of record
-for everything in the editorial workflow. See
-[docs/OJS-INTEGRATION.md](docs/OJS-INTEGRATION.md).
+It runs side by side with **OJS 3.5** (Open Journal Systems), served at `/ojs` on
+the same domain. OJS is the system of record for users, manuscripts, peer review
+and published articles. The portal is the public face: it reads published
+content from OJS, signs users in through OJS, and owns the things OJS has no
+place for (book series, editorial forms, the admin panel).
+
+> **New to this repo?** Start with [docs/HANDOVER.md](docs/HANDOVER.md). It
+> gives the reading order, the accounts and access you need, the current state of
+> the system and the open work.
+
+## What is published
+
+| Code | Title | Kind | Slug | Spec |
+| --- | --- | --- | --- | --- |
+| IJIC | International Journal of Intelligent Computing | Journal | `ijic` | [src/data/journals/ijic.ts](src/data/journals/ijic.ts) |
+| IJDM | International Journal of Digital Management | Journal | `ijdm` | [src/data/journals/ijdm.ts](src/data/journals/ijdm.ts) |
+| AIISC | Advances in AI, Intelligent Systems and Computing | Book series | `aiisc` | [src/data/series/aiisc.ts](src/data/series/aiisc.ts) |
+| LNMR | Lecture Notes in Multidisciplinary Research | Book series | `lnmr` | [src/data/series/lnmr.ts](src/data/series/lnmr.ts) |
+
+Eight older journals and three older series were removed in October 2026. They
+308-redirect (see `next.config.ts`), but OJS still hosts them.
 
 ## Quick start
 
@@ -15,76 +34,99 @@ nvm use                  # Node 22.13 (pinned in .nvmrc)
 npm ci
 cp .env.example .env.local
 npm run harvest          # writes content/harvest.json (empty without OJS)
-npm run dev
+npm run dev              # http://localhost:3000
 ```
 
-The site runs with no database and no OJS: anything that needs them degrades to
-a link-out or an explained unavailable state rather than erroring.
-
-Content is populated out of the box — the fixture articles, issues and calls
-(the same records as the mockups' `data.js`) render on every surface, and
-harvested OJS content displaces them as it accumulates. Set
-`NEXT_PUBLIC_DEMO_CONTENT=0` to preview the empty/launch state.
+You don't need a database, OJS, R2 or SMTP to run the site locally. Anything
+that depends on them degrades to a link-out or an "unavailable" message instead
+of crashing. To work on forms, sign-in or the admin panel, follow
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) to add MySQL (Docker) and the other
+services.
 
 ## Scripts
 
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Development server |
-| `npm run build` / `npm start` | Production build and serve |
-| `npm run verify` | Typecheck, lint, test — the CI gate |
-| `npm test` | Unit tests (node:test, no runner dependency) |
-| `npm run harvest` | Pull published content from OJS into `content/harvest.json` |
-| `npm run db:migrate` | Apply `migrations/*.sql` |
-| `./scripts/deploy.sh staging\|production` | Atomic deploy with health gate and auto-rollback |
-| `node scripts/check-ssr.mjs` | Assert routes serve real HTML, not a JS shell |
+| `npm run build` / `npm start` | Production build (`output: 'standalone'`) and serve |
+| `npm run verify` | Typecheck, lint and unit tests; the gate CI and the deploy run |
+| `npm test` | Unit tests (`node:test`; files are `src/lib/**/*.test.ts`) |
+| `npm run harvest` | Pull published content from OJS into the harvest snapshot |
+| `npm run db:migrate` | Apply `migrations/*.sql` to `PORTAL_DATABASE_URL` |
+| `npm run storage:check` | Upload, read back and delete a test file in R2 |
+| `npm run spike` | Live OJS diagnostic (config, API key, sign-in relay) |
+| `npm run templates` | Rebuild the Word and LaTeX manuscript templates in `public/templates/` |
+| `./scripts/deploy.sh production` | Atomic deploy with health gate and auto-rollback (CI normally runs this) |
+| `node scripts/check-ssr.mjs` | Assert key routes serve real HTML, not a JS shell |
 
-## How it is laid out
+## Repository layout
 
 ```
 src/
-  app/                 routes; public pages are statically generated
-    api/               route handlers — the BFF (forms, drafts, session, OJS proxy)
+  app/                 routes (public pages are statically generated + ISR)
+    admin/             site-admin panel (OJS site-admin role only)
+    api/               route handlers: auth relay, forms, uploads, admin, health
+    go/                resolvers that map OJS article and issue URLs to portal URLs
   components/
-    mockup/            verbatim replicas of the UI mockups (one per page)
-    nav/ motion/ seo/  scroll-spy TOC, reveal observer, JSON-LD
-  data/                content layer: journals, subjects, policies, ISSNs
-    content/           articles, calls, news (+ demo fixtures)
-  lib/                 search, citation export, SEO metadata, validation, db, OJS client
+    mockup/            page components copied verbatim from the UI mockups
+    admin/ forms/      admin screens and editorial form UI
+    content/ series/   publisher pages, series pages, cards
+  data/                CONTENT LAYER: journals, series, policies, news, publisher text
+  lib/                 auth, OJS client, db, storage, search, citations, SEO, validation
   types/               content and publishing models
-migrations/            portal database schema
-scripts/               harvest, migrate, deploy, SSR check
-docs/                  audits, conventions, integration and operations
+migrations/            portal MySQL schema (001–006)
+scripts/               harvest, migrate, deploy, backup, diagnostics, template builder
+deploy/                nginx vhost, harvest cron script, build env, systemd unit (unused)
+ojs/                   OJS child theme (dmpedia) and a redacted config example
+public/                brand, covers and tiles, generated manuscript templates
+docs/                  documentation (index below)
 ```
 
-`src/data/` is the content layer and the most valuable thing here: one
-`JournalSpec` generates 21 pages for a journal, so adding a journal is one file
-plus one line in `src/data/registry.ts`. Both audits say to preserve it, and the
-rebuild did.
+## Rules that keep the site working
 
-## Before you write a component
-
-Read [docs/REPLICATION.md](docs/REPLICATION.md) — page markup is an exact copy
-of the `UI mockups project` files, inline styles and all. Then
-[docs/PORTING-CONVENTIONS.md](docs/PORTING-CONVENTIONS.md) for data, dates and
-metadata. The rules that are not negotiable:
-
-- **Public pages are statically generated.** A client-rendered article page is
-  invisible to Google Scholar, which is what the previous version got wrong and
-  what this rebuild exists to fix.
-- **Mockup markup is copied verbatim.** Colours only via the var(--token) layer,
-  fixed to the Ink and teal palette. There is no theme picker and no dim mode.
-- **No dead controls.** A button with nothing behind it is worse than no button.
+- **Public pages must be server-rendered.** Google Scholar can't index a
+  client-rendered article page. CI runs `check-ssr.mjs` to enforce this.
+- **The portal never writes to the OJS database.** It talks to OJS only over the
+  REST API, OAI-PMH, and OJS's own web forms (for sign-in and registration).
+- **OJS stays on the same origin, at `/ojs`.** Shared sign-in depends on this,
+  because the portal hands its `OJSSID` session cookie to the browser.
+- **Page markup follows the mockups.** Use inline styles over `var(--token)`
+  colours only. There are no dead controls. See
+  [docs/REPLICATION.md](docs/REPLICATION.md).
+- **A push to `main` deploys to production.** GitHub Actions tags the release and
+  runs `scripts/deploy.sh`. Do your work on a branch and merge to `main` only when
+  it is ready to ship.
 
 ## Documentation
 
-| Document | What it is for |
+**Current. Read these first:**
+
+| Document | What it covers |
 | --- | --- |
-| [docs/PLATFORM-AUDIT.md](docs/PLATFORM-AUDIT.md) | The audit this rebuild responds to |
-| [docs/AUDIT-RESPONSE.md](docs/AUDIT-RESPONSE.md) | Finding-by-finding status |
+| [docs/HANDOVER.md](docs/HANDOVER.md) | Start here: reading order, access checklist, current state, open work |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the system fits together: OJS boundary, data flow, auth, database |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | Local setup, conventions, how to add a journal, series, policy or news item |
+| [docs/API.md](docs/API.md) | Every route handler: method, auth, tables |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Production: server, deploy, environment, harvest, logs, backups, rollback |
+| [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md) | Technical debt, security follow-ups, stale documentation |
+
+**Reference. Still accurate in most places:**
+
+| Document | What it covers |
+| --- | --- |
 | [docs/REPLICATION.md](docs/REPLICATION.md) | How to write page markup (binding) |
-| [docs/PORTING-CONVENTIONS.md](docs/PORTING-CONVENTIONS.md) | Data, dates, metadata, accessibility conventions |
-| [docs/OJS-INTEGRATION.md](docs/OJS-INTEGRATION.md) | The OJS boundary and the auth spike |
-| [docs/RUNBOOK.md](docs/RUNBOOK.md) | Deploy, backups, monitoring, email |
-| [docs/frontend-audit.md](docs/frontend-audit.md) | Frontend inventory and benchmark |
-| [docs/design-brief.md](docs/design-brief.md) | Design brief for the UI |
+| [docs/PORTING-CONVENTIONS.md](docs/PORTING-CONVENTIONS.md) | Data, dates, metadata and accessibility conventions |
+| [docs/OJS-INTEGRATION.md](docs/OJS-INTEGRATION.md) | The OJS boundary in depth, and the history of the auth spike |
+| [docs/CONTENT-RESTRUCTURE-PLAN.md](docs/CONTENT-RESTRUCTURE-PLAN.md) | The October 2026 portfolio change, R2 setup, open publisher questions |
+| [docs/ADMIN-PANEL-PLAN.md](docs/ADMIN-PANEL-PLAN.md) | Admin panel design and which phases are still unbuilt |
+| [docs/SITE-ADMIN-GUIDE.md](docs/SITE-ADMIN-GUIDE.md) | Non-technical guide for the publisher's site administrator |
+| [docs/GO-LIVE.md](docs/GO-LIVE.md) | The original server setup, step by step (Plan B is what was used) |
+| [docs/LOCAL-DEV.md](docs/LOCAL-DEV.md) | Detailed local setup, including against a live OJS |
+| [docs/RUNBOOK.md](docs/RUNBOOK.md) | Older ops runbook. Its systemd parts are superseded by OPERATIONS.md |
+
+**Historical. Background only:** [PLATFORM-AUDIT](docs/PLATFORM-AUDIT.md),
+[AUDIT-RESPONSE](docs/AUDIT-RESPONSE.md), [rebuild-plan](docs/rebuild-plan.md),
+[frontend-audit](docs/frontend-audit.md), [design-brief](docs/design-brief.md).
+
+[docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md#stale-documentation) lists where the
+older documents disagree with the code.

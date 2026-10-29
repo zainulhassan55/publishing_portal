@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { doiPrefix, licenceShort } from '@/lib/site'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'Indexing and discoverability',
   description:
     'The real indexing status of NextGenIQ Press journals, service by service, including what each service requires before an application can be made.',
   alternates: { canonical: '/indexing' },
-}
+})
 
 /**
  * Audit finding F-04: the site advertised "DOI-ready articles" with no Crossref

@@ -7,6 +7,7 @@ import { getSeries, series } from '@/data/registry'
 import { clampText, formatDate } from '@/lib/format'
 import { VOLUME_FORMATS } from '@/lib/forms/options'
 import { getPublication, mastheadFor } from '@/lib/publication'
+import { withSharing } from '@/lib/metadata'
 
 export function generateStaticParams() {
   return series.map((s) => ({ slug: s.slug }))
@@ -20,11 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const item = getSeries(slug)
   if (!item) return { title: 'Series not found' }
 
-  return {
+  return withSharing({
     title: `${item.title} (${item.code})`,
     description: clampText(item.scope),
     alternates: { canonical: `/series/${item.slug}` },
-  }
+  })
 }
 
 export default async function SeriesPage({ params }: { params: Promise<{ slug: string }> }) {

@@ -6,6 +6,7 @@ import { currentIssue, issueArchive } from '@/data/content'
 import { getJournal, journalCode, journalSlugs } from '@/data/registry'
 import { getPublication, mastheadFor } from '@/lib/publication'
 import { formatMonthYear } from '@/lib/format'
+import { withSharing } from '@/lib/metadata'
 
 export function generateStaticParams() {
   return journalSlugs.map((slug) => ({ slug }))
@@ -24,11 +25,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!journal) return {}
 
   const code = journalCode(journal)
-  return {
+  return withSharing({
     title: `Issue archive — ${code}`,
     description: `All published volumes and issues of ${journal.title}, newest first.`,
     alternates: { canonical: `/journals/${slug}/issues` },
-  }
+  })
 }
 
 export default async function JournalIssuesPage({ params }: { params: Promise<{ slug: string }> }) {

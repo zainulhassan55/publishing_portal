@@ -59,10 +59,10 @@ const NAV: NavEntry[] = [
     key: 'editors',
     children: [
       { label: 'Join an editorial board', href: '/editors/form' },
-      { label: 'Special Issue Guidelines', href: '/editors/special-issues' },
+      { label: 'Special issue guidelines', href: '/editors/special-issues' },
       { label: 'Propose a special issue', href: '/editors/special-issues/form' },
       { label: 'Propose a book volume or proceedings', href: '/editors#books-and-proceedings' },
-      { label: 'Submit a New Journal proposal', href: '/propose-journal/form' },
+      { label: 'Submit a new journal proposal', href: '/propose-journal/form' },
     ],
   },
   {
@@ -335,6 +335,7 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
               router.push(allHref)
             }}
             role="search"
+            className="focus-ring"
             style={{
               display: 'flex',
               border: `1px solid ${focus ? 'var(--accent, #1D5DA8)' : 'var(--line-strong, #B9C1C9)'}`,

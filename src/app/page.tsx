@@ -6,14 +6,14 @@ import { about, audiences, hero } from '@/data/publisher'
 import { getJournal, journalCode } from '@/data/registry'
 import { authorsShort, formatDate } from '@/lib/format'
 import { publicationCards } from '@/lib/publication'
-import { siteName } from '@/lib/site'
+import { siteDescription, siteName, siteTagline } from '@/lib/site'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
-  title: { absolute: `${siteName} — open-access academic publishing` },
-  description:
-    'NextGenIQ Press publishes open-access journals, research books, monographs, and conference proceedings across digital, computational, and interdisciplinary fields.',
+export const metadata: Metadata = withSharing({
+  title: { absolute: `${siteName} — ${siteTagline}` },
+  description: siteDescription,
   alternates: { canonical: '/' },
-}
+})
 
 /**
  * Refreshed on the server rather than fixed at build. Published papers reach
@@ -44,10 +44,10 @@ export default async function Page() {
     {
       who: 'Authors',
       headline: 'Publish with us',
-      desc: about.sections.find((s) => s.title === 'Publish with Us')?.text ?? '',
+      desc: 'Submit original research to one of our journals, or propose a volume or chapter for a book series. Journal articles are peer reviewed double-blind and published open access.',
       links: [
         { t: 'Submit a manuscript', href: '/submit' },
-        { t: 'Propose a book volume', href: '/series' },
+        { t: 'Propose a book volume', href: '/editors#books-and-proceedings' },
         { t: 'Open access and fees', href: '/authors#apc' },
       ],
     },

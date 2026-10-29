@@ -25,7 +25,7 @@ import type { TargetOption } from './EditorialApplicationForm'
 
 const BLANK: Person = { name: '', email: '', affiliation: '', country: '', orcid: '', expertise: '', bio: '' }
 
-/** Special issue proposal, following the publisher's Special Issue Guidelines. */
+/** Special issue proposal, following the publisher's special issue guidelines. */
 export function SpecialIssueForm({ journals, journal }: { journals: TargetOption[]; journal?: string }) {
   const [values, setValues] = useState<Values>({ journal: journal ?? '' })
   const [editors, setEditors] = useState<Person[]>([{ ...BLANK }])
@@ -101,7 +101,7 @@ export function SpecialIssueForm({ journals, journal }: { journals: TargetOption
           <TextInput name="submitterEmail" label="Your email address" type="email" required {...field} />
         </div>
       </Fieldset>
-      <Checkbox name="guidelines" label="I have read the Special Issue Guidelines. I understand that submissions follow the journal’s standard peer review, that inclusion does not guarantee acceptance, and that the Editor-in-Chief retains final editorial oversight." {...field} />
+      <Checkbox name="guidelines" label="I have read the special issue guidelines. I understand that submissions follow the journal’s standard peer review, that inclusion does not guarantee acceptance, and that the Editor-in-Chief retains final editorial oversight." {...field} />
       <Failure message={failure} />
       <SubmitButton busy={busy} uploading={files.uploading} label="Send proposal" />
     </form>

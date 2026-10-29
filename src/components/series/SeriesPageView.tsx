@@ -24,8 +24,6 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
   const href = `/series/${slug}/${pageId}`
   const group = groupOf(pub, href)
   const { previous, next } = seriesPageNeighbours(slug, pageId)
-  const wrapPrev = previous ?? pub.pages[pub.pages.length - 1]
-  const wrapNext = next ?? pub.pages[0]
 
   let list: PageListItem[] | undefined
   let calls: BookVolume[] = []
@@ -47,8 +45,8 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
       title={page.title}
       blocks={toPageBlocks(page.blocks)}
       side={sideGroupsFor(pub, href)}
-      prev={{ href: pub.pageHref(wrapPrev.id), title: wrapPrev.label }}
-      next={{ href: pub.pageHref(wrapNext.id), title: wrapNext.label }}
+      prev={previous ? { href: pub.pageHref(previous.id), title: previous.label } : undefined}
+      next={next ? { href: pub.pageHref(next.id), title: next.label } : undefined}
       cta={{
         title: 'Have a volume in mind?',
         text: `${pub.code} welcomes proposals throughout the year.`,

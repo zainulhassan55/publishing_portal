@@ -1,12 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { editorialEmail } from '@/lib/site'
+import { withSharing } from '@/lib/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = withSharing({
   title: 'Email alerts',
   description: 'Confirmation page for NextGenIQ Press email alert subscriptions.',
   robots: { index: false, follow: false },
-}
+})
 
 /**
  * Landing page for the double-opt-in confirmation link. The four states mirror
