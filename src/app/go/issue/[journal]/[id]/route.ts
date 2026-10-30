@@ -1,6 +1,7 @@
 import { handler } from '@/lib/api'
 import { currentIssue, getIssues } from '@/data/content'
 import { ojsUrl } from '@/lib/ojs/config'
+import { periodicalBase } from '@/data/registry'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +23,7 @@ export const GET = handler(async (request) => {
   // is set, else the latest issue — so this lands where the reader expects.
   const isCurrent = issue !== undefined && currentIssue(journal)?.ojsId === issue.ojsId
   const to = issue
-    ? `/journals/${journal}/${isCurrent ? 'current-issue' : 'issues'}`
+    ? `${periodicalBase(journal)}/${isCurrent ? 'current-issue' : 'issues'}`
     : `${ojsUrl(journal, `/issue/view/${segments[segments.length - 1]}`)}?portal=0`
 
   return new Response(null, { status: 302, headers: { Location: to, 'Cache-Control': 'no-store' } })

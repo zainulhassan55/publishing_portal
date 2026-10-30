@@ -23,8 +23,7 @@
 		<div class="dmp_topbar">
 			<div class="dmp_topbar_inner">
 				<a class="dmp_topbar_brand" href="{$portalUrl|escape}/">
-					<img class="dmp_topbar_mark" src="{$portalUrl|escape}/brand/logo-mark.png" alt="" width="247" height="256">
-					<span>NextGenIQ Press</span>
+					<img class="dmp_brand_logo" src="{$portalUrl|escape}/brand/logo-horizontal.png" alt="NextGenIQ Press" width="769" height="160">
 				</a>
 				<nav class="dmp_topbar_links" aria-label="NextGenIQ Press portal">
 					<a href="{$portalUrl|escape}/journals">All journals</a>
@@ -69,7 +68,7 @@
 						<a href="{$homeUrl}" class="is_text">{$displayPageHeaderTitle|escape}</a>
 					{else}
 						<a href="{$homeUrl}" class="is_img">
-							<img src="{$baseUrl}/templates/images/structure/logo.png" alt="{$applicationName|escape}" title="{$applicationName|escape}" width="180" height="90" />
+							<img src="{$portalUrl|escape}/brand/logo-horizontal.png" alt="NextGenIQ Press" width="769" height="160" />
 						</a>
 					{/if}
 					</div>

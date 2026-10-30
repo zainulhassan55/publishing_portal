@@ -37,6 +37,34 @@ export const journalTemplates = (slug: string, code: string): ContentBlock => ({
   ],
 })
 
+/** Magazines: a short two-column article, anonymised, plus a title page carrying the author biographies. */
+export const magazineTemplates = (slug: string, code: string): ContentBlock => ({
+  title: 'Article templates',
+  paragraphs: [
+    `Prepare your article with the ${code} Magazine template in Word or LaTeX. The template uses the magazine’s two-column page, so an article that fits in 5 template pages meets the length limit. It is anonymised for double-blind review; give author names, affiliations, biographies and acknowledgements on the separate title page.`,
+  ],
+  downloads: [
+    {
+      label: 'Article template',
+      href: `${base(slug)}/${code}-article-template.docx`,
+      format: 'Word (.docx)',
+      note: 'Two-column magazine layout with the length limits, a sidebar, figure, table and reference styles.',
+    },
+    {
+      label: 'Title page',
+      href: `${base(slug)}/${code}-title-page.docx`,
+      format: 'Word (.docx)',
+      note: 'Author details, ORCID iDs, short biographies, acknowledgements and funding.',
+    },
+    {
+      label: 'LaTeX template',
+      href: `${base(slug)}/${code}-latex-template.zip`,
+      format: 'LaTeX (.zip)',
+      note: `${latexNote} Includes the title page.`,
+    },
+  ],
+})
+
 /** Book series: a chapter template for edited volumes and proceedings. */
 export const seriesTemplates = (slug: string, code: string): ContentBlock => ({
   title: 'Chapter templates',

@@ -7,7 +7,7 @@ import { fetchLoginForm, fetchOjsIdentity, postSignIn } from '@/lib/auth/ojs-log
 import { ojsIsSameOrigin, ojsSessionCookie } from '@/lib/auth/ojs-cookie'
 import { PORTAL_SESSION_COOKIE, SESSION_TTL_SECONDS, createSession } from '@/lib/auth/portal-session'
 import { ojsBaseUrl } from '@/lib/ojs/config'
-import { captchaGate } from '@/lib/captcha'
+import { CHECK_MESSAGES, checkCode, consumeCode } from '@/lib/auth/email-otp'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,10 +22,15 @@ export const dynamic = 'force-dynamic'
  *
  * Signing in immediately afterwards is the point of doing this at all. A
  * confirmation screen saying "now go and sign in" would have spent the
- * redesign on a form and left the hand-off in place one step later — and with
- * site email unconfigured, anything that waits on an inbox strands people.
- * `require_validation = Off` on this install is what makes it legitimate: the
- * account is usable the moment OJS creates it.
+ * redesign on a form and left the hand-off in place one step later.
+ * `require_validation = Off` keeps OJS from holding the account back for its
+ * own email check, which would break that sign-in.
+ *
+ * The email address is proved here instead: /api/auth/email-code sends a
+ * six-digit code first, and nothing is relayed to OJS until the code matches
+ * (src/lib/auth/email-otp.ts). That step also carries the captcha, so this
+ * route no longer checks one: a script cannot get this far without reading a
+ * real inbox.
  *
  * Validation here is deliberately thin. Shape only — an address that is not
  * an address, a password too short to be worth relaying — and everything
@@ -44,7 +49,7 @@ type Body = {
   country?: string
   journals?: unknown
   asReviewer?: unknown
-  captchaToken?: string
+  code?: string
 }
 
 /** OJS's own floor is 6; `minimum_password_length` is unset on this install. */
@@ -104,10 +109,13 @@ export const POST = handler(async (request) => {
 
   v.throwIfInvalid()
 
-  // Last check before OJS, so a person fixing a field error is not made to
-  // redo the captcha for a mistake the portal could have named first.
-  const blocked = await captchaGate(request, body.captchaToken, 'register')
-  if (blocked) return blocked
+  // Last check before OJS, so field errors are named first. The code is not
+  // used up until the account exists: if OJS refuses the username, the person
+  // fixes it and resubmits with the same code.
+  const codeCheck = await checkCode(email, 'register', body.code)
+  if (codeCheck !== 'ok') {
+    return jsonError('validation', 422, { errors: [{ field: 'code', message: CHECK_MESSAGES[codeCheck] }] })
+  }
 
   // The browser's agent rides along for the same reason it does at sign-in:
   // OJS fingerprints a session by the agent that created it, and the session
@@ -148,6 +156,8 @@ export const POST = handler(async (request) => {
     // rule need different corrections from the person.
     return jsonError('rejected', 422, result.message ? { message: result.message } : {})
   }
+
+  await consumeCode(email, 'register')
 
   /* ------------------------- sign the new member in ------------------------ */
 

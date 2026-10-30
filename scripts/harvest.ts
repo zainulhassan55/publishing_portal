@@ -73,7 +73,7 @@ function existingArticleCount(): number {
 const baseUrl = (process.env.OJS_BASE_URL || '').replace(/\/$/, '')
 const apiKey = process.env.OJS_API_KEY || ''
 
-const JOURNAL_SLUGS = ['ijdh', 'ijdm', 'ijds', 'ijei', 'ijic', 'ijis', 'ijmc', 'ijmr', 'ijqt', 'ijse']
+const JOURNAL_SLUGS = ['ijdh', 'ijdm', 'ijds', 'ijei', 'ijic', 'ijis', 'ijmc', 'ijmr', 'ijqt', 'ijse', 'jqcs', 'jaise', 'sst']
 
 type Localised = Record<string, string> | string | undefined
 

@@ -34,6 +34,7 @@ type ProposalRow = {
   decided_at: Date | null
   decided_by: number | null
   decision_note: string | null
+  decision_emailed_at: Date | null
   payload: unknown
   created_at: Date
   updated_at: Date
@@ -47,7 +48,7 @@ export const GET = handler(async (request) => {
     `SELECT id, title, subject, scope, rationale, expected_volume,
             eic_name, eic_affiliation, eic_orcid,
             proposer_name, proposer_email, status,
-            decided_at, decided_by, decision_note, payload, created_at, updated_at
+            decided_at, decided_by, decision_note, decision_emailed_at, payload, created_at, updated_at
        FROM journal_proposals
       ORDER BY
         -- Undecided first, oldest first within that: the queue is a worklist,
@@ -73,6 +74,7 @@ export const GET = handler(async (request) => {
       decidedAtIso: row.decided_at ? new Date(row.decided_at).toISOString() : null,
       decidedBy: row.decided_by,
       decisionNote: row.decision_note,
+      emailedAtIso: row.decision_emailed_at ? new Date(row.decision_emailed_at).toISOString() : null,
       payload: row.payload,
       createdAtIso: new Date(row.created_at).toISOString(),
       updatedAtIso: new Date(row.updated_at).toISOString(),

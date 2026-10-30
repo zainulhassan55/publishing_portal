@@ -5,6 +5,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import type { Article, ArticleFigure, ArticleSection } from '@/types/publishing'
 import { formatDate, formatNumber } from '@/lib/format'
 import { doiUrl } from '@/lib/site'
+import { periodicalBase } from '@/data/registry'
 import { citationFormats, type CitationFormat } from '@/lib/citation'
 import { PdfViewer } from '@/components/article/PdfViewer'
 
@@ -131,9 +132,9 @@ export function ArticlePage({ article, journalTitle, journalSlug, citations, rel
   const crossColor = retracted ? '#A52A2A' : '#1E6B3A'
   const crossLabel = retracted ? 'Retracted' : 'Current version'
 
-  const jHref = `/journals/${journalSlug}`
-  const issueHref = `/journals/${journalSlug}/current-issue`
-  const licenseHref = `/journals/${journalSlug}/copyright-licensing`
+  const jHref = periodicalBase(journalSlug)
+  const issueHref = `${periodicalBase(journalSlug)}/current-issue`
+  const licenseHref = `${periodicalBase(journalSlug)}/copyright-licensing`
 
   const marker = (i: number) => String.fromCharCode(97 + i)
   const authorSup = (ids: string[]) =>

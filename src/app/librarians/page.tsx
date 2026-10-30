@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { AsideBox, AsideLinks, PublisherPage } from '@/components/content/PublisherPage'
 import { audiences, librarianSections } from '@/data/publisher'
-import { journals, series } from '@/data/registry'
+import { journals, periodicalBase, series } from '@/data/registry'
 import { withSharing } from '@/lib/metadata'
 
 const librarians = audiences.find((a) => a.id === 'librarians')!
@@ -24,7 +24,7 @@ export default function LibrariansPage() {
         {
           ...browse,
           links: [
-            ...journals.map((j) => ({ label: j.title, href: `/journals/${j.slug}` })),
+            ...journals.map((j) => ({ label: j.title, href: periodicalBase(j.slug) })),
             ...series.map((s) => ({ label: s.title, href: `/series/${s.slug}` })),
           ],
         },
@@ -47,7 +47,7 @@ export default function LibrariansPage() {
         <AsideBox title="Publications">
           <AsideLinks
             links={[
-              ...journals.map((j) => ({ label: `${j.shortTitle} · ${j.title}`, href: `/journals/${j.slug}` })),
+              ...journals.map((j) => ({ label: `${j.shortTitle} · ${j.title}`, href: periodicalBase(j.slug) })),
               ...series.map((s) => ({ label: `${s.code} · ${s.title}`, href: `/series/${s.slug}` })),
             ]}
           />

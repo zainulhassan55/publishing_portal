@@ -14,10 +14,18 @@ export const plain = (paragraphs: string[], extra: Omit<ContentBlock, 'title' | 
   ...extra,
 })
 
+/** Editors as name and university rows, with no column headings. */
 export const editorTable = (editors: { name: string; affiliation: string }[]) => ({
-  head: ['Name', 'Affiliation'],
+  head: [],
   rows: editors.map((e) => [e.name, e.affiliation]),
 })
+
+/**
+ * Editorial board text for a title whose editors have not been named yet. The
+ * page's call to action links to the application form (see the [pageId] route).
+ */
+export const boardPending = (code: string) =>
+  `The ${code} editorial board is being appointed, and its members will be listed here. Researchers with relevant expertise who would like to serve on the board are welcome to apply.`
 
 /** Facts strip for a journal. ISSNs read "Applied for" until `issn.ts` holds an assigned number. */
 export const journalFacts = (eIssn: string | null) => [

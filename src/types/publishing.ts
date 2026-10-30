@@ -13,6 +13,8 @@ export type SubjectKey =
   | 'interdisciplinary'
   | 'mathematics'
   | 'electronics'
+  | 'energy'
+  | 'security'
 
 export type Subject = {
   key: SubjectKey

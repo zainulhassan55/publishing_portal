@@ -28,8 +28,7 @@
 		<div class="dmp_footer_grid">
 			<div class="dmp_footer_brand">
 				<a class="dmp_footer_logo" href="{$portalUrl|escape}/">
-					<img class="dmp_topbar_mark" src="{$portalUrl|escape}/brand/logo-mark.png" alt="" width="247" height="256">
-					<span>NextGenIQ Press</span>
+					<img class="dmp_brand_logo" src="{$portalUrl|escape}/brand/logo-horizontal.png" alt="NextGenIQ Press" width="769" height="160">
 				</a>
 				<p>Peer-reviewed, APC-free open-access journals published by NextGenIQ Press.</p>
 			</div>

@@ -7,6 +7,7 @@ const COLUMNS: { label: string; links: [string, string][] }[] = [
     label: 'Publishing',
     links: [
       ['Journals', '/journals'],
+      ['Magazines', '/magazines'],
       ['Book series', '/series'],
     ],
   },
@@ -46,14 +47,13 @@ export function Footer() {
     <footer style={{ fontFamily: 'var(--font-sans)', background: 'var(--brand, #0F2B46)', borderTop: '4px solid', borderImage: 'linear-gradient(90deg,var(--accent, #0C8375),var(--warm, #C2410C)) 1', color: '#D5DEE7', marginTop: 80 }}>
       <div className="m-2col" style={{ maxWidth: 1280, margin: '0 auto', padding: '48px var(--shell-pad) 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 32 }}>
         <div className="m-span-all" style={{ display: 'flex', flexDirection: 'column', gap: 12, gridColumn: 'span 1', minWidth: 220 }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
-            {/* White tile: the logo's navy would vanish against the footer. */}
-            <span style={{ background: '#fff', borderRadius: 4, padding: 5, display: 'flex' }}>
-              <Image src="/brand/logo-mark.webp" alt="" width={34} height={35} style={{ display: 'block' }} />
+          <Link href="/" style={{ display: 'flex', alignSelf: 'flex-start', textDecoration: 'none' }}>
+            {/* White tile: the logo's navy lettering would vanish against the footer. */}
+            <span style={{ background: '#fff', borderRadius: 4, padding: '8px 12px', display: 'flex' }}>
+              <Image src="/brand/logo-horizontal.webp" alt="NextGenIQ Press" width={192} height={40} style={{ display: 'block' }} />
             </span>
-            <span style={{ fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 600, color: '#fff' }}>NextGenIQ Press</span>
           </Link>
-          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: '#C3CFDB', maxWidth: '32ch' }}>Independent academic publisher of open-access journals, book series and conference proceedings.</p>
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: '#C3CFDB', maxWidth: '32ch' }}>Independent academic publisher of open-access journals, magazines, book series and conference proceedings.</p>
           <p style={{ margin: 0, fontSize: 13, color: '#C3CFDB' }}>contact@nextgeniqpress.com</p>
         </div>
         {COLUMNS.map((col) => (

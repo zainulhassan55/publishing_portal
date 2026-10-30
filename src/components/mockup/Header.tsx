@@ -8,7 +8,7 @@ import { useSession } from '@/components/auth/SessionProvider'
 import { useHydrated } from '@/lib/hooks/client-state'
 import { hasEditorialRole, roleLabel } from '@/lib/auth/roles'
 import { normalise } from '@/lib/search-core'
-import { journalCode, journals, series, seriesPageHref } from '@/data/registry'
+import { journalCode, journals, journalsOnly, magazines, periodicalBase, series, seriesPageHref } from '@/data/registry'
 import type { TypeaheadIndex } from '@/lib/search'
 
 /**
@@ -32,7 +32,17 @@ const NAV: NavEntry[] = [
     label: 'Journals',
     href: '/journals',
     key: 'journals',
-    children: [...journals.map((j) => ({ label: `${j.title} (${journalCode(j)})`, href: `/journals/${j.slug}` })), { label: 'All journals', href: '/journals' }],
+    children: [...journalsOnly.map((j) => ({ label: `${j.title} (${journalCode(j)})`, href: periodicalBase(j.slug) })), { label: 'All journals', href: '/journals' }],
+  },
+  {
+    label: 'Magazines',
+    href: '/magazines',
+    key: 'magazines',
+    children: [
+      ...magazines.map((m) => ({ label: `${m.title} (${journalCode(m)})`, href: periodicalBase(m.slug) })),
+      ...magazines.map((m) => ({ label: `${journalCode(m)} author guidelines`, href: `${periodicalBase(m.slug)}/author-guidelines` })),
+      { label: 'All magazines', href: '/magazines' },
+    ],
   },
   {
     label: 'Book series',
@@ -81,7 +91,7 @@ const NAV: NavEntry[] = [
     key: 'authors',
     children: [
       { label: 'Submit a manuscript', href: '/submit' },
-      ...journals.map((j) => ({ label: `${journalCode(j)} author guidelines`, href: `/journals/${j.slug}/author-guidelines` })),
+      ...journals.map((j) => ({ label: `${journalCode(j)} author guidelines`, href: `${periodicalBase(j.slug)}/author-guidelines` })),
       { label: 'Open access and fees', href: '/authors#apc' },
       { label: 'Author resources', href: '/authors' },
     ],
@@ -120,6 +130,7 @@ const activeKey = (pathname: string): string => {
   if (pathname === '/contact') return 'contact'
   if (pathname.startsWith('/policies')) return 'policies'
   if (pathname.startsWith('/journals')) return 'journals'
+  if (pathname.startsWith('/magazines')) return 'magazines'
   if (pathname.startsWith('/articles') || pathname === '/search') return 'articles'
   if (pathname.startsWith('/series')) return 'series'
   if (pathname === '/about') return 'about'
@@ -306,13 +317,9 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
 .ngiqHdrMNav details div a{display:block;padding:9px var(--shell-pad) 9px calc(var(--shell-pad) + 14px);font-size:14px;line-height:1.4;color:var(--ink-2,#1F2A36);text-decoration:none}
 `}</style>
       <div className="ngiqHdrRow" data-open={mobileOpen ? 'true' : 'false'} style={{ maxWidth: 1280, margin: '0 auto', padding: '16px var(--shell-pad)', display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--ink, #101B27)', textDecoration: 'none' }}>
-          {/* The book mark from the publisher's logo. The name beside it is live text: the full
-              stacked logo's lettering is unreadable at header height. */}
-          <Image src="/brand/logo-mark.webp" alt="" width={39} height={40} priority style={{ display: 'block' }} />
-          <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <span style={{ fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 600, letterSpacing: '-.01em' }}>NextGenIQ Press</span>
-          </span>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          {/* The publisher's horizontal lockup; the stacked logo's lettering is unreadable at header height. */}
+          <Image src="/brand/logo-horizontal.webp" alt="NextGenIQ Press" width={192} height={40} priority style={{ display: 'block' }} />
         </Link>
         <button
           type="button"

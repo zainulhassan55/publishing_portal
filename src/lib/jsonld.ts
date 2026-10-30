@@ -1,7 +1,7 @@
 import type { JournalDetail } from '@/types/content'
 import type { Article } from '@/types/publishing'
 import { electronicIssn, printIssn } from '@/data/issn'
-import { journalCode } from '@/data/registry'
+import { journalCode, periodicalBase } from '@/data/registry'
 import { absoluteUrl, doiUrl, licenceUrl, siteDescription, siteName, siteUrl } from './site'
 
 type JsonLdObject = Record<string, unknown>
@@ -21,6 +21,7 @@ export const organizationJsonLd = (): JsonLdObject => ({
   '@type': 'Organization',
   '@id': `${siteUrl}/#organization`,
   name: siteName,
+  alternateName: 'IQ Press',
   url: siteUrl,
   description: siteDescription,
   email: 'contact@nextgeniqpress.com',
@@ -49,10 +50,10 @@ export function journalJsonLd(journal: JournalDetail): JsonLdObject {
   return {
     '@context': 'https://schema.org',
     '@type': 'Periodical',
-    '@id': absoluteUrl(`/journals/${journal.slug}#periodical`),
+    '@id': absoluteUrl(`${periodicalBase(journal.slug)}#periodical`),
     name: journal.title,
     alternateName: journalCode(journal),
-    url: absoluteUrl(`/journals/${journal.slug}`),
+    url: absoluteUrl(periodicalBase(journal.slug)),
     description: journal.scope,
     inLanguage: 'en',
     publisher,

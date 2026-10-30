@@ -158,11 +158,17 @@ fi
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
+#
+# The standalone output already holds `public/` and `content/` (the files Next
+# traced, such as public/brand/logo-mark.png), so these copy the folders'
+# *contents* with `/.`. `cp -R public "$STAGE/public"` into an existing folder
+# nests it at public/public, and the live site then served only the traced
+# logo and 404'd every other image.
 cp -R .next/standalone/. "$STAGE/"
-mkdir -p "$STAGE/.next"
-cp -R .next/static "$STAGE/.next/static"
-cp -R public "$STAGE/public"
-cp -R content "$STAGE/content"
+mkdir -p "$STAGE/.next/static" "$STAGE/public" "$STAGE/content"
+cp -R .next/static/. "$STAGE/.next/static/"
+cp -R public/. "$STAGE/public/"
+cp -R content/. "$STAGE/content/"
 
 # Migrations ship with the release so the server applies them itself during
 # activation. migrate.ts records each file in schema_migrations, so re-running

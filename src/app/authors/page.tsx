@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { AuthorsPage, type AuthorsCall, type AuthorsJournalRef } from '@/components/mockup/AuthorsPage'
 import { getCalls } from '@/data/content'
 import { isStanding } from '@/data/content/cfps'
-import { journalCode, journals } from '@/data/registry'
+import { isMagazine, journalCode, journals, periodicalBase } from '@/data/registry'
 import { formatDate } from '@/lib/format'
 import { withSharing } from '@/lib/metadata'
 
@@ -18,6 +18,7 @@ export default function Page() {
     slug: j.slug,
     code: journalCode(j),
     title: j.title,
+    magazine: isMagazine(j),
   }))
 
   // The mockup's cfp browser lists thematic calls (guest editor + deadline);
@@ -34,7 +35,7 @@ export default function Page() {
         guest: c.guestEditor ?? '',
         deadlineIso: c.deadlineIso,
         deadline: formatDate(c.deadlineIso),
-        href: `/journals/${c.journalSlug}/call-for-papers`,
+        href: `${periodicalBase(c.journalSlug)}/call-for-papers`,
       }
     })
 

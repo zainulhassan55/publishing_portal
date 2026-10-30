@@ -37,14 +37,14 @@ export default async function Page() {
     }
   })
 
-  const { journals: journalCards, series: seriesCards } = publicationCards()
-  const publications: HomePublication[] = [...journalCards, ...seriesCards]
+  const { journals: journalCards, magazines: magazineCards, series: seriesCards } = publicationCards()
+  const publications: HomePublication[] = [...journalCards, ...magazineCards, ...seriesCards]
 
   const homeAudiences: HomeAudience[] = [
     {
       who: 'Authors',
       headline: 'Publish with us',
-      desc: 'Submit original research to one of our journals, or propose a volume or chapter for a book series. Journal articles are peer reviewed double-blind and published open access.',
+      desc: 'Submit original research to one of our journals, a short accessible article to a magazine, or propose a volume or chapter for a book series. Journal articles are peer reviewed double-blind and published open access.',
       links: [
         { t: 'Submit a manuscript', href: '/submit' },
         { t: 'Propose a book volume', href: '/editors#books-and-proceedings' },

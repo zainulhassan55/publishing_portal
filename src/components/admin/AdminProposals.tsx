@@ -20,6 +20,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CSRF_HEADER } from '@/lib/auth/csrf'
 import { ojsHandoffUrl } from '@/lib/ojs/config'
+import { DecisionComposer, announcePendingChange } from './DecisionComposer'
 
 type Proposal = {
   id: number
@@ -36,6 +37,7 @@ type Proposal = {
   status: string
   decidedAtIso: string | null
   decisionNote: string | null
+  emailedAtIso: string | null
   createdAtIso: string
 }
 
@@ -87,6 +89,8 @@ export function AdminProposals({ csrfToken }: { csrfToken: string }) {
   const [open, setOpen] = useState<number | null>(null)
   const [notes, setNotes] = useState<Record<number, string>>({})
   const [busy, setBusy] = useState<number | null>(null)
+  const [composing, setComposing] = useState<{ id: number; status: string } | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
 
   // Fetching is separated from state-setting on purpose: `fetchProposals` is a
   // plain function that touches no state, so the effect below sets state only
@@ -122,6 +126,14 @@ export function AdminProposals({ csrfToken }: { csrfToken: string }) {
       return
     }
 
+    // Accepting and declining come with a letter the editor reviews first.
+    if (status === 'accepted' || status === 'declined') {
+      setError(null)
+      setFlash(null)
+      setComposing({ id, status })
+      return
+    }
+
     setBusy(id)
     setError(null)
 
@@ -145,6 +157,7 @@ export function AdminProposals({ csrfToken }: { csrfToken: string }) {
       // Reload rather than patching local state: the decision stamps
       // `decided_at` and `decided_by` server-side, and showing a row the server
       // has not confirmed is how an admin screen starts lying.
+      announcePendingChange()
       apply(await fetchProposals())
     } catch {
       setError('Could not record that decision. Check your connection and try again.')
@@ -156,6 +169,22 @@ export function AdminProposals({ csrfToken }: { csrfToken: string }) {
   if (proposals === null) {
     return <p style={{ fontSize: 14, color: 'var(--muted,#505C68)' }}>{error ?? 'Loading proposals…'}</p>
   }
+
+  const composer = (p: Proposal, status: string) => (
+    <DecisionComposer
+      target={{ kind: 'journal_proposal', reference: `NGIQ-PROP-${String(p.id).padStart(5, '0')}`, name: p.proposerName, email: p.proposerEmail, title: p.title }}
+      status={status}
+      note={(notes[p.id] ?? p.decisionNote ?? '').trim()}
+      endpoint={`/api/admin/proposals/${p.id}`}
+      csrfToken={csrfToken}
+      onCancel={() => setComposing(null)}
+      onDone={async ({ emailed }) => {
+        setComposing(null)
+        setFlash(emailed ? `Decision on “${p.title}” saved and emailed to ${p.proposerEmail}.` : `Decision on “${p.title}” saved. No email was sent.`)
+        apply(await fetchProposals())
+      }}
+    />
+  )
 
   const queue = proposals.filter((p) => isOpen(p.status))
   const settled = proposals.filter((p) => !isOpen(p.status))
@@ -176,6 +205,12 @@ export function AdminProposals({ csrfToken }: { csrfToken: string }) {
           }}
         >
           {error}
+        </p>
+      ) : null}
+
+      {flash ? (
+        <p role="status" style={{ margin: 0, background: '#E6F6EC', border: '1px solid #B5DEC4', borderRadius: 3, padding: '10px 12px', fontSize: 13, color: '#1C6B3C' }}>
+          {flash}
         </p>
       ) : null}
 
@@ -234,6 +269,9 @@ export function AdminProposals({ csrfToken }: { csrfToken: string }) {
               </dl>
             ) : null}
 
+            {composing?.id === p.id ? (
+              <div style={{ marginTop: 14 }}>{composer(p, composing.status)}</div>
+            ) : (
             <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label style={{ fontSize: 13, color: 'var(--ink-2,#1F2A36)', display: 'flex', flexDirection: 'column', gap: 5 }}>
                 Decision note{' '}
@@ -271,10 +309,11 @@ export function AdminProposals({ csrfToken }: { csrfToken: string }) {
 
               <p style={{ margin: 0, fontSize: 12, color: 'var(--muted,#505C68)', lineHeight: 1.5 }}>
                 Accepting records the decision. The journal itself is created in the editorial system —{' '}
-                <a href={ojsHandoffUrl('/index.php/index/admin/contexts')}>open journal settings in OJS</a>. The
-                proposer is <strong>not</strong> emailed yet; site mail is not configured.
+                <a href={ojsHandoffUrl('/index.php/index/admin/contexts')}>open journal settings in OJS</a>. Accepting or
+                declining opens a draft email to the proposer, which you can edit before sending.
               </p>
             </div>
+            )}
           </article>
         ))}
       </section>
@@ -300,9 +339,20 @@ export function AdminProposals({ csrfToken }: { csrfToken: string }) {
                     {p.decisionNote}
                   </p>
                 ) : null}
+                <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--muted,#505C68)' }}>
+                  {p.emailedAtIso ? `Decision emailed ${formatDate(p.emailedAtIso)} · ` : 'The proposer has not been emailed · '}
+                  <button
+                    type="button"
+                    onClick={() => setComposing({ id: p.id, status: p.status })}
+                    style={{ border: 0, background: 'none', padding: 0, font: 'inherit', fontSize: 12, color: 'var(--accent,#1D5DA8)', cursor: 'pointer' }}
+                  >
+                    {p.emailedAtIso ? 'Email again' : 'Email the decision'}
+                  </button>
+                </p>
               </div>
               <Badge status={p.status} />
             </div>
+            {composing?.id === p.id ? <div style={{ marginTop: 12 }}>{composer(p, composing.status)}</div> : null}
           </article>
         ))}
       </section>

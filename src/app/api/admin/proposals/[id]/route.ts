@@ -2,6 +2,7 @@ import { handler, jsonError, jsonOk } from '@/lib/api'
 import { execute, query } from '@/lib/db'
 import { requireAdminApi } from '@/lib/admin/guard'
 import { recordAudit } from '@/lib/admin/audit'
+import { readDecisionLetter, sendDecisionLetter } from '@/lib/admin/decision-send'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,7 +32,7 @@ const isStatus = (value: unknown): value is Status =>
 /** A decision is a thing someone may have to defend later. */
 const DECIDED: Status[] = ['accepted', 'declined']
 
-type Body = { status?: unknown; note?: unknown }
+type Body = { status?: unknown; note?: unknown; email?: unknown }
 
 export const PATCH = handler(async (request) => {
   const auth = await requireAdminApi(request, { mutating: true })
@@ -68,8 +69,11 @@ export const PATCH = handler(async (request) => {
     })
   }
 
-  const [before] = await query<{ id: number; status: string; title: string; decision_note: string | null }>(
-    'SELECT id, status, title, decision_note FROM journal_proposals WHERE id = ?',
+  const letter = readDecisionLetter(body.email)
+  if (!letter.ok) return jsonError('validation', 422, { errors: [{ field: letter.field, message: letter.message }] })
+
+  const [before] = await query<{ id: number; status: string; title: string; decision_note: string | null; proposer_email: string }>(
+    'SELECT id, status, title, decision_note, proposer_email FROM journal_proposals WHERE id = ?',
     [id],
   )
 
@@ -93,21 +97,26 @@ export const PATCH = handler(async (request) => {
     return jsonError('not-found', 404, { message: 'That proposal no longer exists.' })
   }
 
+  // The letter is optional and sent only once the decision is saved: a mail
+  // failure is reported back so the editor can resend, never undoes the decision.
+  const mail = letter.letter
+    ? await sendDecisionLetter({ to: before.proposer_email, letter: letter.letter, table: 'journal_proposals', where: 'id = ?', params: [id] })
+    : null
+
   await recordAudit({
     actor: auth.context.user,
     action: 'proposal.status_changed',
     targetType: 'journal_proposal',
     targetId: id,
     before: { status: before.status, note: before.decision_note },
-    after: { status: body.status, note: note || null },
+    after: {
+      status: body.status,
+      note: note || null,
+      ...(letter.letter ? { email: { to: before.proposer_email, ...letter.letter, sent: mail?.sent ?? false } } : {}),
+    },
     note: note || null,
     request,
   })
 
-  // Email is deliberately not sent here. SMTP is unconfigured on this install
-  // and .env.example records that DKIM was never enabled (audit finding F-07),
-  // so a notification would either fail or be filtered as spam while the panel
-  // reported the proposer had been told. The decision is recorded; notifying is
-  // its own piece of work once mail is real. See docs/ADMIN-PANEL-PLAN.md §5.
-  return jsonOk({ id, status: body.status, notified: false })
+  return jsonOk({ id, status: body.status, emailed: mail?.sent ?? false, emailError: mail && !mail.sent ? mail.reason : undefined })
 })
