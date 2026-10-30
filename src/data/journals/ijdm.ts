@@ -34,16 +34,15 @@ const topics = [
   'Public-sector transformation and inclusion',
 ]
 
+const honoraryEditorInChief = { name: 'Prof. Eldon Y. Li', affiliation: 'National Chung Cheng University, Taiwan' }
+
 const editors = [
-  { name: 'Tzu-Chuen Lu', affiliation: 'National Chin-Yi University of Technology, Taichung 411030, Taiwan' },
+  { name: 'Tzu-Chuen Lu', affiliation: 'National Chin-Yi University of Technology, Taichung, Taiwan' },
   { name: 'Vijayan Sugumaran', affiliation: 'Oakland University, Rochester, USA' },
   { name: 'Shin-Hung Pan', affiliation: 'Chaoyang University of Technology, Taiwan' },
-  { name: 'Dragan Peraković', affiliation: 'University of Zagreb, Croatia' },
-  { name: 'Akshat Gaurav', affiliation: 'Ronin Institute, USA' },
-  { name: 'Domenico Santaniello', affiliation: 'University of Salerno, Italy' },
-  { name: 'Chi-Wen Lung', affiliation: 'Asia University, Taiwan' },
+  { name: 'Yi-Hui Chen', affiliation: 'Chang Gung University, Taoyuan City, Taiwan' },
   { name: 'Ramakrishnan Raman', affiliation: 'Symbiosis International (Deemed University), Pune, India' },
-  { name: 'Francisco José García-Peñalvo', affiliation: 'University of Salamanca, Spain' },
+  { name: 'Priyanka C. Bhatt', affiliation: 'Yuan Ze University, Taiwan' },
 ]
 
 export const ijdmDetail: JournalDetail = {
@@ -63,7 +62,7 @@ export const ijdmDetail: JournalDetail = {
   scope: intro,
   overview: [intro],
   metrics: [],
-  board: editors.map((e) => `${e.name}, ${e.affiliation}`),
+  board: [honoraryEditorInChief, ...editors].map((e) => `${e.name}, ${e.affiliation}`),
   topics,
   quickLinks: [],
   profile: {
@@ -80,6 +79,7 @@ export const ijdmDetail: JournalDetail = {
     facts: journalFacts(electronicIssn(slug)),
     editorsLabel: 'Editors',
     editors,
+    editorsNote: `Honorary Editor-in-Chief: ${honoraryEditorInChief.name}, ${honoraryEditorInChief.affiliation}.`,
   },
   pages: [
     page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by IJDM.', [
@@ -96,6 +96,7 @@ export const ijdmDetail: JournalDetail = {
       },
     ]),
     page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of IJDM.', [
+      { title: 'Honorary Editor-in-Chief', table: editorTable([honoraryEditorInChief]) },
       { title: 'Editors', table: editorTable(editors) },
     ]),
     page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for IJDM.', [

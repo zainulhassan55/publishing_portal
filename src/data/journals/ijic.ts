@@ -37,7 +37,6 @@ const topics = [
 const editors = [
   { name: 'Amiya Nayak', affiliation: 'University of Ottawa, Canada' },
   { name: 'Jinsong Wu', affiliation: 'University of Chile, Chile' },
-  { name: 'Brij B. Gupta', affiliation: 'Asia University, Taiwan' },
   { name: 'Kwok Tai Chui', affiliation: 'Hong Kong Metropolitan University, Hong Kong' },
   { name: 'Bharat S. Rawal', affiliation: 'Grambling State University, Grambling, LA, USA' },
   { name: 'Priyanka Chaurasia', affiliation: 'University of Ulster, UK' },

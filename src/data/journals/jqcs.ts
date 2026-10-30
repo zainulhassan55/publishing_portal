@@ -1,6 +1,6 @@
 import type { JournalDetail } from '@/types/content'
 import { electronicIssn, issnLabel, printIssn } from '../issn'
-import { boardPending, editorialEmail, journalFacts, page, plain } from '../pages'
+import { editorTable, editorialEmail, journalFacts, page, plain } from '../pages'
 import { journalTemplates } from '../templates'
 
 /**
@@ -33,6 +33,16 @@ const topics = [
   'Applications of quantum computing in science, engineering and cybersecurity',
 ]
 
+const editors = [
+  { name: 'Dragan Peraković', affiliation: 'University of Zagreb, Croatia' },
+  { name: 'Bodhisatwa Mazumdar', affiliation: 'Indian Institute of Technology Indore, India' },
+  { name: 'Akshat Gaurav', affiliation: 'Ronin Institute, USA' },
+  { name: 'Satendra Kumar', affiliation: 'Indian Institute of Technology Patna, India' },
+  { name: 'Ivan Cvitić', affiliation: 'University of Zagreb, Croatia' },
+  { name: 'Pradyumna Bishoyi', affiliation: 'Indian Institute of Technology Jodhpur, India' },
+  { name: 'Domenico Santaniello', affiliation: 'University of Salerno, Italy' },
+]
+
 export const jqcsDetail: JournalDetail = {
   slug,
   title,
@@ -50,7 +60,7 @@ export const jqcsDetail: JournalDetail = {
   scope: intro,
   overview: [intro],
   metrics: [],
-  board: [],
+  board: editors.map((e) => `${e.name}, ${e.affiliation}`),
   topics,
   quickLinks: [],
   profile: {
@@ -65,8 +75,7 @@ export const jqcsDetail: JournalDetail = {
     ],
     facts: journalFacts(electronicIssn(slug)),
     editorsLabel: 'Editors',
-    editors: [],
-    editorsNote: 'The editorial board is being appointed.',
+    editors,
   },
   pages: [
     page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by JQCS.', [
@@ -77,7 +86,9 @@ export const jqcsDetail: JournalDetail = {
         topicList: true,
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of JQCS.', [plain([boardPending('JQCS')])]),
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of JQCS.', [
+      { title: 'Editors', table: editorTable(editors) },
+    ]),
     page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for JQCS.', [
       plain([
         'Submissions must be original, written in English, and not under consideration elsewhere. Authors should clearly describe their contribution, methods, results, limitations, and relevant comparisons.',
