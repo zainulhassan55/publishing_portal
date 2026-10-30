@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { AsideBox, AsideLinks, PublisherPage } from '@/components/content/PublisherPage'
 import { FormLauncher } from '@/components/forms/FormLauncher'
 import { audiences } from '@/data/publisher'
-import { journals, series, seriesPageHref } from '@/data/registry'
+import { journals, periodicalBase, series, seriesPageHref } from '@/data/registry'
 import { editorialEmail } from '@/lib/site'
 import { withSharing } from '@/lib/metadata'
 
@@ -29,7 +29,7 @@ export default function EditorsPage() {
             `To express your interest in joining the editorial board of a journal or book series, fill in the application form or email ${editorialEmail} with the title you are interested in, your affiliation, areas of expertise, and a brief academic profile.`,
           ],
           links: [
-            ...journals.map((j) => ({ label: `${j.shortTitle} editorial board`, href: `/journals/${j.slug}/editorial-board` })),
+            ...journals.map((j) => ({ label: `${j.shortTitle} editorial board`, href: `${periodicalBase(j.slug)}/editorial-board` })),
             ...series.map((s) => ({ label: `${s.code} editorial board`, href: `/series/${s.slug}/editorial-board` })),
           ],
         },

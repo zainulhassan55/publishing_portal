@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { requireAdminPage } from '@/lib/admin/guard'
-import { journalCode, journals } from '@/data/registry'
+import { journalCode, journals, periodicalBase } from '@/data/registry'
 import { ojsEditorialUrl, ojsHandoffUrl, ojsUrl } from '@/lib/ojs/config'
 
 export const dynamic = 'force-dynamic'
@@ -101,7 +101,7 @@ export default async function AdminJournals() {
                   </div>
                 </td>
                 <td style={{ ...cell, whiteSpace: 'nowrap' }}>
-                  <Link href={`/journals/${journal.slug}`} style={{ fontSize: 13 }}>
+                  <Link href={periodicalBase(journal.slug)} style={{ fontSize: 13 }}>
                     Public page
                   </Link>
                 </td>

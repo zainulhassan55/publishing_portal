@@ -16,11 +16,12 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useToday } from '@/lib/hooks/client-state'
 import { daysUntil } from '@/lib/format'
-import { journalTemplates } from '@/data/templates'
+import { journalTemplates, magazineTemplates } from '@/data/templates'
+import { periodicalBase } from '@/data/registry'
 import { FormLauncher } from '@/components/forms/FormLauncher'
 import { SectionToc } from '@/components/nav/SectionToc'
 
-export type AuthorsJournalRef = { slug: string; code: string; title: string }
+export type AuthorsJournalRef = { slug: string; code: string; title: string; magazine?: boolean }
 
 export type AuthorsCall = {
   id: string
@@ -217,10 +218,10 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
 
           <section id="templates" data-sec="1" style={{ scrollMarginTop: 20 }}>
             <h2 style={{ margin: '0 0 6px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Templates</h2>
-            <p style={{ margin: '0 0 18px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '66ch' }}>Each journal has its own Word and LaTeX templates, set up for double-blind review. Book series chapter templates are on each series’ <Link href="/series">author and editor guidelines</Link> page.</p>
+            <p style={{ margin: '0 0 18px', fontSize: 15, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '66ch' }}>Each journal and magazine has its own Word and LaTeX templates, set up for double-blind review. Magazine templates use the shorter two-column magazine format. Book series chapter templates are on each series’ <Link href="/series">author and editor guidelines</Link> page.</p>
             <div style={{ border: '1px solid var(--line,#DCE1E6)', borderRadius: 3 }}>
               {journals.flatMap((j) =>
-                (journalTemplates(j.slug, j.code).downloads ?? []).map((d) => (
+                ((j.magazine ? magazineTemplates : journalTemplates)(j.slug, j.code).downloads ?? []).map((d) => (
                   <div key={d.href} className="au-tpl" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 18px', borderBottom: '1px solid var(--line-soft,#EEF1F4)' }}>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, padding: '3px 6px', border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 2, width: 44, textAlign: 'center' }}>{extOf(d.format)}</span>
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -278,7 +279,7 @@ export function AuthorsPage({ journals, calls }: { journals: AuthorsJournalRef[]
                   {journals.map((j) => (
                     <tr key={j.slug}>
                       <td style={{ padding: '10px 12px 10px 0', borderBottom: '1px solid var(--line,#DCE1E6)' }}>
-                        <Link href={`/journals/${j.slug}`} style={{ color: 'var(--ink,#101B27)' }}>{j.title}</Link>{' '}
+                        <Link href={periodicalBase(j.slug)} style={{ color: 'var(--ink,#101B27)' }}>{j.title}</Link>{' '}
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted,#505C68)' }}>{j.code}</span>
                       </td>
                       <td style={{ padding: '10px 12px', borderBottom: '1px solid var(--line,#DCE1E6)' }}>None</td>

@@ -18,6 +18,8 @@ export const subjects: Record<SubjectKey, Subject> = {
   interdisciplinary: { key: 'interdisciplinary', label: 'Interdisciplinary', color: 'oklch(0.52 0.11 310)' },
   mathematics: { key: 'mathematics', label: 'Mathematics', color: 'oklch(0.52 0.11 285)' },
   electronics: { key: 'electronics', label: 'Electronics and quantum', color: 'oklch(0.52 0.11 190)' },
+  energy: { key: 'energy', label: 'Sustainable energy', color: 'oklch(0.52 0.11 125)' },
+  security: { key: 'security', label: 'Security and trust', color: 'oklch(0.52 0.11 350)' },
 }
 
 export const subjectList: Subject[] = Object.values(subjects)
@@ -29,6 +31,9 @@ export const subjectList: Subject[] = Object.values(subjects)
 export const journalSubjectKey: Record<string, SubjectKey> = {
   ijic: 'computing',
   ijdm: 'management',
+  jqcs: 'electronics',
+  jaise: 'energy',
+  sst: 'security',
 }
 
 export const subjectFor = (slug: string): Subject => subjects[journalSubjectKey[slug] ?? 'interdisciplinary']

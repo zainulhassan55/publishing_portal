@@ -12,8 +12,8 @@ export type PublicationCardData = {
   cover?: string
   /** Portrait crop of the banner's artwork: the card's cover photo. */
   tile?: string
-  /** "ISSN: applied for", or the series equivalent. */
-  identifier: string
+  /** One line each: "ISSN: Applied for", plus the ISBN note for a series. */
+  identifiers: string[]
   aboutLabel: string
   action: { label: string; href: string }
 }
@@ -24,7 +24,7 @@ export type PublicationCardData = {
  * mockup's article-view and download counts are left out: there are no
  * published articles to count, and invented figures would be false.
  */
-export function PublicationCard({ href, code, title, color, subject, tile, identifier, aboutLabel, action }: PublicationCardData) {
+export function PublicationCard({ href, code, title, color, subject, tile, identifiers, aboutLabel, action }: PublicationCardData) {
   return (
     <article className="pub-card" style={{ background: 'var(--surface,#fff)', border: '1px solid var(--line,#DCE1E6)', borderTop: `3px solid ${color}`, borderRadius: 3, display: 'flex', flexDirection: 'column' }}>
       <style>{`.pub-card .pub-tile{transition:transform .35s ease,box-shadow .35s ease}.pub-card:hover .pub-tile{transform:translateY(-4px);box-shadow:0 8px 16px rgba(0,0,0,.25)}.pub-card-title:hover{color:var(--accent,#1D5DA8)!important}.pub-card-about:hover{border-color:var(--accent,#1D5DA8)!important;color:var(--accent,#1D5DA8)!important}.pub-card-act:hover{filter:brightness(1.1)}@media (prefers-reduced-motion:reduce){.pub-card .pub-tile{transition:none}}`}</style>
@@ -49,7 +49,9 @@ export function PublicationCard({ href, code, title, color, subject, tile, ident
           <Link href={href} className="pub-card-title" style={{ fontFamily: 'var(--font-serif)', fontSize: 16, fontWeight: 600, color: 'var(--ink,#101B27)', lineHeight: 1.3, textDecoration: 'none' }}>
             {title}
           </Link>
-          <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>{identifier}</span>
+          {identifiers.map((id) => (
+            <span key={id} style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>{id}</span>
+          ))}
           <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--ink-3,#3C4854)', padding: '1px 6px', border: '1px solid var(--line,#DCE1E6)', borderRadius: 2 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }}></span>

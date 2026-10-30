@@ -1,3 +1,4 @@
+import { getJournal, getSeries } from '@/data/registry'
 import { query } from '../db'
 import type { UploadRow } from '../uploads/service'
 import { reference } from './server'
@@ -27,10 +28,16 @@ export type FormRecord = {
   reference: string
   title: string
   target: string
+  /** The journal or series name, for the decision letter. */
+  targetTitle: string
+  /** Applications only: reviewer or board. */
+  role?: string
   submitter: string
   email: string
   status: string
   decisionNote: string | null
+  /** When the decision letter was emailed, if it has been. */
+  emailedAt: string | null
   createdAt: string
   payload: Record<string, unknown>
   files: FormFile[]
@@ -51,22 +58,27 @@ type Row = {
   corresponding_email?: string
   status: string
   decision_note: string | null
+  decision_emailed_at?: Date | null
   created_at: Date
   payload: Record<string, unknown> | string
 }
 
 const toRecord = (kind: FormKind, r: Row, files: FormFile[]): FormRecord => {
+  const target = r.target_slug ?? r.series_slug ?? ''
   const payload = typeof r.payload === 'string' ? (JSON.parse(r.payload) as Record<string, unknown>) : r.payload
   return {
     kind,
     id: r.id,
     reference: reference(FORM_TABLES[kind].prefix, r.id),
     title: r.title ?? (r.role === 'board' ? 'Editorial board application' : 'Reviewer application'),
-    target: r.target_slug ?? r.series_slug ?? '',
+    target,
+    targetTitle: getJournal(target)?.title ?? getSeries(target)?.title ?? target.toUpperCase(),
+    role: r.role,
     submitter: r.name ?? r.submitter_name ?? r.corresponding_name ?? '',
     email: r.email ?? r.submitter_email ?? r.corresponding_email ?? '',
     status: r.status,
     decisionNote: r.decision_note,
+    emailedAt: r.decision_emailed_at ? new Date(r.decision_emailed_at).toISOString() : null,
     createdAt: new Date(r.created_at).toISOString(),
     payload,
     files,

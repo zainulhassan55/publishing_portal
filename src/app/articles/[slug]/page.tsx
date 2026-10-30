@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { ArticlePage as ArticleMockupPage, type ArticleCitations } from '@/components/mockup/ArticlePage'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { getArticle, getArticles } from '@/data/content'
-import { getJournal, journalCode } from '@/data/registry'
+import { getJournal, journalCode, periodicalBase } from '@/data/registry'
 import { articleCitationMeta, dublinCoreMeta } from '@/lib/citation-meta'
 import { buildAllCitations } from '@/lib/citation'
 import { authorsShort, formatDate } from '@/lib/format'
@@ -98,8 +98,8 @@ export default async function ArticleRoute({ params }: { params: Promise<{ slug:
 
   const trail = [
     { label: 'Home', href: '/' },
-    { label: code, href: `/journals/${journal.slug}` },
-    { label: `Volume ${article.volume}, Issue ${article.issue}`, href: `/journals/${journal.slug}/issues` },
+    { label: code, href: periodicalBase(journal.slug) },
+    { label: `Volume ${article.volume}, Issue ${article.issue}`, href: `${periodicalBase(journal.slug)}/issues` },
   ]
 
   const citations: ArticleCitations = buildAllCitations(article, journal)

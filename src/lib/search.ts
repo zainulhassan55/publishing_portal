@@ -1,4 +1,4 @@
-import { journalCode, journalMenuGroups, journals, series, seriesMenuGroups } from '@/data/registry'
+import { journalCode, journalMenuGroups, journals, periodicalBase, series, seriesMenuGroups } from '@/data/registry'
 import type { JournalPage } from '@/types/content'
 import { subjectFor } from '@/data/subjects'
 import { getArticles } from '@/data/content'
@@ -65,7 +65,7 @@ export async function buildSearchIndex(): Promise<SearchIndex> {
 
   const guidance: GuidanceHit[] = []
   const owners = [
-    ...journals.map((j) => ({ slug: j.slug, code: journalCode(j), title: j.title, base: `/journals/${j.slug}`, pages: j.pages ?? [], groups: journalMenuGroups(j.slug) })),
+    ...journals.map((j) => ({ slug: j.slug, code: journalCode(j), title: j.title, base: periodicalBase(j.slug), pages: j.pages ?? [], groups: journalMenuGroups(j.slug) })),
     ...series.map((s) => ({ slug: s.slug, code: s.code, title: s.title, base: `/series/${s.slug}`, pages: s.pages, groups: seriesMenuGroups(s.slug) })),
   ]
   for (const owner of owners) {
@@ -137,7 +137,7 @@ export async function buildTypeaheadIndex(): Promise<TypeaheadIndex> {
     journals: index.journals.map((j) => ({
       title: j.title,
       code: j.code,
-      href: `/journals/${j.slug}`,
+      href: periodicalBase(j.slug),
       haystack: normalise([j.title, j.code, j.subject].join(' ')),
     })),
     articles: index.articles.map((a) => ({

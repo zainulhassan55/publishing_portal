@@ -1,14 +1,17 @@
 import type { PublicationCardData } from '@/components/content/PublicationCard'
 import type { JournalMastheadProps, PublicationKind } from '@/components/mockup/JournalMasthead'
-import { electronicIssn } from '@/data/issn'
+import { electronicIssn, issnLabel, seriesIssn } from '@/data/issn'
 import type { PageBlock, SideGroup } from '@/components/mockup/JournalStaticPage'
 import {
   getJournal,
   getSeries,
+  isMagazine,
   journalCode,
   journalMenuGroups,
   journalPageHref,
-  journalSlugs,
+  journalsOnly,
+  magazines,
+  periodicalBase,
   seriesMenuGroups,
   seriesSlugs,
   seriesPageHref,
@@ -19,8 +22,8 @@ import { anchorIds } from '@/lib/format'
 import type { ContentBlock, JournalPage, PublicationProfile } from '@/types/content'
 
 /**
- * One view of a journal or a book series, so the masthead, home page and
- * static pages are built the same way for both.
+ * One view of a journal, magazine or book series, so the masthead, home page
+ * and static pages are built the same way for all three.
  */
 export type Publication = {
   kind: PublicationKind
@@ -36,9 +39,10 @@ export type Publication = {
 }
 
 export function getPublication(kind: PublicationKind, slug: string): Publication | undefined {
-  if (kind === 'journal') {
+  if (kind !== 'series') {
     const j = getJournal(slug)
-    if (!j) return undefined
+    // A magazine is not served at /journals/<slug>, nor a journal at /magazines/<slug>.
+    if (!j || isMagazine(j) !== (kind === 'magazine')) return undefined
     return {
       kind,
       slug: j.slug,
@@ -131,27 +135,33 @@ export function toPageBlocks(blocks: ContentBlock[]): PageBlock[] {
   })
 }
 
-/** Card data for every journal and series, in portfolio order, for the home page and /journals. */
-export function publicationCards(): { journals: (PublicationCardData & { slug: string })[]; series: (PublicationCardData & { slug: string })[] } {
-  const card = (kind: PublicationKind, slug: string): PublicationCardData & { slug: string } => {
+type Card = PublicationCardData & { slug: string }
+
+/** Card data for every journal, magazine and series, in portfolio order, for the home page and the index pages. */
+export function publicationCards(): { journals: Card[]; magazines: Card[]; series: Card[] } {
+  const card = (kind: PublicationKind, slug: string): Card => {
     const pub = getPublication(kind, slug)!
-    const eIssn = kind === 'journal' ? electronicIssn(slug) : null
+    const periodical = kind !== 'series'
+    const eIssn = periodical ? electronicIssn(slug) : null
     return {
       slug,
-      href: kind === 'journal' ? `/journals/${slug}` : `/series/${slug}`,
+      href: periodical ? periodicalBase(slug) : `/series/${slug}`,
       code: pub.code,
       title: pub.title,
       color: pub.subject.color,
       subject: pub.subject.label,
       cover: pub.profile.cover,
       tile: pub.profile.tile,
-      identifier: kind === 'journal' ? `ISSN: ${eIssn ?? 'applied for'}` : 'ISBN: assigned per volume',
-      aboutLabel: kind === 'journal' ? 'About journal' : 'About series',
-      action: kind === 'journal' ? { label: 'Submit', href: pub.pageHref('submit') } : { label: 'Propose', href: pub.pageHref('propose-volume') },
+      identifiers: periodical
+        ? [`ISSN: ${issnLabel(eIssn)}`]
+        : [`ISSN: ${issnLabel(seriesIssn[slug]?.electronic)}`],
+      aboutLabel: `About ${kind}`,
+      action: periodical ? { label: 'Submit', href: pub.pageHref('submit') } : { label: 'Propose', href: pub.pageHref('propose-volume') },
     }
   }
   return {
-    journals: journalSlugs.map((s) => card('journal', s)),
+    journals: journalsOnly.map((j) => card('journal', j.slug)),
+    magazines: magazines.map((m) => card('magazine', m.slug)),
     series: seriesSlugs.map((s) => card('series', s)),
   }
 }

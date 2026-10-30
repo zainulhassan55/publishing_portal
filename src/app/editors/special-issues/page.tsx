@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { AsideBox, AsideLinks, PublisherPage } from '@/components/content/PublisherPage'
 import { FormLauncher } from '@/components/forms/FormLauncher'
 import { specialIssueGuidelines, specialIssueLead } from '@/data/publisher'
-import { journals } from '@/data/registry'
+import { journals, periodicalBase } from '@/data/registry'
 import { withSharing } from '@/lib/metadata'
 
 export const metadata: Metadata = withSharing({
@@ -22,7 +22,7 @@ export default function SpecialIssuesPage() {
       aside={
         <AsideBox title="Journals">
           <AsideLinks
-            links={journals.map((j) => ({ label: j.title, href: `/journals/${j.slug}/special-issue-guidelines` }))}
+            links={journals.map((j) => ({ label: j.title, href: `${periodicalBase(j.slug)}/special-issue-guidelines` }))}
           />
         </AsideBox>
       }

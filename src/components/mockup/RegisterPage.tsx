@@ -7,13 +7,18 @@
  * person never sees it happen. The form posts to /api/auth/register, which
  * relays to OJS's own registration form and signs the new member straight in.
  *
+ * Two steps. The details form first; then a six-digit code emailed to the
+ * address they gave, which must come back before the account is created
+ * (/api/auth/email-code sends it, /api/auth/register checks it). The captcha
+ * guards sending the code, since that is the step that emails a stranger.
+ *
  * Journals are chosen here because OJS enrols per journal, and a member with
  * no journal is registered into nothing. Reviewer is offered as a tick rather
  * than a separate flow: it is how OJS's own form offers it, and a reviewer is
  * simply a member who has agreed to be asked.
  */
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { safeNext, signInHref } from '@/lib/auth/links'
@@ -103,6 +108,23 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const captcha = useRef<TurnstileHandle>(null)
 
+  const [step, setStep] = useState<'details' | 'code'>('details')
+  const [code, setCode] = useState('')
+  // The address the current code went to. Editing the email means a new code.
+  const [codeSentTo, setCodeSentTo] = useState<string | null>(null)
+  const [resendAt, setResendAt] = useState(0)
+  const [now, setNow] = useState(() => Date.now())
+
+  // Ticks the "send again in 42s" countdown while the code step is showing.
+  useEffect(() => {
+    if (step !== 'code') return
+    const timer = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(timer)
+  }, [step])
+
+  const resendIn = Math.max(0, Math.ceil((resendAt - now) / 1000))
+  const sameAddress = (a: string | null, b: string) => a !== null && a.trim().toLowerCase() === b.trim().toLowerCase()
+
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setF((s) => ({ ...s, [k]: e.target.value }))
     setErrors((es) => es.filter((x) => x.field !== k))
@@ -114,19 +136,71 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
   const toggleJournal = (title: string) =>
     setPicked((p) => (p.includes(title) ? p.filter((x) => x !== title) : [...p, title]))
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setErrors([])
-    setFailure(null)
+  /** Emails a code to the address on the form. True when one is on its way. */
+  const sendCode = async (): Promise<boolean> => {
+    if (captchaRequired && !captchaToken) {
+      setFailure('Please complete the security check first.')
+      return false
+    }
+    setBusy(true)
+    try {
+      const response = await fetch('/api/auth/email-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: f.email, captchaToken }),
+      })
+      const data = (await response.json().catch(() => ({}))) as {
+        ok?: boolean
+        message?: string
+        errors?: FieldError[]
+        resendIn?: number
+        retryAfter?: number
+      }
+      // The token is spent by any request that reached the captcha check.
+      captcha.current?.reset()
+      if (!response.ok || !data.ok) {
+        if (data.errors?.length) {
+          setErrors(data.errors)
+          setStep('details')
+        } else setFailure(data.message ?? 'The code could not be sent. Please try again.')
+        if (data.retryAfter) setResendAt(Date.now() + data.retryAfter * 1000)
+        return false
+      }
+      setCodeSentTo(f.email)
+      setCode('')
+      setResendAt(Date.now() + (data.resendIn ?? 60) * 1000)
+      setNow(Date.now())
+      return true
+    } catch {
+      captcha.current?.reset()
+      setFailure('The code could not be sent. Please check your connection and try again.')
+      return false
+    } finally {
+      setBusy(false)
+    }
+  }
 
-    // Checked before anything is sent, because a mismatch means one of the two
-    // is a typo and the whole point is to stop that typo becoming the password.
+  /** Step one: check the details locally, then send a code (unless one already went to this address). */
+  const continueToCode = async () => {
     if (f.password !== f.passwordConfirm) {
       setErrors([{ field: 'passwordConfirm', message: 'The two passwords do not match. Type the same password in both boxes.' }])
       return
     }
-    if (captchaRequired && !captchaToken) {
-      setFailure('Please complete the security check, then create your account.')
+    if (picked.length === 0) {
+      setErrors([{ field: 'journals', message: 'Choose at least one journal to register with' }])
+      return
+    }
+    if (sameAddress(codeSentTo, f.email)) {
+      setStep('code')
+      return
+    }
+    if (await sendCode()) setStep('code')
+  }
+
+  /** Step two: the code and the details go together; the account is created only if the code matches. */
+  const createAccount = async () => {
+    if (!/^\d{6}$/.test(code.replace(/[\s-]/g, ''))) {
+      setErrors([{ field: 'code', message: 'Enter the 6-digit code from the email.' }])
       return
     }
 
@@ -138,7 +212,7 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
         headers: { 'Content-Type': 'application/json' },
         // Journal *titles*, because that is what OJS labels its enrolment
         // checkboxes with and what the relay matches on.
-        body: JSON.stringify({ ...f, journals: picked, asReviewer, captchaToken }),
+        body: JSON.stringify({ ...f, journals: picked, asReviewer, code }),
       })
 
       const data = (await response.json()) as {
@@ -150,13 +224,16 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
       }
 
       if (!response.ok || !data.ok) {
-        // Field and rate-limit refusals come before the captcha check, so the
-        // token is still good; anything later spent it.
-        if (response.status !== 422 && response.status !== 429) captcha.current?.reset()
-        if (data.errors?.length) setErrors(data.errors)
+        const fieldErrors = data.errors ?? []
+        if (fieldErrors.length) setErrors(fieldErrors)
         else if (data.message) setFailure(data.message)
         else if (data.error === 'rate-limited') setFailure('Too many attempts. Please try again in a few minutes.')
         else setFailure('Registration could not be completed. Please try again.')
+        // A code problem is fixed here; anything else (a taken username, a
+        // field OJS refused) is fixed on the details form. The code stays
+        // valid, so they come straight back without a new email.
+        const codeOnly = fieldErrors.length > 0 && fieldErrors.every((x) => x.field === 'code')
+        if (!codeOnly && response.status !== 429) setStep('details')
         return
       }
 
@@ -172,11 +249,18 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
         router.push(`${signInHref(next)}&registered=1`)
       }
     } catch {
-      captcha.current?.reset()
       setFailure('Registration could not be completed. Please check your connection and try again.')
     } finally {
       setBusy(false)
     }
+  }
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrors([])
+    setFailure(null)
+    if (step === 'details') await continueToCode()
+    else await createAccount()
   }
 
   return (
@@ -237,6 +321,31 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
             </p>
           ) : null}
 
+          {step === 'code' ? (
+            <CodeStep
+              email={codeSentTo ?? f.email}
+              code={code}
+              onCode={(value) => {
+                setCode(value)
+                setErrors((es) => es.filter((x) => x.field !== 'code'))
+                setFailure(null)
+              }}
+              error={errorFor('code')}
+              resendIn={resendIn}
+              busy={busy}
+              onResend={() => {
+                setErrors([])
+                setFailure(null)
+                void sendCode()
+              }}
+              onBack={() => {
+                setErrors([])
+                setFailure(null)
+                setStep('details')
+              }}
+            />
+          ) : (
+          <>
           <div className="m-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <label style={label}>
               <span>
@@ -262,7 +371,11 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
               <Req />
             </span>
             <input style={input} type="email" value={f.email} onChange={set('email')} autoComplete="email" required />
-            {errorFor('email') ? <Err>{errorFor('email')}</Err> : null}
+            {errorFor('email') ? (
+              <Err>{errorFor('email')}</Err>
+            ) : (
+              <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>We will email a 6-digit code to confirm it.</span>
+            )}
           </label>
 
           {/*
@@ -358,8 +471,8 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
               The relay filled OJS's second box with a copy of the first, so a
               password mistyped here was accepted without question — and the
               person then could not sign in with the password they thought
-              they had chosen. With site email not yet configured there is no
-              reset to fall back on, so the typo had to be caught here. */}
+              they had chosen. Catching the typo here is cheaper than a
+              password reset. */}
           <label style={label}>
             <span>
               Confirm password
@@ -433,7 +546,10 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
               </span>
             </span>
           </label>
+          </>
+          )}
 
+          {/* Mounted on both steps: sending a code, first time or again, needs a fresh token. */}
           <Turnstile ref={captcha} action="register" onToken={setCaptchaToken} />
 
           <button
@@ -451,7 +567,15 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
               cursor: busy ? 'default' : 'pointer',
             }}
           >
-            {busy ? 'Creating your account…' : 'Create account'}
+            {step === 'details'
+              ? busy
+                ? 'Sending your code…'
+                : sameAddress(codeSentTo, f.email)
+                  ? 'Continue'
+                  : 'Continue and email me a code'
+              : busy
+                ? 'Creating your account…'
+                : 'Verify and create account'}
           </button>
 
           <p style={{ margin: 0, fontSize: 12, color: 'var(--muted,#505C68)', lineHeight: 1.5 }}>
@@ -467,3 +591,68 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
 const Err = ({ children }: { children: React.ReactNode }) => (
   <span style={{ fontSize: 12, color: '#A52A2A' }}>{children}</span>
 )
+
+/** The second step: the code box, resend and a way back to the details. */
+function CodeStep({
+  email,
+  code,
+  onCode,
+  error,
+  resendIn,
+  busy,
+  onResend,
+  onBack,
+}: {
+  email: string
+  code: string
+  onCode: (value: string) => void
+  error?: string
+  resendIn: number
+  busy: boolean
+  onResend: () => void
+  onBack: () => void
+}) {
+  const link: React.CSSProperties = { border: 0, background: 'none', padding: 0, font: 'inherit', fontSize: 13, color: 'var(--accent,#1D5DA8)', cursor: 'pointer' }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div>
+        <h2 style={{ margin: '0 0 6px', fontSize: 18, color: 'var(--ink,#101B27)' }}>Check your email</h2>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)' }}>
+          We sent a 6-digit code to <strong style={{ color: 'var(--ink,#101B27)' }}>{email}</strong>. It expires in 10 minutes. If it is not
+          in your inbox, check spam or junk.
+        </p>
+      </div>
+      <label style={label}>
+        <span>
+          Verification code
+          <Req />
+        </span>
+        <input
+          style={{ ...input, fontFamily: 'var(--font-mono)', fontSize: 22, letterSpacing: '0.3em', maxWidth: 220 }}
+          value={code}
+          onChange={(e) => onCode(e.target.value.replace(/[^\d]/g, '').slice(0, 6))}
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="\d{6}"
+          maxLength={6}
+          placeholder="000000"
+          autoFocus
+          required
+        />
+        {error ? <Err>{error}</Err> : null}
+      </label>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px', fontSize: 13, color: 'var(--muted,#505C68)' }}>
+        {resendIn > 0 ? (
+          <span>Send a new code in {resendIn}s</span>
+        ) : (
+          <button type="button" onClick={onResend} disabled={busy} style={link}>
+            Send a new code
+          </button>
+        )}
+        <button type="button" onClick={onBack} disabled={busy} style={link}>
+          Change email or other details
+        </button>
+      </div>
+    </div>
+  )
+}

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { CSRF_HEADER } from '@/lib/auth/csrf'
+import { emailsOnDecision } from '@/lib/admin/decision-email'
+import { DecisionComposer, announcePendingChange } from './DecisionComposer'
 import type { FormKind, FormRecord } from '@/lib/forms/admin'
 import { STATUS_LABELS } from '@/lib/forms/options'
 import { formatBytes } from '@/lib/uploads/policy'
@@ -48,53 +50,138 @@ function PayloadView({ value }: { value: unknown }) {
   return <>{String(value)}</>
 }
 
+const formatDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+
+const isOpen = (status: string) => status === 'received' || status === 'under_review' || status === 'revisions'
+
+/**
+ * Decision buttons and the note. Accept, Decline and Request revisions open
+ * the letter composer; Mark under review is bookkeeping and saves directly.
+ */
 function Decision({ record, csrfToken, onSaved }: { record: FormRecord; csrfToken: string; onSaved: () => void }) {
-  const [status, setStatus] = useState(record.status)
   const [note, setNote] = useState(record.decisionNote ?? '')
+  const [composing, setComposing] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const statuses = Object.keys(STATUS_LABELS).filter((s) => record.kind === 'book_submission' || s !== 'revisions')
+  const [flash, setFlash] = useState<string | null>(null)
+  const endpoint = `/api/admin/forms/${record.kind}/${record.id}`
 
-  const save = async () => {
+  const markUnderReview = async () => {
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch(`/api/admin/forms/${record.kind}/${record.id}`, {
+      const res = await fetch(endpoint, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', [CSRF_HEADER]: csrfToken },
-        body: JSON.stringify({ status, note }),
+        body: JSON.stringify({ status: 'under_review', note }),
       })
       const data = (await res.json().catch(() => ({}))) as { errors?: { message: string }[]; message?: string }
       if (!res.ok) setError(data.errors?.[0]?.message ?? data.message ?? 'Could not save')
-      else onSaved()
+      else {
+        announcePendingChange()
+        onSaved()
+      }
     } finally {
       setBusy(false)
     }
   }
 
+  const open = (status: string) => {
+    // Mirrors the server rule so the message lands next to the box.
+    if (status === 'declined' && !note.trim()) {
+      setError('Write the reason for declining in the note first. It goes into the email, and you can edit it there.')
+      return
+    }
+    setError(null)
+    setFlash(null)
+    setComposing(status)
+  }
+
+  if (composing) {
+    return (
+      <DecisionComposer
+        target={{ kind: record.kind, reference: record.reference, name: record.submitter, email: record.email, title: record.title, targetTitle: record.targetTitle, role: record.role }}
+        status={composing}
+        note={note}
+        endpoint={endpoint}
+        csrfToken={csrfToken}
+        onCancel={() => setComposing(null)}
+        onDone={({ emailed }) => {
+          setComposing(null)
+          setFlash(emailed ? `Decision saved and emailed to ${record.email}.` : 'Decision saved. No email was sent.')
+          onSaved()
+        }}
+      />
+    )
+  }
+
+  const decided = !isOpen(record.status)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 520 }}>
-      <label style={{ fontSize: 13, display: 'flex', gap: 8, alignItems: 'center' }}>
-        Status
-        <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ font: 'inherit', fontSize: 14, padding: '5px 8px' }}>
-          {statuses.map((s) => (
-            <option key={s} value={s}>
-              {STATUS_LABELS[s]}
-            </option>
-          ))}
-        </select>
-      </label>
+      {flash ? <p role="status" style={{ margin: 0, fontSize: 13, color: '#1C6B3C' }}>{flash}</p> : null}
+      {decided ? (
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--ink-3,#3C4854)' }}>
+          {STATUS_LABELS[record.status] ?? record.status}.{' '}
+          {record.emailedAt ? `Decision emailed ${formatDate(record.emailedAt)}.` : emailsOnDecision(record.status) ? 'The submitter has not been emailed.' : ''}
+        </p>
+      ) : null}
       <label style={{ fontSize: 13, display: 'flex', flexDirection: 'column', gap: 4 }}>
-        Note {status === 'declined' ? '(required: the reason for declining)' : '(optional)'}
+        Decision note <span style={{ fontSize: 12, color: 'var(--muted,#505C68)' }}>Required when declining. Goes into the email draft, and the audit log.</span>
         <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3} style={{ font: 'inherit', fontSize: 14, padding: 8 }} />
       </label>
       {error ? <span role="alert" style={{ color: '#A52A2A', fontSize: 13 }}>{error}</span> : null}
-      <button onClick={save} disabled={busy} style={{ alignSelf: 'flex-start', background: 'var(--accent,#1D5DA8)', color: '#fff', border: 0, borderRadius: 3, padding: '8px 14px', font: 'inherit', fontSize: 14, cursor: 'pointer' }}>
-        {busy ? 'Saving…' : 'Save decision'}
-      </button>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {record.status === 'received' ? (
+          <Action onClick={markUnderReview} disabled={busy}>
+            {busy ? 'Saving…' : 'Mark under review'}
+          </Action>
+        ) : null}
+        {record.kind === 'book_submission' && record.status !== 'revisions' && !decided ? (
+          <Action onClick={() => open('revisions')} disabled={busy}>
+            Request revisions
+          </Action>
+        ) : null}
+        {decided && emailsOnDecision(record.status) ? (
+          <Action onClick={() => open(record.status)} disabled={busy}>
+            {record.emailedAt ? 'Email the decision again' : 'Email the decision'}
+          </Action>
+        ) : (
+          <>
+            <Action onClick={() => open('accepted')} disabled={busy} primary>
+              Accept
+            </Action>
+            <Action onClick={() => open('declined')} disabled={busy} danger>
+              Decline
+            </Action>
+          </>
+        )}
+      </div>
     </div>
   )
 }
+
+const Action = ({ children, onClick, disabled, primary, danger }: { children: React.ReactNode; onClick: () => void; disabled?: boolean; primary?: boolean; danger?: boolean }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    style={{
+      border: `1px solid ${danger ? '#E3B3B3' : primary ? 'var(--accent,#1D5DA8)' : 'var(--line-strong,#B9C1C9)'}`,
+      background: primary ? 'var(--accent,#1D5DA8)' : 'var(--surface,#fff)',
+      color: primary ? '#fff' : danger ? '#A52A2A' : 'var(--ink,#101B27)',
+      borderRadius: 3,
+      padding: '8px 14px',
+      font: 'inherit',
+      fontSize: 13,
+      fontWeight: 500,
+      cursor: disabled ? 'default' : 'pointer',
+      opacity: disabled ? 0.6 : 1,
+    }}
+  >
+    {children}
+  </button>
+)
 
 type LoadResult = { records: FormRecord[] } | { error: string }
 
@@ -144,10 +231,11 @@ export function AdminForms({ csrfToken }: { csrfToken: string }) {
       <div role="tablist" style={{ display: 'flex', gap: 18, borderBottom: '1px solid var(--line,#DCE1E6)', marginBottom: 12, flexWrap: 'wrap' }}>
         {TABS.map((t) => {
           const count = (records ?? []).filter((r) => r.kind === t.kind).length
+          const fresh = (records ?? []).filter((r) => r.kind === t.kind && r.status === 'received').length
           const active = t.kind === tab
           return (
             <button key={t.kind} role="tab" aria-selected={active} onClick={() => setTab(t.kind)} style={{ border: 0, background: 'none', padding: '10px 0', font: 'inherit', fontSize: 14, fontWeight: active ? 600 : 500, borderBottom: `2px solid ${active ? 'var(--accent,#1D5DA8)' : 'transparent'}`, cursor: 'pointer' }}>
-              {t.label} ({count})
+              {t.label} ({count}){fresh > 0 ? <span className="admin-new-badge" style={{ marginLeft: 6 }}>{fresh} new</span> : null}
             </button>
           )
         })}
@@ -186,7 +274,10 @@ export function AdminForms({ csrfToken }: { csrfToken: string }) {
                     <a href={`mailto:${r.email}?subject=${encodeURIComponent(r.reference)}`} style={{ fontSize: 13 }}>{r.email}</a>
                   </td>
                   <td style={cell}>{new Date(r.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
-                  <td style={cell}>{STATUS_LABELS[r.status] ?? r.status}</td>
+                  <td style={cell}>
+                    {r.status === 'received' ? <span className="admin-new-badge">New</span> : STATUS_LABELS[r.status] ?? r.status}
+                    {r.emailedAt ? <div style={{ fontSize: 12, color: 'var(--muted,#505C68)', marginTop: 2 }}>Emailed</div> : null}
+                  </td>
                 </tr>,
                 expanded ? (
                   <tr key={`${key}-detail`}>

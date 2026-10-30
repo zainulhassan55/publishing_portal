@@ -17,6 +17,7 @@ import {
 } from '@/lib/search-core'
 import { authorsShort, formatDate } from '@/lib/format'
 import { electronicIssn } from '@/data/issn'
+import { periodicalBase } from '@/data/registry'
 
 /**
  * Search.dc.html replicated verbatim (docs/REPLICATION.md). Matching, faceting
@@ -609,7 +610,7 @@ export function SearchPage({ index, extras }: Props) {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <Link
-                  href={`/journals/${j.slug}`}
+                  href={periodicalBase(j.slug)}
                   style={{
                     fontFamily: 'var(--font-serif)',
                     fontSize: 19,

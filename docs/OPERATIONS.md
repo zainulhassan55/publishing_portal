@@ -255,6 +255,7 @@ backup feature is an alternative worth checking.
 | Deploy rolled back | The GitHub Actions log shows the health output. Start the release by hand to see the error: `cd ~/portal/releases/<new> && node server.js` |
 | Migration failed during deploy | The old release is still live. Fix the SQL, then check for and undo any partly applied statements by hand (migrations don't run in a transaction) |
 | Emails not arriving | `SMTP_*` set? SPF, DKIM and DMARC for the sending domain (audit F-07) |
+| Sign-up says it cannot send the verification code | Registration needs working mail: check `SMTP_*` in `~/portal/.env` and `[email] send failed` in the PM2 error log. Codes live in `email_otps` (migration 008) |
 
 ## 10. One-time setup still to confirm
 

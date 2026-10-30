@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { journals } from '@/data/registry'
-import { journalCode } from '@/data/registry'
+import { journalCode, periodicalBase } from '@/data/registry'
 
 /**
  * Audit finding F-08: every unknown URL returned HTTP 200 and soft-redirected
@@ -37,7 +37,7 @@ export default function NotFound() {
           <span style={{ display: 'block', fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--muted,#505C68)', fontWeight: 600, marginBottom: 8 }}>Journals</span>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,300px),1fr))', columnGap: 32 }}>
             {journals.map((journal) => (
-              <Link key={journal.slug} href={`/journals/${journal.slug}`} className="nf-journal" style={{ display: 'flex', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--line,#DCE1E6)', fontSize: 14, lineHeight: 1.45, color: 'var(--ink,#101B27)', textDecoration: 'none' }}>
+              <Link key={journal.slug} href={periodicalBase(journal.slug)} className="nf-journal" style={{ display: 'flex', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--line,#DCE1E6)', fontSize: 14, lineHeight: 1.45, color: 'var(--ink,#101B27)', textDecoration: 'none' }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted,#505C68)', flexShrink: 0, width: 48 }}>{journalCode(journal)}</span>
                 {journal.title}
               </Link>

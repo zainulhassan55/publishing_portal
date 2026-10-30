@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { AsideBox, AsideLinks, PublisherPage } from '@/components/content/PublisherPage'
 import { about } from '@/data/publisher'
-import { journals, series } from '@/data/registry'
+import { journals, periodicalBase, series } from '@/data/registry'
 import { withSharing } from '@/lib/metadata'
 
 export const metadata: Metadata = withSharing({
@@ -32,7 +32,7 @@ export default function AboutPage() {
         <AsideBox title="Our publications">
           <AsideLinks
             links={[
-              ...journals.map((j) => ({ label: `${j.shortTitle} · ${j.title}`, href: `/journals/${j.slug}` })),
+              ...journals.map((j) => ({ label: `${j.shortTitle} · ${j.title}`, href: periodicalBase(j.slug) })),
               ...series.map((s) => ({ label: `${s.code} · ${s.title}`, href: `/series/${s.slug}` })),
             ]}
           />

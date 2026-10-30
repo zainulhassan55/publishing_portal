@@ -200,6 +200,7 @@ export function HomePage({ hero, audiences, publications, articles, about, polic
           <h2 style={h2}>Our publications</h2>
           <span style={{ display: 'flex', gap: 18, fontSize: 14, whiteSpace: 'nowrap' }}>
             <Link href="/journals">All journals</Link>
+            <Link href="/magazines">All magazines</Link>
             <Link href="/series">All book series</Link>
           </span>
         </div>

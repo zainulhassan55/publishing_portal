@@ -28,7 +28,7 @@ export type MastheadProfile = {
   facts: { label: string; value: string }[]
 }
 
-export type PublicationKind = 'journal' | 'series'
+export type PublicationKind = 'journal' | 'magazine' | 'series'
 
 export type JournalMastheadProps = {
   j: MastheadJournal
@@ -40,8 +40,14 @@ export type JournalMastheadProps = {
   showIntro?: boolean
 }
 
+const SECTIONS: Record<PublicationKind, { label: string; href: string; home: string }> = {
+  journal: { label: 'Journals', href: '/journals', home: 'Journal home' },
+  magazine: { label: 'Magazines', href: '/magazines', home: 'Magazine home' },
+  series: { label: 'Book series', href: '/series', home: 'Series home' },
+}
+
 /**
- * Masthead shared by journals and book series: identity, the publisher's
+ * Masthead shared by journals, magazines and book series: identity, the publisher's
  * badges and introduction, a strip of verifiable facts, and the grouped
  * sub-navigation.
  */
@@ -64,8 +70,9 @@ export function JournalMasthead({ j, kind, tab, groups, profile, showIntro = fal
     }
   }, [])
 
-  const homeHref = kind === 'journal' ? `/journals/${j.slug}` : `/series/${j.slug}`
-  const parent = kind === 'journal' ? { label: 'Journals', href: '/journals' } : { label: 'Book series', href: '/series' }
+  const section = SECTIONS[kind]
+  const homeHref = `${section.href}/${j.slug}`
+  const parent = { label: section.label, href: section.href }
   /* The filled button reads as "you are here", so on a page one of the buttons
      leads to, that button is the filled one; elsewhere the first is. */
   const pathname = usePathname()
@@ -73,7 +80,7 @@ export function JournalMasthead({ j, kind, tab, groups, profile, showIntro = fal
   const filled = currentCta ?? profile.ctas[0]
 
   const tabs: { label: string; key: string; isLink?: boolean; href?: string }[] = [
-    { label: kind === 'journal' ? 'Journal home' : 'Series home', key: 'home', isLink: true, href: homeHref },
+    { label: section.home, key: 'home', isLink: true, href: homeHref },
     ...groups.map((g) => ({ label: g.group, key: g.group })),
   ]
 
@@ -91,13 +98,13 @@ export function JournalMasthead({ j, kind, tab, groups, profile, showIntro = fal
         </nav>
         <div className="jm-id" style={{ display: 'flex', gap: 28, padding: '20px 0 24px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
           {profile.tile ? (
-            <Link href={homeHref} aria-label={kind === 'journal' ? 'Journal home' : 'Series home'} className="jm-cover" style={{ position: 'relative', width: 112, height: 150, flexShrink: 0, borderRadius: 2, overflow: 'hidden', borderTop: `5px solid ${j.color}`, boxShadow: '0 6px 14px rgba(16,27,39,.18)' }}>
+            <Link href={homeHref} aria-label={section.home} className="jm-cover" style={{ position: 'relative', width: 112, height: 150, flexShrink: 0, borderRadius: 2, overflow: 'hidden', borderTop: `5px solid ${j.color}`, boxShadow: '0 6px 14px rgba(16,27,39,.18)' }}>
               <Image src={profile.tile} alt="" fill sizes="112px" priority style={{ objectFit: 'cover' }} />
             </Link>
           ) : (
           <Link
             href={homeHref}
-            aria-label={kind === 'journal' ? 'Journal home' : 'Series home'}
+            aria-label={section.home}
             className="jm-cover"
             style={{ width: 112, height: 150, flexShrink: 0, background: 'var(--brand,#0F2B46)', borderRadius: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 12, boxSizing: 'border-box', textDecoration: 'none', borderTop: `5px solid ${j.color}` }}
           >
@@ -194,10 +201,10 @@ export function JournalMasthead({ j, kind, tab, groups, profile, showIntro = fal
             )
           })}
           <div className="jm-spacer" style={{ flex: 1 }}></div>
-          {kind === 'journal' ? (
+          {kind !== 'series' ? (
             <form action="/search" role="search" className="jm-search focus-ring" onPointerEnter={(e) => { if (e.pointerType === 'mouse') setOpen(null) }} style={{ display: 'flex', border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 3, overflow: 'hidden', height: 32, margin: '6px 0', background: 'var(--surface,#fff)' }}>
               <input
-                aria-label="Search this journal"
+                aria-label={`Search this ${kind}`}
                 name="q"
                 placeholder={`Search in ${j.code}`}
                 style={{ border: 0, padding: '0 10px', font: 'inherit', fontSize: 13, width: 180, outline: 'none' }}

@@ -148,6 +148,11 @@ export type PublicationProfile = {
 
 export type JournalDetail = {
   slug: string
+  /**
+   * A magazine is run in OJS exactly like a journal (articles, issues,
+   * submissions), but is listed and routed separately, under /magazines.
+   */
+  kind?: 'journal' | 'magazine'
   title: string
   shortTitle?: string
   tagline?: string

@@ -6,7 +6,7 @@ export type JournalsCard = PublicationCardData & { slug: string }
 const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(min(100%,280px),1fr))', gap: 20, marginTop: 20 } as const
 
 /** The portfolio as cards: cover and name. Each title's description is on its own home page. */
-export function JournalsPage({ journals, series }: { journals: JournalsCard[]; series: JournalsCard[] }) {
+export function JournalsPage({ journals, magazines, series }: { journals: JournalsCard[]; magazines: JournalsCard[]; series: JournalsCard[] }) {
   return (
     <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
@@ -25,6 +25,22 @@ export function JournalsPage({ journals, series }: { journals: JournalsCard[]; s
           <PublicationCard key={j.slug} {...j} />
         ))}
       </div>
+
+      {magazines.length > 0 ? (
+        <section id="magazines" style={{ marginTop: 64 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, borderBottom: '2px solid var(--accent,#0B7265)', paddingBottom: 10 }}>
+            <h2 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Magazines</h2>
+            <Link href="/magazines" style={{ fontSize: 14 }}>
+              All magazines
+            </Link>
+          </div>
+          <div style={grid}>
+            {magazines.map((m) => (
+              <PublicationCard key={m.slug} {...m} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section id="series" style={{ marginTop: 64 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, borderBottom: '2px solid var(--accent,#0B7265)', paddingBottom: 10 }}>

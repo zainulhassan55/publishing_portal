@@ -65,15 +65,17 @@ function BlockTable({ table }: { table: PageTable }) {
   return (
     <div style={{ overflowX: 'auto', margin: '4px 0 24px', borderTop: '2px solid #101B27' }}>
       <table className={table.head.length > 2 ? 'jsp-tbl jsp-tbl-lab' : 'jsp-tbl'} style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 520 }}>
-        <thead>
-          <tr>
-            {table.head.map((th) => (
-              <th key={th} scope="col" style={{ textAlign: 'left', padding: '10px 12px 10px 0', fontSize: 12, color: 'var(--muted,#505C68)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em', borderBottom: '1px solid var(--line-strong,#B9C1C9)' }}>
-                {th}
-              </th>
-            ))}
-          </tr>
-        </thead>
+        {table.head.length > 0 ? (
+          <thead>
+            <tr>
+              {table.head.map((th) => (
+                <th key={th} scope="col" style={{ textAlign: 'left', padding: '10px 12px 10px 0', fontSize: 12, color: 'var(--muted,#505C68)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em', borderBottom: '1px solid var(--line-strong,#B9C1C9)' }}>
+                  {th}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        ) : null}
         <tbody>
           {table.rows.map((row, ri) => (
             <tr key={ri}>

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { AdminNav } from '@/components/admin/AdminNav'
 import { requireAdminPage } from '@/lib/admin/guard'
+import { pendingCounts } from '@/lib/admin/pending'
 
 export const metadata: Metadata = {
   title: 'Administration',
@@ -25,19 +27,9 @@ export const metadata: Metadata = {
  */
 export const dynamic = 'force-dynamic'
 
-const NAV = [
-  { href: '/admin', label: 'Overview' },
-  { href: '/admin/journals', label: 'Journals' },
-  { href: '/admin/publishing', label: 'Published papers' },
-  { href: '/admin/proposals', label: 'Journal proposals' },
-  { href: '/admin/forms', label: 'Editorial forms' },
-  { href: '/admin/volumes', label: 'Book volumes' },
-  { href: '/admin/submissions', label: 'All submissions' },
-  { href: '/admin/activity', label: 'Activity' },
-]
-
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user } = await requireAdminPage()
+  const pending = await pendingCounts()
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 100px' }}>
@@ -63,27 +55,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </Link>
       </header>
 
-      <nav
-        aria-label="Administration"
-        style={{ display: 'flex', flexWrap: 'wrap', gap: 4, margin: '14px 0 24px' }}
-      >
-        {NAV.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            style={{
-              padding: '7px 12px',
-              borderRadius: 3,
-              border: '1px solid var(--line,#DCE1E6)',
-              fontSize: 13,
-              color: 'var(--ink-2,#1F2A36)',
-              textDecoration: 'none',
-            }}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+      <AdminNav initial={pending} />
 
       {children}
     </div>

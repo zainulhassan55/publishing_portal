@@ -1,0 +1,187 @@
+%% {{CODE}} article template -- {{PUBNAME}}
+%%
+%% Limits: no more than 5 pages in this template, including figures, tables and
+%% references (about 4,500 words of main text; Expert Perspectives 3 pages);
+%% an abstract of up to 150 words; no more than 6 figures and tables combined;
+%% no more than 3 displayed equations; no more than 15 references; no
+%% appendices. Manuscripts over these limits are returned before review.
+%%
+%% Submit this file compiled with the `anonymous` option, which removes the
+%% author block for double-blind review. Give author names, affiliations,
+%% biographies and acknowledgements in titlepage.tex instead, and submit that
+%% separately. `lineno` adds line numbers for the reviewers; keep it for
+%% submission.
+\documentclass[magazine,anonymous,lineno,{{CITEOPT}}]{nextgeniq}
+
+\publication{{{PUBNAME}}}{{{CODE}}}
+\articletype{Technical Feature} % or Review Article, Tutorial, Case Study, Expert Perspective
+\shorttitle{A short running title of up to 50 characters}
+
+\title{Title of the Article: Short, Clear and Engaging}
+
+% Author details are hidden by the `anonymous` option. Fill them in anyway:
+% the same block is used for the accepted version.
+\author[1]{First Author}
+\author[2]{Second Author}
+\author[1]{Third Author}
+\affil[1]{Department, University, City, Country}
+\affil[2]{Department, Institution, City, Country}
+\correspondence{First Author, \texttt{first.author@example.org}}
+
+\keywords{keyword one; keyword two; keyword three; keyword four}
+% Article history: completed by the editorial office. Leave these as they are.
+\received{DD Month YYYY}
+\revised{DD Month YYYY}
+\accepted{DD Month YYYY}
+\published{DD Month YYYY}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+In no more than 150 words, say what the article is about, why it matters now,
+and what readers will take away. Do not cite references or use equations in
+the abstract.
+\end{abstract}
+
+\section{Introduction}
+
+Open with the problem and why it matters now, before any technical detail.
+Write for readers outside your specialism: researchers, engineers,
+practitioners and decision-makers. Close the introduction with what the
+article offers the reader. Cite sources by number \citep{smith2024}, in order
+of first citation.
+
+Define every abbreviation and acronym at first use in the text, even if it is
+already defined in the abstract, and avoid abbreviations in the title. Use
+italics for emphasis; do not underline. Do not change font sizes or spacing to
+fit the page limit.
+
+\section{Background}
+
+Give the context a non-specialist reader needs: the state of practice, earlier
+approaches and the gap this article addresses \citep{lee2023,garcia2022}.
+
+\begin{sidebar}{Sidebar: Key Terms}
+Put background that specialists can skip in a sidebar of no more than 300
+words, and refer to it in the text. A sidebar may hold definitions, a short
+history, or a summary of a standard.
+\end{sidebar}
+
+\section{Approach}
+
+Explain each idea in words first, using a figure where it helps
+(Figure~\ref{fig:example}). Describe the system, method or framework at the
+level a practitioner needs to understand and apply it.
+
+\subsection{Equations}
+
+Keep equations to a minimum: no more than three displayed equations, and only
+where they are essential. Number them consecutively, as in
+Equation~\eqref{eq:example}. Define every symbol before or immediately after
+the equation.
+\begin{equation}
+  \hat{y} = \arg\max_{y} \; P(y \mid x)
+  \label{eq:example}
+\end{equation}
+
+\subsection{Algorithms}
+
+Number algorithms and give each a short title, as in
+Algorithm~\ref{alg:example}. Set them off with rules above the title and
+below the last line, and prefer clear pseudocode to program code.
+
+\begin{algorithmbox}{A short, descriptive title}\label{alg:example}
+  \item \textbf{Input:} the data set $D$ and the threshold $\tau$
+  \item \textbf{Output:} the selected items $S$
+  \item $S \gets \emptyset$
+  \item \textbf{for each} item $x \in D$ \textbf{do}
+  \item \quad \textbf{if} $\mathrm{score}(x) \ge \tau$ \textbf{then} add $x$ to $S$
+  \item \textbf{end for}
+  \item \textbf{return} $S$
+\end{algorithmbox}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{example-image}
+  \caption{Figure captions go below the figure. Use figures to explain ideas,
+  such as architectures, workflows and comparisons. No more than six figures
+  and tables combined. Use \texttt{figure*} for a figure across both
+  columns.}
+  \label{fig:example}
+\end{figure}
+
+\section{Results}
+
+Present only the key results that support the article's message, usually in
+one or two figures or a single table such as Table~\ref{tab:results}.
+Parameter sweeps, ablations and long result tables belong in a journal
+article.
+
+\begin{table}[t]
+  \centering
+  \caption{Table captions go above the table. Use horizontal rules only.}
+  \label{tab:results}
+  \begin{tabular}{lccc}
+    \toprule
+    Method   & Precision & Recall & F1 \\
+    \midrule
+    Baseline & 0.81      & 0.77   & 0.79 \\
+    Proposed & 0.88      & 0.85   & 0.86 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Preparing figures and tables}
+
+\begin{itemize}
+  \item Supply photographs and colour or greyscale figures at 300\,dpi or
+  more, and line art at 600\,dpi, or use vector graphics (PDF, EPS). Submit
+  each figure as a separate file as well.
+  \item Size figures to one column (about 85\,mm) or the full page width
+  (about 175\,mm). Text in figures should be 8--10\,pt at print size.
+  \item Label axes with words and units in parentheses, such as
+  ``Latency (ms)'', not symbols or units alone.
+  \item Label the parts of a multipart figure (a), (b), (c) beneath each part.
+  Do not draw borders around figures or put captions inside them.
+  \item Cite every figure and table in the text, and place it near its first
+  mention.
+\end{itemize}
+
+\section{Discussion}
+
+Explain what the results mean in practice, state the limitations honestly,
+and describe what remains unsolved and where research and practice should go
+next.
+
+\section{Conclusion}
+
+Summarise the take-away message in a short paragraph. Do not repeat the
+abstract; say why the work matters and what readers should do with it.
+
+\section*{Acknowledgements}
+
+\textit{Leave this section empty for review: acknowledgements can identify the
+authors. Give them in titlepage.tex; they are added at acceptance.}
+
+\begin{declarations}
+  \declaration{Funding} Name the funders and grant numbers, or state that the
+  work received no external funding. Anonymise funder details that would
+  identify the authors during review.
+  \declaration{Conflicts of interest} Declare any competing interests, or
+  state that there are none.
+  \declaration{Data availability} Where the article reports data, state where
+  it can be found, or why it cannot be shared.
+  \declaration{Ethics approval} Give the approving body and reference for
+  work involving human participants, or state that approval was not
+  required.
+  \declaration{Use of generative AI} Describe any substantive use of
+  generative AI tools, or state that none was used.
+\end{declarations}
+
+% No more than 15 references, preferably recent and peer-reviewed. Include a
+% DOI wherever one exists.
+\bibliography{references}
+
+\end{document}

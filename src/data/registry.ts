@@ -2,6 +2,9 @@ import type { JournalDetail, JournalMenuGroup, JournalPage } from '@/types/conte
 import type { Series } from '@/types/publishing'
 import { ijdmDetail } from './journals/ijdm'
 import { ijicDetail } from './journals/ijic'
+import { jaiseDetail } from './journals/jaise'
+import { jqcsDetail } from './journals/jqcs'
+import { sstDetail } from './magazines/sst'
 import { aiisc } from './series/aiisc'
 import { lnmr } from './series/lnmr'
 import { subjectFor } from './subjects'
@@ -11,7 +14,23 @@ import { subjectFor } from './subjects'
  * routes, sitemap, search index, nav menus — derives from these arrays, so adding
  * a journal or series is one import plus one entry.
  */
-export const journals: JournalDetail[] = [ijicDetail, ijdmDetail]
+export const journals: JournalDetail[] = [ijicDetail, ijdmDetail, jqcsDetail, jaiseDetail, sstDetail]
+
+/*
+ * `journals` is every title OJS hosts, magazines included: a magazine has
+ * articles, issues and submissions exactly like a journal, so article, account
+ * and submission code reads this one list. Pages that present the portfolio
+ * split it with the two lists below, and link through `periodicalBase`.
+ */
+
+export const isMagazine = (j: JournalDetail) => j.kind === 'magazine'
+
+/** The journals proper, for the Journals menu, page and cards. */
+export const journalsOnly = journals.filter((j) => !isMagazine(j))
+
+export const magazines = journals.filter(isMagazine)
+
+export const magazineSlugs = magazines.map((m) => m.slug)
 
 export const journalSlugs = journals.map((j) => j.slug)
 
@@ -19,7 +38,13 @@ const journalBySlug = new Map(journals.map((j) => [j.slug, j]))
 
 export const getJournal = (slug: string): JournalDetail | undefined => journalBySlug.get(slug.toLowerCase())
 
-/** The journal's code (IJIC, IJDM). `shortTitle` has always held it. */
+/** Root path of a journal or magazine: /journals/ijic, /magazines/sst. */
+export const periodicalBase = (slug: string) => {
+  const j = getJournal(slug)
+  return `/${j && isMagazine(j) ? 'magazines' : 'journals'}/${slug.toLowerCase()}`
+}
+
+/** The journal's code (IJIC, SST). `shortTitle` has always held it. */
 export const journalCode = (j: JournalDetail) => j.shortTitle ?? j.slug.toUpperCase()
 
 export const journalSubject = (slug: string) => subjectFor(slug)
@@ -127,12 +152,15 @@ export const journalSubmitHref = (slug: string) => `/submit?journal=${slug}`
 export const journalMenuGroups = (slug: string): ResolvedMenuGroup[] => {
   const journal = getJournal(slug)
   if (!journal) return []
-  return resolveMenu(journalMenu, journal.pages ?? [], `/journals/${slug}`, journalSubmitHref(slug))
+  const groups = resolveMenu(journalMenu, journal.pages ?? [], periodicalBase(slug), journalSubmitHref(slug))
+  if (!isMagazine(journal)) return groups
+  // A magazine publishes articles, not manuscripts, as its buttons already say.
+  return groups.map((g) => ({ ...g, items: g.items.map((i) => (i.label === 'Submit a manuscript' ? { ...i, label: 'Submit an article' } : i)) }))
 }
 
-/** Href of a journal page id, including the two ids that are not static pages. */
+/** Href of a journal or magazine page id, including `submit`, which is not a static page. */
 export const journalPageHref = (slug: string, pageId: string) =>
-  pageId === 'submit' ? journalSubmitHref(slug) : `/journals/${slug}/${pageId}`
+  pageId === 'submit' ? journalSubmitHref(slug) : `${periodicalBase(slug)}/${pageId}`
 
 /* -------------------------------------------------------------------------- */
 /* Book series                                                                */
@@ -157,8 +185,9 @@ export const seriesMenuGroups = (slug: string): ResolvedMenuGroup[] => {
   return resolveMenu(seriesMenu, item.pages, `/series/${slug}`, seriesPageHref(slug, 'propose-volume'))
 }
 
-/** Every journal and series as form options, journals first. */
+/** Every journal, magazine and series as form options, in that order. */
 export const publicationOptions = () => [
-  ...journals.map((j) => ({ value: j.slug, label: `${j.title} (${journalCode(j)})` })),
+  ...journalsOnly.map((j) => ({ value: j.slug, label: `${j.title} (${journalCode(j)})` })),
+  ...magazines.map((j) => ({ value: j.slug, label: `${j.title} (${journalCode(j)})` })),
   ...series.map((s) => ({ value: s.slug, label: `${s.title} (${s.code})` })),
 ]

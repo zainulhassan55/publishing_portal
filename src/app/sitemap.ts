@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { getArticles, getNews } from '@/data/content'
 import { policies } from '@/data/policies'
 import { publishedVolumes } from '@/lib/books/volumes'
-import { journals, series } from '@/data/registry'
+import { journals, periodicalBase, series } from '@/data/registry'
 import { siteUrl } from '@/lib/site'
 
 /**
@@ -48,20 +48,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const journalRoutes: MetadataRoute.Sitemap = journals.flatMap((journal) => [
     {
-      url: url(`/journals/${journal.slug}`),
+      url: url(periodicalBase(journal.slug)),
       lastModified: built,
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
     {
-      url: url(`/journals/${journal.slug}/issues`),
+      url: url(`${periodicalBase(journal.slug)}/issues`),
       lastModified: built,
       changeFrequency: 'monthly' as const,
       priority: 0.5,
     },
     ...(journal.pages ?? [])
       .map((page) => ({
-        url: url(`/journals/${journal.slug}/${page.id}`),
+        url: url(`${periodicalBase(journal.slug)}/${page.id}`),
         lastModified: built,
         changeFrequency: 'monthly' as const,
         priority: 0.4,

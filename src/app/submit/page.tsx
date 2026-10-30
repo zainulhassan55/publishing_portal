@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { journalCode, journals } from '@/data/registry'
+import { redirect } from 'next/navigation'
+import { journalCode, journals, periodicalBase } from '@/data/registry'
 import { ojsHandoffUrl, ojsSubmitUrl } from '@/lib/ojs/config'
 import { withSharing } from '@/lib/metadata'
 
@@ -21,6 +22,9 @@ export const metadata: Metadata = withSharing({
  * accumulated beside OJS's own incomplete submissions. One form is honest:
  * OJS's, which autosaves and lets an author resume from the dashboard here.
  *
+ * A link with ?journal=<slug> (every journal's own Submit button) skips the
+ * picker and goes straight to that journal's wizard.
+ *
  * Every link goes through the OJSSID hand-off, so a signed-in author lands in
  * the wizard already authenticated. Signed out, OJS asks them to sign in or
  * register and then continues to the wizard itself.
@@ -31,7 +35,12 @@ export const metadata: Metadata = withSharing({
  * with an explanation instead of to OJS's "The current role does not have
  * access to this operation" page. See src/lib/auth/ojs-access.ts.
  */
-export default function Submit() {
+export default async function Submit({ searchParams }: { searchParams: Promise<{ journal?: string }> }) {
+  // A journal's own Submit button links here with ?journal=<slug>: the author
+  // has already chosen, so go straight to that journal's submission wizard.
+  const { journal: chosen } = await searchParams
+  if (chosen && journals.some((j) => j.slug === chosen)) redirect(ojsHandoffUrl(ojsSubmitUrl(chosen)))
+
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 100px' }}>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
@@ -44,7 +53,7 @@ export default function Submit() {
         Submit a manuscript
       </h1>
       <p style={{ margin: '0 0 8px', fontSize: 15, lineHeight: 1.65, color: 'var(--ink-3,#3C4854)', maxWidth: 720 }}>
-        Choose the journal that fits your work. Submission happens in the editorial system, which saves your progress
+        Choose the journal or magazine that fits your work. Submission happens in the editorial system, which saves your progress
         automatically — you can leave at any point and resume from{' '}
         <Link href="/dashboard">your dashboard</Link>.
       </p>
@@ -89,7 +98,7 @@ export default function Submit() {
               >
                 Start submission
               </a>
-              <Link href={`/journals/${journal.slug}`} style={{ fontSize: 13, color: 'var(--accent,#1D5DA8)' }}>
+              <Link href={periodicalBase(journal.slug)} style={{ fontSize: 13, color: 'var(--accent,#1D5DA8)' }}>
                 About this journal
               </Link>
             </div>
