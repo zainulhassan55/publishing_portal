@@ -61,6 +61,7 @@ export const sstDetail: JournalDetail = {
   quickLinks: [],
   profile: {
     kicker: 'SST · A NextGenIQ Press Magazine',
+    tile: '/images/magazines/tile-sst.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [
