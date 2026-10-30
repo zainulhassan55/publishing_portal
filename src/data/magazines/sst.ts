@@ -1,6 +1,6 @@
 import type { JournalDetail } from '@/types/content'
 import { electronicIssn, issnLabel, printIssn } from '../issn'
-import { boardPending, editorialEmail, journalFacts, page, plain } from '../pages'
+import { editorTable, editorialEmail, journalFacts, page, plain } from '../pages'
 import { magazineTemplates } from '../templates'
 
 /**
@@ -38,6 +38,16 @@ const topics = [
   'Security, safety and trust in healthcare, energy, transportation and industry',
 ]
 
+const editors = [
+  { name: 'Shingo Yamaguchi', affiliation: 'Yamaguchi University, Japan' },
+  { name: 'Gregorio Martinez Perez', affiliation: 'University of Murcia (UMU), Spain' },
+  { name: 'Nitin Auluck', affiliation: 'Indian Institute of Technology Ropar, India' },
+  { name: 'Brij B. Gupta', affiliation: 'Asia University, Taiwan' },
+  { name: 'Ayan Mondal', affiliation: 'Indian Institute of Technology Indore, India' },
+  { name: 'Arcangelo Castiglione', affiliation: 'University of Salerno, Fisciano, Salerno, Italy' },
+  { name: 'Sumana Maiti', affiliation: 'Indian Institute of Technology Bhubaneswar, India' },
+]
+
 export const sstDetail: JournalDetail = {
   slug,
   kind: 'magazine',
@@ -56,7 +66,7 @@ export const sstDetail: JournalDetail = {
   scope: intro,
   overview: [intro],
   metrics: [],
-  board: [],
+  board: editors.map((e) => `${e.name}, ${e.affiliation}`),
   topics,
   quickLinks: [],
   profile: {
@@ -71,8 +81,7 @@ export const sstDetail: JournalDetail = {
     ],
     facts: journalFacts(electronicIssn(slug)),
     editorsLabel: 'Editors',
-    editors: [],
-    editorsNote: 'The editorial board is being appointed.',
+    editors,
   },
   pages: [
     page('aims-scope', 'Aims & scope', 'Aims and scope', 'The topics covered by SST Magazine.', [
@@ -83,7 +92,9 @@ export const sstDetail: JournalDetail = {
         topicList: true,
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of SST Magazine.', [plain([boardPending('SST Magazine')])]),
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of SST Magazine.', [
+      { title: 'Editors', table: editorTable(editors) },
+    ]),
     page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare an article for SST Magazine.', [
       plain([
         'SST Magazine articles are short, readable and written for a broad technical audience: researchers, engineers, practitioners and decision-makers working outside the author’s own specialism. An article should explain an idea, its significance and its open problems, rather than report every detail of a study. Full derivations, proofs and extended experimental results belong in a journal article.',

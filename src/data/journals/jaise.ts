@@ -1,6 +1,6 @@
 import type { JournalDetail } from '@/types/content'
 import { electronicIssn, issnLabel, printIssn } from '../issn'
-import { boardPending, editorialEmail, journalFacts, page, plain } from '../pages'
+import { editorTable, editorialEmail, journalFacts, page, plain } from '../pages'
 import { journalTemplates } from '../templates'
 
 /**
@@ -35,6 +35,16 @@ const topics = [
   'Applications in smart buildings, industry and integrated energy systems',
 ]
 
+const editors = [
+  { name: 'V. P. Meena', affiliation: 'National Institute of Technology Jamshedpur, India' },
+  { name: 'Chunjia Han', affiliation: 'Birkbeck, University of London, UK' },
+  { name: 'Nadia Nedjah', affiliation: 'State University of Rio de Janeiro, Brazil' },
+  { name: 'Muthu Ramachandran', affiliation: 'University of South Africa, & Forti5 Tech Ltd., Leeds, UK' },
+  { name: 'Kwok Tai Chui', affiliation: 'Hong Kong Metropolitan University, Hong Kong' },
+  { name: 'Chi-Wen Lung', affiliation: 'Asia University, Taiwan' },
+  { name: 'Sugam Sharma', affiliation: 'Founder, Iowa State University SUF/eLegalls ai, USA' },
+]
+
 export const jaiseDetail: JournalDetail = {
   slug,
   title,
@@ -52,7 +62,7 @@ export const jaiseDetail: JournalDetail = {
   scope: intro,
   overview: [intro],
   metrics: [],
-  board: [],
+  board: editors.map((e) => `${e.name}, ${e.affiliation}`),
   topics,
   quickLinks: [],
   profile: {
@@ -67,8 +77,7 @@ export const jaiseDetail: JournalDetail = {
     ],
     facts: journalFacts(electronicIssn(slug)),
     editorsLabel: 'Editors',
-    editors: [],
-    editorsNote: 'The editorial board is being appointed.',
+    editors,
   },
   pages: [
     page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by JAISE.', [
@@ -82,7 +91,9 @@ export const jaiseDetail: JournalDetail = {
         ],
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of JAISE.', [plain([boardPending('JAISE')])]),
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of JAISE.', [
+      { title: 'Editors', table: editorTable(editors) },
+    ]),
     page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for JAISE.', [
       plain([
         'Submissions must be original, written in English, and not under consideration elsewhere. Authors should clearly describe their contribution, methods, results, limitations, and relevant comparisons.',
