@@ -57,6 +57,7 @@ export const jaiseDetail: JournalDetail = {
   quickLinks: [],
   profile: {
     kicker: 'JAISE · A NextGenIQ Press Journal',
+    tile: '/images/journals/tile-jaise.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [

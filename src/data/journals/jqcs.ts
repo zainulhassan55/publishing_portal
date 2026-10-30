@@ -55,6 +55,7 @@ export const jqcsDetail: JournalDetail = {
   quickLinks: [],
   profile: {
     kicker: 'JQCS · A NextGenIQ Press Journal',
+    tile: '/images/journals/tile-jqcs.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [
