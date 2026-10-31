@@ -65,7 +65,7 @@ site's `text-slate-400` on white was an AA contrast failure the audit flagged.
   `portfolioStats`
 - `policies.ts` — publisher-level policies, the single source for that text
 - `issn.ts` — `issnLabel` `electronicIssn`. ISSNs are **not yet assigned**;
-  surfaces render "Applied for". Never invent one (audit F-03).
+  surfaces render "Not yet assigned". Never invent one (audit F-03).
 - `journalCovers.ts` / `bookCovers.ts` — `/images/...` paths
 
 ### Content is populated

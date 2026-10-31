@@ -1,6 +1,7 @@
 import { handler } from '@/lib/api'
 import { currentIssue, getIssues } from '@/data/content'
 import { ojsUrl } from '@/lib/ojs/config'
+import { ojsContext, portalSlug } from '@/lib/ojs/contexts'
 import { periodicalBase } from '@/data/registry'
 
 export const dynamic = 'force-dynamic'
@@ -15,7 +16,8 @@ export const dynamic = 'force-dynamic'
  */
 export const GET = handler(async (request) => {
   const segments = new URL(request.url).pathname.split('/').filter(Boolean)
-  const journal = segments[segments.length - 2] ?? ''
+  // An OJS path in any case, old or new (ijic or TICR); the harvest keys issues by portal slug.
+  const journal = portalSlug(segments[segments.length - 2] ?? '')
   const id = Number(segments[segments.length - 1])
 
   const issue = getIssues().find((i) => i.journalSlug === journal && i.ojsId === id)
@@ -24,7 +26,7 @@ export const GET = handler(async (request) => {
   const isCurrent = issue !== undefined && currentIssue(journal)?.ojsId === issue.ojsId
   const to = issue
     ? `${periodicalBase(journal)}/${isCurrent ? 'current-issue' : 'issues'}`
-    : `${ojsUrl(journal, `/issue/view/${segments[segments.length - 1]}`)}?portal=0`
+    : `${ojsUrl(ojsContext(journal), `/issue/view/${segments[segments.length - 1]}`)}?portal=0`
 
   return new Response(null, { status: 302, headers: { Location: to, 'Cache-Control': 'no-store' } })
 })

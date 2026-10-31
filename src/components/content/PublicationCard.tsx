@@ -12,7 +12,7 @@ export type PublicationCardData = {
   cover?: string
   /** Portrait crop of the banner's artwork: the card's cover photo. */
   tile?: string
-  /** One line each: "ISSN: Applied for", plus the ISBN note for a series. */
+  /** One line each: "ISSN: Not yet assigned", plus the ISBN note for a series. */
   identifiers: string[]
   aboutLabel: string
   action: { label: string; href: string }

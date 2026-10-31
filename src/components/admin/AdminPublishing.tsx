@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CSRF_HEADER } from '@/lib/auth/csrf'
 import { ojsHandoffUrl, ojsUrl } from '@/lib/ojs/config'
+import { ojsContext } from '@/lib/ojs/contexts'
 
 /**
  * Published papers, with the portal's show/hide switch for each.
@@ -332,7 +333,7 @@ export function AdminPublishing({ csrfToken }: { csrfToken: string }) {
                         )}
                         {r.submissionId ? (
                           <a
-                            href={ojsHandoffUrl(ojsUrl(r.journalSlug, `/workflow/access/${r.submissionId}`))}
+                            href={ojsHandoffUrl(ojsUrl(ojsContext(r.journalSlug), `/workflow/access/${r.submissionId}`))}
                             style={chipLink}
                           >
                             In OJS

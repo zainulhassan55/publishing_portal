@@ -48,6 +48,12 @@ What the vhost does:
 - Redirects public OJS pages to the portal (see
   [ARCHITECTURE.md §1](ARCHITECTURE.md#1-the-big-picture)).
 - Caches `/_next/static/` for a year.
+- Sends the OJS paths of the titles renamed in October 2026 (`ijic`, `ijdm`,
+  `jqcs`, `jaise`, `sst`, in any case) to the same URL under the new path
+  (`TICR`, `JDMIE`, `TQCIS`, `JAAISE`, `DTCR`) with a 308, which keeps the
+  query string and the request method. OJS itself answers only on the new
+  paths. Journal paths are matched in any case, because OJS writes its own
+  links in the case it stores (`TICR`).
 
 **Don't enable CloudPanel PageSpeed.** It breaks React hydration.
 

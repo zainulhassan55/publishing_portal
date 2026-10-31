@@ -75,7 +75,27 @@ const renamedJournalPages: Record<string, string> = {
   'corrections-retractions': '/policies/corrections-retractions',
 }
 
+/**
+ * Renamed titles: new code → the portal slug, which did not change. OJS now
+ * serves these titles under the new code (src/lib/ojs/contexts.ts holds the
+ * same pairs; this file stays self-contained because next.config.ts cannot
+ * reliably import app modules), and nginx sends OJS journal pages to
+ * /journals/<OJS path>, so the new codes must resolve here. Temporary, not
+ * permanent, so that moving the portal URLs to the new codes later is not
+ * fought by a browser-cached 308.
+ */
+const renamedTitles: { from: string; to: string }[] = [
+  { from: '/journals/ticr', to: '/journals/ijic' },
+  { from: '/journals/jdmie', to: '/journals/ijdm' },
+  { from: '/journals/tqcis', to: '/journals/jqcs' },
+  { from: '/journals/jaaise', to: '/journals/jaise' },
+  { from: '/magazines/dtcr', to: '/magazines/sst' },
+  { from: '/journals/dtcr', to: '/magazines/sst' },
+]
+
 const portfolioRedirects = [
+  ...renamedTitles.map(({ from, to }) => ({ source: from, destination: to, permanent: false })),
+  ...renamedTitles.map(({ from, to }) => ({ source: `${from}/:path*`, destination: `${to}/:path*`, permanent: false })),
   // Publisher-wide guidance that used to live under one journal's path.
   { source: '/journals/:journal(ijdh|ijdm|ijds|ijei|ijic|ijis|ijmc|ijmr|ijqt|ijse)/reviewer-guidelines', destination: '/reviewers', permanent: true },
   ...removedJournals.map((slug) => ({ source: `/journals/${slug}/:path*`, destination: '/journals', permanent: true })),

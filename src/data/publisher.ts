@@ -11,7 +11,7 @@ export const hero = {
   kicker: 'Peer-reviewed · Open access · Interdisciplinary research',
   headline: 'Advancing knowledge. Sharing research openly.',
   intro:
-    'NextGenIQ Press (also known as IQ Press) publishes open-access journals, research books, monographs, and conference proceedings across digital, computational, and interdisciplinary fields. We make scholarly research freely available to readers worldwide, supported by expert editorial oversight and rigorous peer review.',
+    'NextGenIQ Press (NGIQ Press) publishes open-access journals, research books, monographs, and conference proceedings across digital, computational, and interdisciplinary fields. We make scholarly research freely available to readers worldwide, supported by expert editorial oversight and rigorous peer review.',
   ctas: [
     { label: 'Submit a manuscript', href: '/submit' },
     { label: 'Browse journals', href: '/journals' },

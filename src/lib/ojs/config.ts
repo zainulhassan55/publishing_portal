@@ -1,3 +1,5 @@
+import { ojsContext } from './contexts.ts'
+
 /**
  * Where the browser should send a user who clicks through to OJS.
  *
@@ -62,9 +64,14 @@ export const ojsLostPasswordUrl = ojsUrl('index', '/login/lostPassword')
  */
 export const ojsHandoffUrl = (target: string) => `/api/auth/ojs-handoff?to=${encodeURIComponent(target)}`
 
-export const ojsJournalUrl = (slug: string) => ojsUrl(slug)
-export const ojsSubmitUrl = (slug: string) => ojsUrl(slug, '/submission/wizard')
-export const ojsJournalRegisterUrl = (slug: string) => ojsUrl(slug, '/user/register')
+/*
+ * The builders below take a portal slug and map it to the journal's OJS path,
+ * which differs for renamed titles (see contexts.ts). `ojsUrl` itself takes
+ * an OJS context as-is.
+ */
+export const ojsJournalUrl = (slug: string) => ojsUrl(ojsContext(slug))
+export const ojsSubmitUrl = (slug: string) => ojsUrl(ojsContext(slug), '/submission/wizard')
+export const ojsJournalRegisterUrl = (slug: string) => ojsUrl(ojsContext(slug), '/user/register')
 
 /**
  * Author and reviewer workspaces.
@@ -80,11 +87,11 @@ export const ojsJournalRegisterUrl = (slug: string) => ojsUrl(slug, '/user/regis
  * surface in the portal is a link-out, pointing at it sent reviewers to a dead
  * page with no other way through.
  */
-export const ojsDashboardUrl = (slug: string) => ojsUrl(slug, '/dashboard/mySubmissions')
-export const ojsReviewUrl = (slug: string) => ojsUrl(slug, '/dashboard/reviewAssignments')
+export const ojsDashboardUrl = (slug: string) => ojsUrl(ojsContext(slug), '/dashboard/mySubmissions')
+export const ojsReviewUrl = (slug: string) => ojsUrl(ojsContext(slug), '/dashboard/reviewAssignments')
 
 /** Editorial queue, for editors and journal managers. */
-export const ojsEditorialUrl = (slug: string) => ojsUrl(slug, '/dashboard/editorial')
+export const ojsEditorialUrl = (slug: string) => ojsUrl(ojsContext(slug), '/dashboard/editorial')
 
 /**
  * Absolute equivalents of the page URLs above, for server-side use.

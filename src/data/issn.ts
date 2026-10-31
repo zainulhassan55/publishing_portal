@@ -5,8 +5,8 @@
  * "ISSN Sample" / "eISSN Sample" on every live journal page, which reads to
  * a cautious author as evidence of an unserious operation.
  *
- * The honest state today is that registration is in progress, so this map is
- * empty and every surface renders "Applied for" via `issnLabel`. As the ISSN
+ * No ISSN has been assigned yet, so this map is
+ * empty and every surface renders "Not yet assigned" via `issnLabel`. As the ISSN
  * National Centre assigns numbers, add them here — one line per journal — and
  * the journal pages, citation metadata and JSON-LD all pick them up.
  *
@@ -19,7 +19,7 @@ export const journalIssn: Record<string, { print?: string; electronic?: string }
 
 export const seriesIssn: Record<string, { print?: string; electronic?: string }> = {}
 
-export const PENDING_ISSN_LABEL = 'Applied for'
+export const PENDING_ISSN_LABEL = 'Not yet assigned'
 
 export const issnLabel = (issn: string | null | undefined) => issn ?? PENDING_ISSN_LABEL
 
