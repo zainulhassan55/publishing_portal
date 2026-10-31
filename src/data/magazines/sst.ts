@@ -12,10 +12,10 @@ import { magazineTemplates } from '../templates'
  * both together. The editorial board is still to be appointed.
  */
 const slug = 'sst'
-const title = 'Security, Safety & Trust Magazine'
+const title = 'Digital Trust & Cyber Resilience Magazine'
 
 const intro =
-  'Security, Safety & Trust (SST) Magazine publishes technical features, review articles, tutorials, case studies and expert perspectives on cybersecurity, system safety and trustworthy digital technologies. The magazine welcomes research insights and practical experiences in artificial intelligence, autonomous systems, privacy, resilience and technology assurance, presented in accessible language and supported by credible evidence.'
+  'Digital Trust & Cyber Resilience (DTCR) Magazine publishes technical features, review articles, tutorials, case studies and expert perspectives on cybersecurity, system safety and trustworthy digital technologies. The magazine welcomes research insights and practical experiences in artificial intelligence, autonomous systems, privacy, resilience and technology assurance, presented in accessible language and supported by credible evidence.'
 
 const topics = [
   'Cybersecurity and cyber resilience',
@@ -52,7 +52,7 @@ export const sstDetail: JournalDetail = {
   slug,
   kind: 'magazine',
   title,
-  shortTitle: 'SST',
+  shortTitle: 'DTCR',
   tagline: 'Cybersecurity, system safety and trustworthy digital technologies, in accessible language.',
   issn: issnLabel(printIssn(slug)),
   eIssn: issnLabel(electronicIssn(slug)),
@@ -70,7 +70,7 @@ export const sstDetail: JournalDetail = {
   topics,
   quickLinks: [],
   profile: {
-    kicker: 'SST · A NextGenIQ Press Magazine',
+    kicker: 'DTCR · A NextGenIQ Press Magazine',
     tile: '/images/magazines/tile-sst.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
@@ -84,7 +84,7 @@ export const sstDetail: JournalDetail = {
     editors,
   },
   pages: [
-    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The topics covered by SST Magazine.', [
+    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The topics covered by DTCR Magazine.', [
       {
         title: '',
         paragraphs: [`${intro} Topics include, but are not limited to:`],
@@ -92,12 +92,12 @@ export const sstDetail: JournalDetail = {
         topicList: true,
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of SST Magazine.', [
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of DTCR Magazine.', [
       { title: 'Editors', table: editorTable(editors) },
     ]),
-    page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare an article for SST Magazine.', [
+    page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare an article for DTCR Magazine.', [
       plain([
-        'SST Magazine articles are short, readable and written for a broad technical audience: researchers, engineers, practitioners and decision-makers working outside the author’s own specialism. An article should explain an idea, its significance and its open problems, rather than report every detail of a study. Full derivations, proofs and extended experimental results belong in a journal article.',
+        'DTCR Magazine articles are short, readable and written for a broad technical audience: researchers, engineers, practitioners and decision-makers working outside the author’s own specialism. An article should explain an idea, its significance and its open problems, rather than report every detail of a study. Full derivations, proofs and extended experimental results belong in a journal article.',
       ]),
       {
         title: 'Article types',
@@ -116,7 +116,7 @@ export const sstDetail: JournalDetail = {
         title: 'Length and content limits',
         paragraphs: ['Manuscripts that exceed these limits are returned to the authors before review.'],
         bullets: [
-          'No more than 5 pages in the SST Magazine template, including figures, tables and references: about 4,500 words of main text. Expert perspectives: no more than 3 pages, about 2,500 words.',
+          'No more than 5 pages in the DTCR Magazine template, including figures, tables and references: about 4,500 words of main text. Expert perspectives: no more than 3 pages, about 2,500 words.',
           'An abstract of no more than 150 words, without citations or equations.',
           'No more than 6 figures and tables combined. Use figures to explain ideas, such as architectures, workflows and comparisons, rather than to reproduce raw data.',
           'Limited results: present only the key results that support the article’s message, usually in one or two figures or a single table. Parameter sweeps, ablations and long result tables belong in a journal article.',
@@ -142,27 +142,27 @@ export const sstDetail: JournalDetail = {
           'Submissions must be original, written in English, and not under consideration elsewhere. Submit an anonymised manuscript for double-blind review, with author details and biographies on the separate title page. Include funding, conflicts of interest, data availability where relevant, ethical approvals, and substantive AI-use disclosures.',
         ],
       },
-      magazineTemplates(slug, 'SST'),
+      magazineTemplates(slug, 'DTCR'),
     ]),
-    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How SST Magazine articles are reviewed.', [
+    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How DTCR Magazine articles are reviewed.', [
       plain([
         'Suitable manuscripts undergo independent double-blind peer review following editorial screening, which includes a check against the magazine’s length and content limits. Decisions consider originality, technical soundness, significance, and clarity for a broad readership.',
         'All contributors must follow NextGenIQ Press publication ethics policies. Conflicts of interest are disclosed, and submissions involving editors are handled independently.',
       ]),
     ]),
-    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for SST Magazine articles.', [
+    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for DTCR Magazine articles.', [
       plain([
         'Articles are freely available under CC BY 4.0, permitting sharing and adaptation with appropriate attribution. Third-party material may carry separate restrictions.',
         'Current charges and waiver arrangements are disclosed on the fees page. Any new or revised APC will be announced at least six months in advance and apply only to subsequent submissions. Editorial decisions are independent of payment.',
       ]),
     ]),
-    page('special-issue-guidelines', 'Special issues', 'Special issues', 'Proposing a special issue of SST Magazine.', [
+    page('special-issue-guidelines', 'Special issues', 'Special issues', 'Proposing a special issue of DTCR Magazine.', [
       plain([
         'Proposals should include a focused theme, rationale, topics, guest editor biographies, and timeline. Special issue articles follow the magazine’s standard length limits, review and ethics requirements.',
       ]),
     ]),
-    page('contact', 'Contact', 'Contact', 'How to contact SST Magazine.', [
-      plain([`Email ${editorialEmail}, including SST and your manuscript reference, if available.`]),
+    page('contact', 'Contact', 'Contact', 'How to contact DTCR Magazine.', [
+      plain([`Email ${editorialEmail}, including DTCR and your manuscript reference, if available.`]),
     ]),
   ],
 }

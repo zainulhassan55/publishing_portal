@@ -10,8 +10,8 @@ import { requireMember, submittedBy } from '@/lib/auth/require'
 export const dynamic = 'force-dynamic'
 
 /**
- * Book volume proposal for AIISC or LNMR. Fields follow the publisher's
- * "Propose a Volume" list for each series; LNMR additionally asks for the
+ * Book volume proposal for SISDT or LNMRI. Fields follow the publisher's
+ * "Propose a Volume" list for each series; LNMRI additionally asks for the
  * multidisciplinary focus, and proceedings add the event, programme committee
  * and peer-review arrangements.
  */

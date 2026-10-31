@@ -10,10 +10,10 @@ import { journalTemplates } from '../templates'
  * wording only on the publisher's instruction.
  */
 const slug = 'ijdm'
-const title = 'International Journal of Digital Management'
+const title = 'Journal of Digital Management and Intelligent Enterprises'
 
 const intro =
-  'The International Journal of Digital Management (IJDM) publishes research on how digital technologies transform organisations, management practices, and business performance. The journal welcomes original research, review articles, conceptual papers, and rigorous case studies connecting scholarly insights with managerial practice.'
+  'The Journal of Digital Management and Intelligent Enterprises (JDMIE) publishes research on how digital technologies transform organisations, management practices, and business performance. The journal welcomes original research, review articles, conceptual papers, and rigorous case studies connecting scholarly insights with managerial practice.'
 
 const topics = [
   'Digital transformation and organisational change',
@@ -48,7 +48,7 @@ const editors = [
 export const ijdmDetail: JournalDetail = {
   slug,
   title,
-  shortTitle: 'IJDM',
+  shortTitle: 'JDMIE',
   tagline: 'How digital technologies transform organisations, management practices, and business performance.',
   issn: issnLabel(printIssn(slug)),
   eIssn: issnLabel(electronicIssn(slug)),
@@ -66,8 +66,8 @@ export const ijdmDetail: JournalDetail = {
   topics,
   quickLinks: [],
   profile: {
-    kicker: 'IJDM · A NextGenIQ Press Journal',
-    cover: '/images/journals/cover-ijdm.jpg',
+    kicker: 'JDMIE · A NextGenIQ Press Journal',
+    cover: '/images/journals/cover-ijdm.svg',
     tile: '/images/journals/tile-ijdm.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
@@ -82,49 +82,49 @@ export const ijdmDetail: JournalDetail = {
     editorsNote: `Honorary Editor-in-Chief: ${honoraryEditorInChief.name}, ${honoraryEditorInChief.affiliation}.`,
   },
   pages: [
-    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by IJDM.', [
+    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by JDMIE.', [
       {
         title: '',
         lead: 'The international journal for research on digital technologies, organisations and management practice',
         paragraphs: [
           'Digital technologies are changing how organisations are led, structured and run. Artificial intelligence, analytics, platforms and automation are reshaping strategy, operations, marketing and work itself, while raising new questions of governance, trust, skills and inclusion. Understanding these changes, and managing them well, requires research that connects technological developments with sound management theory and evidence from practice.',
-          'The International Journal of Digital Management (IJDM) is a peer-reviewed, open-access journal that publishes research on how digital technologies transform organisations, management practices and business performance. The journal welcomes original research, review articles, conceptual papers and rigorous case studies connecting scholarly insights with managerial practice. Topics include, but are not limited to:',
+          'The Journal of Digital Management and Intelligent Enterprises (JDMIE) is a peer-reviewed, open-access journal that publishes research on how digital technologies transform organisations, management practices and business performance. The journal welcomes original research, review articles, conceptual papers and rigorous case studies connecting scholarly insights with managerial practice. Topics include, but are not limited to:',
         ],
         bullets: topics,
         topicList: true,
         closing: ['Submissions should demonstrate a clear managerial or organisational contribution supported by sound theory, methods, or evidence.'],
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of IJDM.', [
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of JDMIE.', [
       { title: 'Honorary Editor-in-Chief', table: editorTable([honoraryEditorInChief]) },
       { title: 'Editors', table: editorTable(editors) },
     ]),
-    page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for IJDM.', [
+    page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for JDMIE.', [
       plain([
         'Submissions must be original, written in English, and not under consideration elsewhere. Authors should clearly explain the research question, contribution, analytical approach, findings, limitations, and implications for management.',
         'Submit an anonymised manuscript for double-blind review, with author details provided separately. Include funding, conflicts of interest, data availability, relevant ethical approvals, and substantive AI-use disclosures.',
       ]),
-      journalTemplates(slug, 'IJDM'),
+      journalTemplates(slug, 'JDMIE'),
     ]),
-    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How IJDM manuscripts are reviewed.', [
+    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How JDMIE manuscripts are reviewed.', [
       plain([
         'Suitable manuscripts undergo independent double-blind peer review following editorial screening. Decisions consider originality, theoretical grounding, methodological quality, clarity, and practical significance.',
         'All contributors must follow NextGenIQ Press publication ethics policies. Conflicts of interest are disclosed, and submissions involving editors are handled independently. Authors must protect participants’ privacy and confidential organisational information.',
       ]),
     ]),
-    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for IJDM articles.', [
+    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for JDMIE articles.', [
       plain([
         'Articles are freely available under CC BY 4.0, permitting sharing and adaptation with appropriate attribution. Third-party material may carry separate restrictions.',
         'Current charges and waiver arrangements are disclosed on the fees page. Any new or revised APC will be announced at least six months before taking effect and will apply only to manuscripts submitted on or after the effective date. Editorial decisions are independent of payment.',
       ]),
     ]),
-    page('special-issue-guidelines', 'Special issues', 'Special issues', 'Proposing a special issue of IJDM.', [
+    page('special-issue-guidelines', 'Special issues', 'Special issues', 'Proposing a special issue of JDMIE.', [
       plain([
-        'IJDM welcomes proposals on focused and emerging topics in digital management. Proposals should include the theme, rationale, topics, guest editor biographies, and timeline. All submissions follow the journal’s standard review and ethics requirements.',
+        'JDMIE welcomes proposals on focused and emerging topics in digital management. Proposals should include the theme, rationale, topics, guest editor biographies, and timeline. All submissions follow the journal’s standard review and ethics requirements.',
       ]),
     ]),
-    page('contact', 'Contact', 'Contact', 'How to contact IJDM.', [
-      plain([`Email ${editorialEmail}, including IJDM and your manuscript reference, if available.`]),
+    page('contact', 'Contact', 'Contact', 'How to contact JDMIE.', [
+      plain([`Email ${editorialEmail}, including JDMIE and your manuscript reference, if available.`]),
     ]),
   ],
 }

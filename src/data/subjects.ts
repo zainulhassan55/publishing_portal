@@ -34,6 +34,7 @@ export const journalSubjectKey: Record<string, SubjectKey> = {
   jqcs: 'electronics',
   jaise: 'energy',
   sst: 'security',
+  reta: 'interdisciplinary',
 }
 
 export const subjectFor = (slug: string): Subject => subjects[journalSubjectKey[slug] ?? 'interdisciplinary']

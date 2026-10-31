@@ -4,6 +4,7 @@ import { ijdmDetail } from './journals/ijdm'
 import { ijicDetail } from './journals/ijic'
 import { jaiseDetail } from './journals/jaise'
 import { jqcsDetail } from './journals/jqcs'
+import { retaDetail } from './journals/reta'
 import { sstDetail } from './magazines/sst'
 import { aiisc } from './series/aiisc'
 import { lnmr } from './series/lnmr'
@@ -14,7 +15,7 @@ import { subjectFor } from './subjects'
  * routes, sitemap, search index, nav menus — derives from these arrays, so adding
  * a journal or series is one import plus one entry.
  */
-export const journals: JournalDetail[] = [ijicDetail, ijdmDetail, jqcsDetail, jaiseDetail, sstDetail]
+export const journals: JournalDetail[] = [ijicDetail, ijdmDetail, jqcsDetail, jaiseDetail, retaDetail, sstDetail]
 
 /*
  * `journals` is every title OJS hosts, magazines included: a magazine has
@@ -44,7 +45,7 @@ export const periodicalBase = (slug: string) => {
   return `/${j && isMagazine(j) ? 'magazines' : 'journals'}/${slug.toLowerCase()}`
 }
 
-/** The journal's code (IJIC, SST). `shortTitle` has always held it. */
+/** The journal's code (TICR, DTCR). `shortTitle` has always held it. */
 export const journalCode = (j: JournalDetail) => j.shortTitle ?? j.slug.toUpperCase()
 
 export const journalSubject = (slug: string) => subjectFor(slug)

@@ -75,7 +75,7 @@ const steps = [
 /** File extension badge from a download's format label, e.g. "Word (.docx)" → "DOCX". */
 const extOf = (format: string) => (/\.(\w+)\)/.exec(format)?.[1] ?? '').toUpperCase()
 
-/** "Manuscript template" → "manuscript template", for "IJIC manuscript template"; "LaTeX" keeps its casing. */
+/** "Manuscript template" → "manuscript template", for "TICR manuscript template"; "LaTeX" keeps its casing. */
 const lowerFirst = (label: string) => (label.startsWith('LaTeX') ? label : label.charAt(0).toLowerCase() + label.slice(1))
 
 /** data.js typesTable, copied literally (see REPLICATION.md data map). */

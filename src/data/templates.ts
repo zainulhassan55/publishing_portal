@@ -7,7 +7,7 @@ import type { ContentBlock } from '@/types/content'
  */
 const base = (slug: string) => `/templates/${slug}`
 
-const latexNote = 'Class file, sample references and a compiled example. Upload the zip to Overleaf as a new project, or compile with pdfLaTeX and BibTeX.'
+const latexNote = 'Class file and sample references. Upload the zip to Overleaf as a new project, or compile with pdfLaTeX and BibTeX.'
 
 /** Journals: an anonymised manuscript for double-blind review, plus a separate title page. */
 export const journalTemplates = (slug: string, code: string): ContentBlock => ({

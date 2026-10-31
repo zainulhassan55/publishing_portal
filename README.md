@@ -19,10 +19,21 @@ place for (book series, editorial forms, the admin panel).
 
 | Code | Title | Kind | Slug | Spec |
 | --- | --- | --- | --- | --- |
-| IJIC | International Journal of Intelligent Computing | Journal | `ijic` | [src/data/journals/ijic.ts](src/data/journals/ijic.ts) |
-| IJDM | International Journal of Digital Management | Journal | `ijdm` | [src/data/journals/ijdm.ts](src/data/journals/ijdm.ts) |
-| AIISC | Advances in AI, Intelligent Systems and Computing | Book series | `aiisc` | [src/data/series/aiisc.ts](src/data/series/aiisc.ts) |
-| LNMR | Lecture Notes in Multidisciplinary Research | Book series | `lnmr` | [src/data/series/lnmr.ts](src/data/series/lnmr.ts) |
+| TICR | Transactions on Intelligent Computing and Reasoning | Journal | `ijic` | [src/data/journals/ijic.ts](src/data/journals/ijic.ts) |
+| JDMIE | Journal of Digital Management and Intelligent Enterprises | Journal | `ijdm` | [src/data/journals/ijdm.ts](src/data/journals/ijdm.ts) |
+| SISDT | Studies in Intelligent Systems and Digital Technologies | Book series | `aiisc` | [src/data/series/aiisc.ts](src/data/series/aiisc.ts) |
+| LNMRI | Lecture Notes in Multidisciplinary Research and Innovation | Book series | `lnmr` | [src/data/series/lnmr.ts](src/data/series/lnmr.ts) |
+| TQCIS | Transactions on Quantum Computing and Information Security | Journal | `jqcs` | [spec](src/data/journals/jqcs.ts) |
+| JAAISE | Journal of Agentic AI for Sustainable Energy | Journal | `jaise` | [spec](src/data/journals/jaise.ts) |
+| DTCR | Digital Trust & Cyber Resilience Magazine | Magazine | `sst` | [spec](src/data/magazines/sst.ts) |
+| RETA | Reviews in Emerging Technology and Applications | Review-only journal | `reta` | [spec](src/data/journals/reta.ts) |
+
+The public titles and acronyms were updated in October 2026. Existing URL slugs
+and OJS context identifiers are intentionally retained to preserve links and integrations.
+
+
+RETA requires a matching OJS context before live harvesting and submissions can work.
+Its ISSN is not yet assigned; no editorial appointments have been supplied.
 
 Eight older journals and three older series were removed in October 2026. They
 308-redirect (see `next.config.ts`), but OJS still hosts them.
