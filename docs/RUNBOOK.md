@@ -206,5 +206,5 @@ browser bundle.
   broken permanent identity (F-02). Fix it before the first article is
   published; afterwards it requires re-registration with every service that
   already harvested. `npm run spike` check 0a asserts it.
-- **ISSNs.** `src/data/issn.ts` is empty and every surface shows "Applied for".
+- **ISSNs.** `src/data/issn.ts` is empty and every surface shows "Not yet assigned".
   Add numbers only once assigned. An invented ISSN is checkable, and it fails.

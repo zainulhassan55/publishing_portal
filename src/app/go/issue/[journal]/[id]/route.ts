@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
  */
 export const GET = handler(async (request) => {
   const segments = new URL(request.url).pathname.split('/').filter(Boolean)
-  // An OJS path, old or new (ijic or ticr); the harvest keys issues by portal slug.
+  // An OJS path in any case, old or new (ijic or TICR); the harvest keys issues by portal slug.
   const journal = portalSlug(segments[segments.length - 2] ?? '')
   const id = Number(segments[segments.length - 1])
 

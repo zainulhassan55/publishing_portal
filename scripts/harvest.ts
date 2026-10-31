@@ -76,7 +76,7 @@ const apiKey = process.env.OJS_API_KEY || ''
 
 /**
  * Portal slugs. Articles and issues are stored under these; OJS is asked by
- * each title's OJS path, which differs for renamed titles (ijic → ticr).
+ * each title's OJS path, which differs for renamed titles (ijic → TICR).
  */
 const JOURNAL_SLUGS = ['ijdh', 'ijdm', 'ijds', 'ijei', 'ijic', 'ijis', 'ijmc', 'ijmr', 'ijqt', 'ijse', 'jqcs', 'jaise', 'sst', 'reta']
 

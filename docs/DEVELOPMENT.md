@@ -146,9 +146,10 @@ The helpers in `src/data/pages.ts` build blocks, tables and facts.
 7. Ops side:
    - Create the journal in OJS with **the same path** as the slug.
      If the OJS path has to differ (as for the titles renamed in October 2026,
-     e.g. `ijic` is `ticr` in OJS), add the pair to `src/lib/ojs/contexts.ts`
-     and to `renamedTitles` in `next.config.ts`, and use the OJS path in the
-     nginx lists below.
+     e.g. `ijic` is `TICR` in OJS), add the pair to `src/lib/ojs/contexts.ts`
+     with the path exactly as OJS stores it (OAI `ListSets` shows it), add it
+     to `renamedTitles` in `next.config.ts`, and use the OJS path in the nginx
+     lists below (they match in any case).
    - Add the slug to `JOURNAL_SLUGS` in `scripts/harvest.ts`.
    - Add it to the journal lists in `deploy/cloudpanel-vhost.conf`, then re-paste
      the vhost into CloudPanel.

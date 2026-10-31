@@ -85,7 +85,7 @@ deploys it.
 
 **Waiting on the publisher**
 - ISSNs for all four titles. `src/data/issn.ts` is empty, so the site shows
-  "Applied for".
+  "Not yet assigned".
 - House citation styles for the manuscript templates. The current choice is
   numbered for IJIC and AIISC and APA 7 for IJDM and LNMR; this was a guess.
 - The open questions in

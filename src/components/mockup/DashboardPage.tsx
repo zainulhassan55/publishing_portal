@@ -201,7 +201,7 @@ export function DashboardPage({ journals }: Props) {
   // to this operation" page. The explanation belongs here, where the fix can
   // be named.
   const roleNeeded = sp.get('ojs') === 'role-needed' ? sp.get('needs') ?? 'author' : null
-  // An OJS path (ticr), from the hand-off or nginx; the journal list is keyed by portal slug (ijic).
+  // An OJS path (TICR), from the hand-off or nginx; the journal list is keyed by portal slug (ijic).
   const roleNeededJournal = portalSlug(sp.get('journal') ?? '')
 
   const requestedTab = sp.get('tab')

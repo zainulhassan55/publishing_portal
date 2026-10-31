@@ -23,7 +23,7 @@ export const dynamic = 'force-dynamic'
  *
  * `journal` is whatever OJS path the link carried, which for a renamed title
  * may be the old one (ijic) that OJS no longer answers on; the fallback is
- * rebuilt from the current path (ticr).
+ * rebuilt from the current path (TICR).
  */
 export const GET = handler(async (request) => {
   const segments = new URL(request.url).pathname.split('/').filter(Boolean)
