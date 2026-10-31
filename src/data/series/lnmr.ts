@@ -49,7 +49,7 @@ export const lnmr: Series = {
   profile: {
     kicker: 'LNMRI · A NextGenIQ Press Book Series',
     cover: '/images/series/cover-lnmr.svg',
-    tile: '/images/series/tile-lnmr.jpg',
+    tile: '/images/covers/lnmr.jpg',
     badges: ['Open access', 'Peer reviewed', 'CC BY 4.0'],
     intro,
     ctas: [

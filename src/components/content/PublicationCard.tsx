@@ -10,7 +10,7 @@ export type PublicationCardData = {
   subject: string
   /** Banner image; shown on the title's home page, not on the card. */
   cover?: string
-  /** Portrait crop of the banner's artwork: the card's cover photo. */
+  /** The title's portrait cover (3:4): the card's cover photo. */
   tile?: string
   /** One line each: "ISSN: Not yet assigned", plus the ISBN note for a series. */
   identifiers: string[]

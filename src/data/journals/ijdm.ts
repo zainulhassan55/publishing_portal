@@ -68,7 +68,7 @@ export const ijdmDetail: JournalDetail = {
   profile: {
     kicker: 'JDMIE · A NextGenIQ Press Journal',
     cover: '/images/journals/cover-ijdm.svg',
-    tile: '/images/journals/tile-ijdm.jpg',
+    tile: '/images/covers/ijdm.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [

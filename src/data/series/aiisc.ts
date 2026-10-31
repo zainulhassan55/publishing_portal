@@ -49,7 +49,7 @@ export const aiisc: Series = {
   profile: {
     kicker: 'SISDT · A NextGenIQ Press Book Series',
     cover: '/images/series/cover-aiisc.svg',
-    tile: '/images/series/tile-aiisc.jpg',
+    tile: '/images/covers/aiisc.jpg',
     badges: ['Open access', 'Peer reviewed', 'CC BY 4.0'],
     intro,
     ctas: [

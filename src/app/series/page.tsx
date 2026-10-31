@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { series, seriesPageHref } from '@/data/registry'
 import { subjects } from '@/data/subjects'
@@ -31,16 +32,28 @@ export default function SeriesIndex() {
         const subject = subjects[s.subjectKey]
         return (
           <section key={s.slug} aria-labelledby={`series-${s.slug}`} className="srs-row" style={{ display: 'grid', gridTemplateColumns: '96px minmax(0,1fr)', gap: 24, padding: '28px 0', borderBottom: '1px solid var(--line,#DCE1E6)' }}>
-            <Link
-              href={`/series/${s.slug}`}
-              tabIndex={-1}
-              aria-hidden="true"
-              className="srs-cover"
-              style={{ width: 96, height: 128, background: 'var(--brand,#0F2B46)', borderTop: `4px solid ${subject.color}`, borderRadius: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 9, boxSizing: 'border-box', textDecoration: 'none' }}
-            >
-              <span style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 600, color: '#fff' }}>{s.code}</span>
-              <span style={{ fontSize: 7, lineHeight: 1.3, color: '#C3CFDB' }}>{s.title}</span>
-            </Link>
+            {s.profile.tile ? (
+              <Link
+                href={`/series/${s.slug}`}
+                tabIndex={-1}
+                aria-hidden="true"
+                className="srs-cover"
+                style={{ position: 'relative', width: 96, height: 128, borderTop: `4px solid ${subject.color}`, borderRadius: 2, overflow: 'hidden', boxShadow: '0 4px 10px rgba(16,27,39,.16)' }}
+              >
+                <Image src={s.profile.tile} alt="" fill sizes="96px" style={{ objectFit: 'cover' }} />
+              </Link>
+            ) : (
+              <Link
+                href={`/series/${s.slug}`}
+                tabIndex={-1}
+                aria-hidden="true"
+                className="srs-cover"
+                style={{ width: 96, height: 128, background: 'var(--brand,#0F2B46)', borderTop: `4px solid ${subject.color}`, borderRadius: 2, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: 9, boxSizing: 'border-box', textDecoration: 'none' }}
+              >
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 600, color: '#fff' }}>{s.code}</span>
+                <span style={{ fontSize: 7, lineHeight: 1.3, color: '#C3CFDB' }}>{s.title}</span>
+              </Link>
+            )}
             <div className="srs-body" style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
               <span style={{ fontSize: 12, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-3,#3C4854)' }}>{s.profile.kicker}</span>
               <h2 id={`series-${s.slug}`} style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 600, lineHeight: 1.25 }}>
