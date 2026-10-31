@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { decisionDraft, emailsOnDecision, hasPlaceholder } from './decision-email.ts'
 
-const base = { name: 'Dr Rao', reference: 'NGIQ-ED-00003', title: 'Reviewer application', targetTitle: 'IJIC' }
+const base = { name: 'Dr Rao', reference: 'NGIQ-ED-00003', title: 'Reviewer application', targetTitle: 'TICR' }
 
 test('only accepted, declined and revisions come with a letter', () => {
   assert.equal(emailsOnDecision('accepted'), true)
@@ -16,7 +16,7 @@ test('a reviewer acceptance names the role, the journal and the reference', () =
   const d = decisionDraft({ ...base, kind: 'application', role: 'reviewer', status: 'accepted' })!
   assert.match(d.subject, /accepted \(NGIQ-ED-00003\)/)
   assert.match(d.body, /^Dear Dr Rao,/)
-  assert.match(d.body, /reviewer for IJIC/)
+  assert.match(d.body, /reviewer for TICR/)
   assert.match(d.body, /NGIQ-ED-00003/)
 })
 

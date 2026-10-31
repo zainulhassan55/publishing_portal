@@ -91,7 +91,7 @@ test('snippet on a short string neither pads nor truncates', () => {
 const corpus: ArticleHit[] = [
   withHaystack({ id: '1', journalSlug: 'ijdh', journalCode: 'IJDH', type: 'Research Article', year: 2026 }),
   withHaystack({ id: '2', journalSlug: 'ijdh', journalCode: 'IJDH', type: 'Review', year: 2026 }),
-  withHaystack({ id: '3', journalSlug: 'ijic', journalCode: 'IJIC', type: 'Research Article', year: 2025 }),
+  withHaystack({ id: '3', journalSlug: 'ijic', journalCode: 'TICR', type: 'Research Article', year: 2025 }),
   withHaystack({ id: '4', journalSlug: 'ijqt', journalCode: 'IJQT', type: 'Review', year: 2025 }),
 ]
 

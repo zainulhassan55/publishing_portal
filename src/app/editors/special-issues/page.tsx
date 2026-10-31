@@ -22,7 +22,9 @@ export default function SpecialIssuesPage() {
       aside={
         <AsideBox title="Journals">
           <AsideLinks
-            links={journals.map((j) => ({ label: j.title, href: `${periodicalBase(j.slug)}/special-issue-guidelines` }))}
+            links={journals
+              .filter((j) => j.pages?.some((p) => p.id === 'special-issue-guidelines'))
+              .map((j) => ({ label: j.title, href: `${periodicalBase(j.slug)}/special-issue-guidelines` }))}
           />
         </AsideBox>
       }

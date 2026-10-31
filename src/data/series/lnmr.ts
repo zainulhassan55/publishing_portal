@@ -9,7 +9,7 @@ import { seriesTemplates } from '../templates'
  * wording only on the publisher's instruction.
  */
 const intro =
-  'Lecture Notes in Multidisciplinary Research (LNMR) publishes research monographs, edited volumes, and conference proceedings that connect perspectives across disciplines. The series welcomes original research, methodological advances, and critical syntheses addressing scientific, technological, and societal challenges.'
+  'Lecture Notes in Multidisciplinary Research and Innovation (LNMRI) publishes research monographs, edited volumes, and conference proceedings that connect perspectives across disciplines. The series welcomes original research, methodological advances, and critical syntheses addressing scientific, technological, and societal challenges.'
 
 const topics = [
   'Artificial intelligence and society',
@@ -39,16 +39,16 @@ const editorsNote =
 
 export const lnmr: Series = {
   slug: 'lnmr',
-  code: 'LNMR',
-  title: 'Lecture Notes in Multidisciplinary Research',
+  code: 'LNMRI',
+  title: 'Lecture Notes in Multidisciplinary Research and Innovation',
   kind: 'book',
   subjectKey: 'interdisciplinary',
   scope: intro,
   topics,
   issn: null,
   profile: {
-    kicker: 'LNMR · A NextGenIQ Press Book Series',
-    cover: '/images/series/cover-lnmr.jpg',
+    kicker: 'LNMRI · A NextGenIQ Press Book Series',
+    cover: '/images/series/cover-lnmr.svg',
     tile: '/images/series/tile-lnmr.jpg',
     badges: ['Open access', 'Peer reviewed', 'CC BY 4.0'],
     intro,
@@ -63,23 +63,23 @@ export const lnmr: Series = {
     editorsNote,
   },
   pages: [
-    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by LNMR.', [
+    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by LNMRI.', [
       {
         title: '',
         lead: 'A book series connecting perspectives across disciplines',
         paragraphs: [
           'Many of today’s most pressing scientific, technological and societal challenges, from public health and sustainability to the social effects of artificial intelligence, cannot be understood from within a single discipline. Progress depends on research that brings methods, evidence and ideas from different fields together around a shared problem.',
-          'Lecture Notes in Multidisciplinary Research (LNMR) is a peer-reviewed, open-access book series that publishes research monographs, edited volumes and conference proceedings connecting perspectives across disciplines. LNMR brings together scholarship from computing, engineering, health, education, business, the humanities and the social sciences, and welcomes original research, methodological advances and critical syntheses. Contributions should demonstrate how multiple disciplinary perspectives advance understanding of a shared research problem. Topics include, but are not limited to:',
+          'Lecture Notes in Multidisciplinary Research and Innovation (LNMRI) is a peer-reviewed, open-access book series that publishes research monographs, edited volumes and conference proceedings connecting perspectives across disciplines. LNMRI brings together scholarship from computing, engineering, health, education, business, the humanities and the social sciences, and welcomes original research, methodological advances and critical syntheses. Contributions should demonstrate how multiple disciplinary perspectives advance understanding of a shared research problem. Topics include, but are not limited to:',
         ],
         bullets: topics,
         topicList: true,
         closing: ['Each volume should have a coherent theme, a clearly defined readership, and a substantive scholarly contribution.'],
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial board', 'The Series Editor of LNMR.', [
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The Series Editor of LNMRI.', [
       { title: 'Series editor', table: editorTable(editors), paragraphs: [], closing: [editorsNote] },
     ]),
-    page('propose-volume', 'Propose a volume', 'Propose a volume', 'What to include in an LNMR volume proposal.', [
+    page('propose-volume', 'Propose a volume', 'Propose a volume', 'What to include in an LNMRI volume proposal.', [
       plain(['Proposals are welcome throughout the year. Please include:'], {
         bullets: [
           'Proposed title, publication format, aims, and intended readership.',
@@ -90,7 +90,7 @@ export const lnmr: Series = {
           'For proceedings: event details, programme committee, and peer-review arrangements.',
         ],
         closing: [
-          `Email ${editorialEmail} with the subject “LNMR Proposal — [Title]”. Proposal approval does not guarantee acceptance of the completed manuscript.`,
+          `Email ${editorialEmail} with the subject “LNMRI Proposal — [Title]”. Proposal approval does not guarantee acceptance of the completed manuscript.`,
         ],
       }),
     ]),
@@ -98,42 +98,42 @@ export const lnmr: Series = {
       'author-editor-guidelines',
       'Author & editor guidelines',
       'Author and Editor Guidelines',
-      'Manuscript requirements for LNMR authors and volume editors.',
+      'Manuscript requirements for LNMRI authors and volume editors.',
       [
         plain([
           'Manuscripts must be original, clearly structured, and appropriately referenced. Authors should explain specialised terminology, justify their methods, present supporting evidence, and acknowledge limitations.',
           'Contributors must disclose funding, conflicts of interest, and substantive use of generative AI. Ethical approvals, participant consent, and permissions for third-party material must be obtained where required.',
           'Volume editors coordinate contributors, maintain thematic coherence, and ensure that revisions are completed. Formatting requirements will be provided during the proposal process.',
         ]),
-        seriesTemplates('lnmr', 'LNMR'),
+        seriesTemplates('lnmr', 'LNMRI'),
       ],
     ),
-    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How LNMR volumes are reviewed.', [
+    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How LNMRI volumes are reviewed.', [
       plain([
         'All volumes undergo editorial assessment and independent peer review. Monographs are assessed as complete works; chapters and proceedings papers are reviewed individually, alongside assessment of the volume’s overall coherence.',
         'Where appropriate, reviewers from complementary disciplines assess the contribution. Submissions involving an editor’s own work or a conflict of interest are handled independently. All contributions must comply with NextGenIQ Press publication ethics policies.',
       ]),
     ]),
-    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for LNMR volumes.', [
+    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for LNMRI volumes.', [
       plain([
         'Published volumes are freely available online under CC BY 4.0, permitting sharing and adaptation with appropriate attribution. Third-party material may carry separate restrictions.',
         'There is no submission fee. Any publication charges, funding arrangements, or available waivers will be disclosed before a publishing agreement is signed. Editorial decisions are independent of payment.',
       ]),
     ]),
-    page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and abstracting', 'Indexing status of LNMR.', [
+    page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and abstracting', 'Indexing status of LNMRI.', [
       plain([
-        'LNMR is a new series, and no indexing coverage is currently confirmed. Eligible publications may be submitted to relevant indexing services for independent assessment; inclusion is not guaranteed.',
+        'LNMRI is a new series, and no indexing coverage is currently confirmed. Eligible publications may be submitted to relevant indexing services for independent assessment; inclusion is not guaranteed.',
         'Confirmed coverage will be reported here, specifying whether it applies to the series, individual volumes, or chapters. Publication identifiers will be displayed once assigned.',
       ]),
     ]),
-    page('volumes', 'Published volumes', 'Published volumes', 'Volumes published in LNMR.', [
+    page('volumes', 'Published volumes', 'Published volumes', 'Volumes published in LNMRI.', [
       plain([
         'Published volumes will be listed here as they become available. We currently welcome proposals for monographs, edited collections, and proceedings from conferences, symposia, and workshops within the series scope.',
       ]),
     ]),
-    page('contact', 'Contact', 'Contact', 'How to contact LNMR.', [
+    page('contact', 'Contact', 'Contact', 'How to contact LNMRI.', [
       plain([
-        `For proposals, proceedings partnerships, and editorial enquiries, contact ${editorialEmail}. Please include LNMR in the subject line.`,
+        `For proposals, proceedings partnerships, and editorial enquiries, contact ${editorialEmail}. Please include LNMRI in the subject line.`,
       ]),
     ]),
   ],

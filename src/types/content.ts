@@ -124,7 +124,7 @@ export type Editor = {
  * pages so the masthead, home page and editorial-board page read one source.
  */
 export type PublicationProfile = {
-  /** "IJIC · A NextGenIQ Press Journal" */
+  /** "TICR · A NextGenIQ Press Journal" */
   kicker: string
   /**
    * Cover banner under /public (987 × 392, the title set in the artwork), shown

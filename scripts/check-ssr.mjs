@@ -18,18 +18,25 @@ const base = `http://127.0.0.1:${PORT}`
 /** Each route must contain every string listed for it. */
 const checks = [
   { path: '/', must: ['NextGenIQ Press', 'application/ld+json', '<h1'] },
-  { path: '/journals', must: ['International Journal of Intelligent Computing', 'Lecture Notes in Multidisciplinary Research'] },
+  { path: '/journals', must: ['Transactions on Intelligent Computing and Reasoning', 'Lecture Notes in Multidisciplinary Research and Innovation'] },
   {
     path: '/journals/ijic',
-    must: ['International Journal of Intelligent Computing', 'application/ld+json', 'Periodical'],
+    must: ['Transactions on Intelligent Computing and Reasoning', 'application/ld+json', 'Periodical'],
   },
   {
     path: '/journals/ijic/peer-review-ethics',
     // Real prose from the data layer, so a shell would fail this.
-    must: ['double-blind', 'Peer Review and Ethics'],
+    must: ['double-blind', 'Peer review and ethics'],
   },
-  { path: '/series/aiisc', must: ['Advances in AI, Intelligent Systems and Computing', 'Series Editors'] },
-  { path: '/policies', must: ['Publication Ethics', 'Generative AI Policy'] },
+  { path: '/series/aiisc', must: ['Studies in Intelligent Systems and Digital Technologies', 'Series editor'] },
+  { path: '/journals/reta', must: ['Reviews in Emerging Technology and Applications', 'Not yet assigned', 'does not accept standalone original experimental papers'] },
+  { path: '/journals/reta/aims-scope', must: ['meta-analyses', 'Bibliometric reviews', 'Computing, AI'] },
+  { path: '/journals/ijdm', must: ['Journal of Digital Management and Intelligent Enterprises', 'JDMIE'] },
+  { path: '/journals/jqcs', must: ['Transactions on Quantum Computing and Information Security', 'TQCIS'] },
+  { path: '/journals/jaise', must: ['JAAISE'] },
+  { path: '/series/lnmr', must: ['Lecture Notes in Multidisciplinary Research and Innovation', 'LNMRI'] },
+  { path: '/magazines/sst', must: ['Digital Trust', 'Cyber Resilience Magazine', 'DTCR'] },
+  { path: '/policies', must: ['Publication ethics', 'Generative AI policy'] },
   { path: '/authors', must: ['Research Article', 'Short Communication'] },
   { path: '/about', must: ['NextGenIQ Press'] },
 ]

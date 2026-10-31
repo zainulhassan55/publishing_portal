@@ -27,7 +27,7 @@ const BLANK: Person = { name: '', email: '', affiliation: '', country: '', orcid
 
 /**
  * Volume proposal for one book series. The fields are the publisher's
- * "Propose a Volume" list; LNMR adds the multidisciplinary focus, and the
+ * "Propose a Volume" list; LNMRI adds the multidisciplinary focus, and the
  * proceedings section appears only for conference proceedings.
  */
 export function BookProposalForm({ series, code }: { series: string; code: string }) {

@@ -5,14 +5,14 @@ import { journalTemplates } from '../templates'
 
 /**
  * Introduction, topics and closing requirement supplied by the publisher
- * (October 2026) and reproduced as given. The remaining pages follow IJIC's, as
+ * (October 2026) and reproduced as given. The remaining pages follow TICR's, as
  * the publisher asked. The editorial board is still to be appointed.
  */
 const slug = 'jaise'
 const title = 'Journal of Agentic AI for Sustainable Energy'
 
 const intro =
-  'The Journal of Agentic AI for Sustainable Energy (JAISE) publishes original research, review articles, and short communications on agentic artificial intelligence, autonomous decision-making, and intelligent control for sustainable energy systems. The journal welcomes theoretical advances and practical applications in multi-agent coordination, renewable energy integration, smart grids, energy storage, and energy management, supported by rigorous analysis and evidence.'
+  'The Journal of Agentic AI for Sustainable Energy (JAAISE) publishes original research, review articles, and short communications on agentic artificial intelligence, autonomous decision-making, and intelligent control for sustainable energy systems. The journal welcomes theoretical advances and practical applications in multi-agent coordination, renewable energy integration, smart grids, energy storage, and energy management, supported by rigorous analysis and evidence.'
 
 const topics = [
   'Agentic AI architectures for sustainable energy systems',
@@ -48,7 +48,7 @@ const editors = [
 export const jaiseDetail: JournalDetail = {
   slug,
   title,
-  shortTitle: 'JAISE',
+  shortTitle: 'JAAISE',
   tagline: 'Agentic AI, autonomous decision-making, and intelligent control for sustainable energy systems.',
   issn: issnLabel(printIssn(slug)),
   eIssn: issnLabel(electronicIssn(slug)),
@@ -66,7 +66,7 @@ export const jaiseDetail: JournalDetail = {
   topics,
   quickLinks: [],
   profile: {
-    kicker: 'JAISE · A NextGenIQ Press Journal',
+    kicker: 'JAAISE · A NextGenIQ Press Journal',
     tile: '/images/journals/tile-jaise.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
@@ -80,7 +80,7 @@ export const jaiseDetail: JournalDetail = {
     editors,
   },
   pages: [
-    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by JAISE.', [
+    page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by JAAISE.', [
       {
         title: '',
         paragraphs: [`${intro} Topics include, but are not limited to:`],
@@ -91,35 +91,35 @@ export const jaiseDetail: JournalDetail = {
         ],
       },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of JAISE.', [
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of JAAISE.', [
       { title: 'Editors', table: editorTable(editors) },
     ]),
-    page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for JAISE.', [
+    page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for JAAISE.', [
       plain([
         'Submissions must be original, written in English, and not under consideration elsewhere. Authors should clearly describe their contribution, methods, results, limitations, and relevant comparisons.',
         'Submit an anonymised manuscript for double-blind review, with author details provided separately. Include funding, conflicts of interest, data availability, relevant ethical approvals, and substantive AI-use disclosures.',
       ]),
-      journalTemplates(slug, 'JAISE'),
+      journalTemplates(slug, 'JAAISE'),
     ]),
-    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How JAISE manuscripts are reviewed.', [
+    page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How JAAISE manuscripts are reviewed.', [
       plain([
         'Suitable manuscripts undergo independent double-blind peer review following editorial screening. Decisions consider originality, technical quality, significance, and clarity.',
         'All contributors must follow NextGenIQ Press publication ethics policies. Conflicts of interest are disclosed, and submissions involving editors are handled independently.',
       ]),
     ]),
-    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for JAISE articles.', [
+    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for JAAISE articles.', [
       plain([
         'Articles are freely available under CC BY 4.0, permitting sharing and adaptation with appropriate attribution. Third-party material may carry separate restrictions.',
         'Current charges and waiver arrangements are disclosed on the fees page. Any new or revised APC will be announced at least six months in advance and apply only to subsequent submissions. Editorial decisions are independent of payment.',
       ]),
     ]),
-    page('special-issue-guidelines', 'Special issues', 'Special issues', 'Proposing a special issue of JAISE.', [
+    page('special-issue-guidelines', 'Special issues', 'Special issues', 'Proposing a special issue of JAAISE.', [
       plain([
         'Proposals should include a focused theme, rationale, topics, guest editor biographies, and timeline. Special issue manuscripts follow the journal’s standard review and ethics requirements.',
       ]),
     ]),
-    page('contact', 'Contact', 'Contact', 'How to contact JAISE.', [
-      plain([`Email ${editorialEmail}, including JAISE and your manuscript reference, if available.`]),
+    page('contact', 'Contact', 'Contact', 'How to contact JAAISE.', [
+      plain([`Email ${editorialEmail}, including JAAISE and your manuscript reference, if available.`]),
     ]),
   ],
 }

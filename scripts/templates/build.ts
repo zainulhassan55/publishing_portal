@@ -51,14 +51,19 @@ type Cite = 'numbered' | 'authoryear'
 type Publication = { slug: string; code: string; name: string; kind: 'journal' | 'magazine' | 'series'; cite: Cite }
 
 const publications: Publication[] = [
-  { slug: 'ijic', code: 'IJIC', name: 'International Journal of Intelligent Computing', kind: 'journal', cite: 'numbered' },
-  { slug: 'ijdm', code: 'IJDM', name: 'International Journal of Digital Management', kind: 'journal', cite: 'authoryear' },
-  { slug: 'jqcs', code: 'JQCS', name: 'Journal of Quantum Computing and Security', kind: 'journal', cite: 'numbered' },
-  { slug: 'jaise', code: 'JAISE', name: 'Journal of Agentic AI for Sustainable Energy', kind: 'journal', cite: 'numbered' },
-  { slug: 'sst', code: 'SST', name: 'Security, Safety & Trust Magazine', kind: 'magazine', cite: 'numbered' },
-  { slug: 'aiisc', code: 'AIISC', name: 'Advances in AI, Intelligent Systems and Computing', kind: 'series', cite: 'numbered' },
-  { slug: 'lnmr', code: 'LNMR', name: 'Lecture Notes in Multidisciplinary Research', kind: 'series', cite: 'authoryear' },
+  { slug: 'ijic', code: 'TICR', name: 'Transactions on Intelligent Computing and Reasoning', kind: 'journal', cite: 'numbered' },
+  { slug: 'ijdm', code: 'JDMIE', name: 'Journal of Digital Management and Intelligent Enterprises', kind: 'journal', cite: 'authoryear' },
+  { slug: 'jqcs', code: 'TQCIS', name: 'Transactions on Quantum Computing and Information Security', kind: 'journal', cite: 'numbered' },
+  { slug: 'jaise', code: 'JAAISE', name: 'Journal of Agentic AI for Sustainable Energy', kind: 'journal', cite: 'numbered' },
+  { slug: 'reta', code: 'RETA', name: 'Reviews in Emerging Technology and Applications', kind: 'journal', cite: 'numbered' },
+  { slug: 'sst', code: 'DTCR', name: 'Digital Trust & Cyber Resilience Magazine', kind: 'magazine', cite: 'numbered' },
+  { slug: 'aiisc', code: 'SISDT', name: 'Studies in Intelligent Systems and Digital Technologies', kind: 'series', cite: 'numbered' },
+  { slug: 'lnmr', code: 'LNMRI', name: 'Lecture Notes in Multidisciplinary Research and Innovation', kind: 'series', cite: 'authoryear' },
 ]
+
+/** RETA publishes reviews only; its templates say so up front. */
+const retaScopeNote =
+  'RETA accepts review and survey manuscripts only. Explain literature identification and selection, critically synthesise evidence, and identify limitations and research priorities. Standalone original experimental papers are outside the scope.'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = join(here, '..', '..')
@@ -397,7 +402,7 @@ function frontMatter(pub: Publication, opts: { anonymous: boolean }): Paragraph[
   return [
     new Paragraph({
       style: 'ArticleType',
-      children: [new TextRun(chapter ? 'Chapter' : 'Research Article'), ...(chapter ? [] : [hint('  [or Review Article, Conceptual Paper, Case Study, Short Communication]')])],
+      children: [new TextRun(chapter ? 'Chapter' : pub.slug === 'reta' ? 'Review Article' : 'Research Article'), ...(chapter ? [] : [hint(pub.slug === 'reta' ? '  [systematic review, scoping review, critical review, umbrella review or meta-analysis]' : '  [or Review Article, Conceptual Paper, Case Study, Short Communication]')])],
     }),
     new Paragraph({ style: 'Title', children: [new TextRun(`Title of the ${chapter ? 'Chapter' : 'Article'}: Concise, Specific and Informative`)] }),
     ...(opts.anonymous
@@ -435,7 +440,7 @@ async function manuscriptDocx(pub: Publication) {
         },
         headers: { first: firstHeader(pub, chapter ? '[Title of the Volume]' : undefined), default: runningHeader(pub) },
         footers: { first: firstFooter(pub) },
-        children: [...frontMatter(pub, { anonymous: !chapter }), ...bodySections(pub)],
+        children: [...frontMatter(pub, { anonymous: !chapter }), ...(pub.slug === 'reta' ? [p([hint(retaScopeNote)])] : []), ...bodySections(pub)],
       },
     ],
   })
@@ -716,6 +721,10 @@ const fill = (src: string, pub: Publication) =>
     .replaceAll('{{CODE}}', pub.code)
     .replaceAll('{{CITEOPT}}', pub.cite)
     .replaceAll('{{BIOS}}', pub.kind === 'magazine' ? bios : '')
+    .replace(/\\articletype\{Research Article\}.*$/m, (line) =>
+      pub.slug === 'reta' ? String.raw`\articletype{Review Article} % systematic, scoping, critical or umbrella review, or meta-analysis` : line,
+    )
+    .replaceAll(String.raw`\begin{abstract}`, pub.slug === 'reta' ? String.raw`\begin{abstract}` + '\n' + retaScopeNote + '\n' : String.raw`\begin{abstract}`)
 
 /** The main file of the LaTeX package, and what the README calls it. */
 const mainFile = (pub: Publication) =>
@@ -725,7 +734,7 @@ const mainFile = (pub: Publication) =>
       ? { src: 'magazine.tex', name: 'article', what: 'magazine article' }
       : { src: 'chapter.tex', name: 'chapter', what: 'chapter' }
 
-function readme(pub: Publication, main: string, extra: string[]) {
+function readme(pub: Publication, main: string, extra: string[], tex: boolean) {
   const cite =
     pub.cite === 'numbered'
       ? 'Citations are numbered ([1], [2]) in order of first citation.'
@@ -740,7 +749,7 @@ function readme(pub: Publication, main: string, extra: string[]) {
     '  references.bib         your references (BibTeX)',
     '  nextgeniq.cls          the class file; do not edit',
     '  nextgeniq-logo.png     used on the first page',
-    `  ${main}.pdf             the template compiled, for reference`,
+    ...(tex ? [`  ${main}.pdf             the template compiled, for reference`] : []),
     '',
     'Overleaf',
     '  New Project > Upload Project, and choose this zip file. Overleaf compiles',
@@ -812,7 +821,7 @@ function latexZip(pub: Publication, zipPath: string, tex: boolean) {
   copyFileSync(join(here, 'assets', 'nextgeniq-logo.png'), join(dir, 'nextgeniq-logo.png'))
   writeFileSync(
     join(dir, 'README.txt'),
-    readme(pub, main, blind ? ['  titlepage.tex          author details, submitted separately for double-blind review'] : []),
+    readme(pub, main, blind ? ['  titlepage.tex          author details, submitted separately for double-blind review'] : [], tex),
   )
   if (tex) for (const [, to] of sources) compile(dir, to.replace(/\.tex$/, ''))
 
