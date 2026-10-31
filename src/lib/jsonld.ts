@@ -21,7 +21,7 @@ export const organizationJsonLd = (): JsonLdObject => ({
   '@type': 'Organization',
   '@id': `${siteUrl}/#organization`,
   name: siteName,
-  alternateName: 'IQ Press',
+  alternateName: 'NGIQ Press',
   url: siteUrl,
   description: siteDescription,
   email: 'contact@nextgeniqpress.com',

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdminPage } from '@/lib/admin/guard'
 import { journalCode, journals, periodicalBase } from '@/data/registry'
 import { ojsEditorialUrl, ojsHandoffUrl, ojsUrl } from '@/lib/ojs/config'
+import { ojsContext } from '@/lib/ojs/contexts'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,9 +23,9 @@ export const dynamic = 'force-dynamic'
 
 const OJS_PAGES = [
   { label: 'Editorial queue', path: (slug: string) => ojsEditorialUrl(slug) },
-  { label: 'Users & roles', path: (slug: string) => ojsUrl(slug, '/management/settings/access') },
-  { label: 'Journal settings', path: (slug: string) => ojsUrl(slug, '/management/settings/context') },
-  { label: 'Issues', path: (slug: string) => ojsUrl(slug, '/manageIssues') },
+  { label: 'Users & roles', path: (slug: string) => ojsUrl(ojsContext(slug), '/management/settings/access') },
+  { label: 'Journal settings', path: (slug: string) => ojsUrl(ojsContext(slug), '/management/settings/context') },
+  { label: 'Issues', path: (slug: string) => ojsUrl(ojsContext(slug), '/manageIssues') },
 ] as const
 
 const cell: React.CSSProperties = {
@@ -87,7 +88,7 @@ export default async function AdminJournals() {
                     {journal.title}
                   </a>
                   <div style={{ fontSize: 12, color: 'var(--muted,#505C68)', marginTop: 3 }}>
-                    /ojs/index.php/{journal.slug} · ISSN {journal.eIssn || journal.issn || '—'}
+                    /ojs/index.php/{ojsContext(journal.slug)} · ISSN {journal.eIssn || journal.issn || '—'}
                   </div>
                 </td>
                 <td style={{ ...cell, whiteSpace: 'nowrap' }}>{journalCode(journal)}</td>

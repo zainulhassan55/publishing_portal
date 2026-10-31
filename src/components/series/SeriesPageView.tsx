@@ -44,6 +44,7 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
       group={group}
       title={page.title}
       blocks={toPageBlocks(page.blocks)}
+      numbered={pageId !== 'editorial-board'}
       side={sideGroupsFor(pub, href)}
       prev={previous ? { href: pub.pageHref(previous.id), title: previous.label } : undefined}
       next={next ? { href: pub.pageHref(next.id), title: next.label } : undefined}

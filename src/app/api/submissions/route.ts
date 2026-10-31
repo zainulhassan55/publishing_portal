@@ -5,6 +5,7 @@ import { resolveScope } from '@/lib/auth/access'
 import { PORTAL_SESSION_COOKIE, readSession } from '@/lib/auth/portal-session'
 import { ojsFetch } from '@/lib/ojs/client'
 import { ojsBaseUrl } from '@/lib/ojs/config'
+import { ojsContext } from '@/lib/ojs/contexts'
 import { journalSlugs } from '@/data/registry'
 import type { SubmissionStatus } from '@/types/publishing'
 
@@ -189,7 +190,7 @@ export const GET = handler(async (request) => {
 
   const perJournal = await Promise.all(
     journalSlugs.map(async (slug) => {
-      const result = await ojsFetch<{ items?: OjsSubmission[] }>(slug, query, { auth })
+      const result = await ojsFetch<{ items?: OjsSubmission[] }>(ojsContext(slug), query, { auth })
       // 401 means the author holds no role in this journal, which is the normal
       // case for nine of ten journals. Not an error, nothing to report.
       if (!result.ok) return { slug, items: [] as OjsSubmission[], enrolled: false }

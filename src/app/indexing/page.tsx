@@ -124,7 +124,7 @@ export default function IndexingPage() {
             <dt style={{ color: 'var(--muted,#505C68)' }}>DOI prefix</dt>
             <dd style={{ margin: 0, fontFamily: 'var(--font-mono)', fontWeight: 500, color: 'var(--ink-2,#1F2A36)' }}>{doiPrefix}</dd>
             <dt style={{ color: 'var(--muted,#505C68)' }}>ISSN</dt>
-            <dd style={{ margin: 0, fontWeight: 500, color: 'var(--ink-2,#1F2A36)' }}>Applied for</dd>
+            <dd style={{ margin: 0, fontWeight: 500, color: 'var(--ink-2,#1F2A36)' }}>Not yet assigned</dd>
             <dt style={{ color: 'var(--muted,#505C68)' }}>ORCID</dt>
             <dd style={{ margin: 0, fontWeight: 500, color: 'var(--ink-2,#1F2A36)' }}>Collected for every author, required for the corresponding author</dd>
           </dl>

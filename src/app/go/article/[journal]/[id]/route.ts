@@ -1,6 +1,7 @@
 import { handler } from '@/lib/api'
 import { getArticleById } from '@/data/content'
 import { ojsUrl } from '@/lib/ojs/config'
+import { ojsContext, portalSlug } from '@/lib/ojs/contexts'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,10 @@ export const dynamic = 'force-dynamic'
  *
  * 302 rather than 301: a slug follows the title and a paper can be hidden
  * later, and a browser caches a 301 for good.
+ *
+ * `journal` is whatever OJS path the link carried, which for a renamed title
+ * may be the old one (ijic) that OJS no longer answers on; the fallback is
+ * rebuilt from the current path (ticr).
  */
 export const GET = handler(async (request) => {
   const segments = new URL(request.url).pathname.split('/').filter(Boolean)
@@ -27,7 +32,7 @@ export const GET = handler(async (request) => {
   const id = segments[segments.length - 1] ?? ''
 
   const article = /^\d+$/.test(id) ? await getArticleById(`ojs-${id}`) : undefined
-  const to = article ? `/articles/${article.slug}` : `${ojsUrl(journal, `/article/view/${id}`)}?portal=0`
+  const to = article ? `/articles/${article.slug}` : `${ojsUrl(ojsContext(portalSlug(journal)), `/article/view/${id}`)}?portal=0`
 
   return new Response(null, { status: 302, headers: { Location: to, 'Cache-Control': 'no-store' } })
 })

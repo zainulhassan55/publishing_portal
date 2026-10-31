@@ -27,7 +27,7 @@ export const editorTable = (editors: { name: string; affiliation: string }[]) =>
 export const boardPending = (code: string) =>
   `The ${code} editorial board is being appointed, and its members will be listed here. Researchers with relevant expertise who would like to serve on the board are welcome to apply.`
 
-/** Facts strip for a journal. ISSNs read "Applied for" until `issn.ts` holds an assigned number. */
+/** Facts strip for a journal. ISSNs read "Not yet assigned" until `issn.ts` holds an assigned number. */
 export const journalFacts = (eIssn: string | null) => [
   { label: 'ISSN (online)', value: issnLabel(eIssn) },
   { label: 'Peer review', value: 'Double-blind' },

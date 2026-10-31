@@ -7,7 +7,7 @@ export const operatorName = 'NextInfinitiQ Global Ltd'
 export const operatorLine = `${siteName} | Operated by ${operatorName}`
 export const siteTagline = 'Open-access journals, book series and proceedings'
 export const siteDescription =
-  'NextGenIQ Press (also known as IQ Press) publishes open-access journals, research books, monographs, and conference proceedings across digital, computational, and interdisciplinary fields.'
+  'NextGenIQ Press (NGIQ Press) publishes open-access journals, research books, monographs, and conference proceedings across digital, computational, and interdisciplinary fields.'
 
 export const editorialEmail = 'contact@nextgeniqpress.com'
 

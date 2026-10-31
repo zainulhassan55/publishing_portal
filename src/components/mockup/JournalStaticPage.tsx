@@ -50,6 +50,8 @@ export type JournalStaticPageProps = {
   group: string
   title: string
   blocks: PageBlock[]
+  /** Number the section headings (1, 2, …). Off for pages such as the editorial board, where the numbers read as ranks. */
+  numbered?: boolean
   side: SideGroup[]
   /** Absent on the first and last page; the order does not wrap. */
   prev?: PageNavItem
@@ -114,7 +116,7 @@ function DownloadList({ files }: { files: PageDownload[] }) {
 const para = { margin: '0 0 16px', fontSize: 17, lineHeight: 1.7, color: 'var(--ink-2,#1F2A36)', textWrap: 'pretty' } as const
 const list = { margin: '0 0 20px', paddingLeft: 22, fontSize: 17, lineHeight: 1.7, color: 'var(--ink-2,#1F2A36)' } as const
 
-export function JournalStaticPage({ masthead, group, title, blocks, side, prev, next, cta, list: records, children }: JournalStaticPageProps) {
+export function JournalStaticPage({ masthead, group, title, blocks, numbered = true, side, prev, next, cta, list: records, children }: JournalStaticPageProps) {
   const j = masthead.j
   const toc = blocks
     .filter((b) => b.h !== '')
@@ -152,7 +154,7 @@ export function JournalStaticPage({ masthead, group, title, blocks, side, prev, 
             <section key={b.id} id={b.id} data-sec="1" style={{ scrollMarginTop: 24, paddingBottom: 12 }}>
               {b.h ? (
                 <h2 style={{ margin: '0 0 14px', fontFamily: 'var(--font-serif)', fontSize: 24, lineHeight: 1.25, fontWeight: 600, color: 'var(--ink,#101B27)', display: 'flex', gap: 12 }}>
-                  {blocks.filter((x) => x.h).length > 1 ? <span style={{ color: 'var(--muted,#6B7682)', fontWeight: 400 }}>{b.n}</span> : null}
+                  {numbered && blocks.filter((x) => x.h).length > 1 ? <span style={{ color: 'var(--muted,#6B7682)', fontWeight: 400 }}>{b.n}</span> : null}
                   {b.h}
                 </h2>
               ) : null}
@@ -192,7 +194,7 @@ export function JournalStaticPage({ masthead, group, title, blocks, side, prev, 
               {b.sub.map((s) => (
                 <div key={s.id} id={s.id} data-sec="1" style={{ scrollMarginTop: 24 }}>
                   <h3 style={{ margin: '8px 0 10px', fontSize: 18, fontWeight: 600, color: 'var(--ink,#101B27)', display: 'flex', gap: 10 }}>
-                    <span style={{ color: 'var(--muted,#6B7682)', fontWeight: 400 }}>{s.n}</span>
+                    {numbered ? <span style={{ color: 'var(--muted,#6B7682)', fontWeight: 400 }}>{s.n}</span> : null}
                     {s.h}
                   </h3>
                   {s.p.map((t) => (

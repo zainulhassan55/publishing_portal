@@ -30,6 +30,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from '
 import { dirname, isAbsolute, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loadLocalEnv } from './env.ts'
+import { ojsContext, portalSlug } from '../src/lib/ojs/contexts.ts'
 
 loadLocalEnv()
 
@@ -73,6 +74,10 @@ function existingArticleCount(): number {
 const baseUrl = (process.env.OJS_BASE_URL || '').replace(/\/$/, '')
 const apiKey = process.env.OJS_API_KEY || ''
 
+/**
+ * Portal slugs. Articles and issues are stored under these; OJS is asked by
+ * each title's OJS path, which differs for renamed titles (ijic → ticr).
+ */
 const JOURNAL_SLUGS = ['ijdh', 'ijdm', 'ijds', 'ijei', 'ijic', 'ijis', 'ijmc', 'ijmr', 'ijqt', 'ijse', 'jqcs', 'jaise', 'sst', 'reta']
 
 type Localised = Record<string, string> | string | undefined
@@ -155,7 +160,7 @@ async function oaiInventory(): Promise<Map<string, number> | null> {
     for (const header of xml.match(/<header[^>]*>[\s\S]*?<\/header>/g) ?? []) {
       if (/status="deleted"/.test(header)) continue
       for (const spec of header.match(/<setSpec>([^<]*)<\/setSpec>/g) ?? []) {
-        const slug = spec.replace(/<\/?setSpec>/g, '')
+        const slug = portalSlug(spec.replace(/<\/?setSpec>/g, ''))
         if (counts.has(slug)) counts.set(slug, (counts.get(slug) ?? 0) + 1)
       }
     }
@@ -249,7 +254,7 @@ if (inventory) {
 for (const slug of JOURNAL_SLUGS) {
   console.log(`harvesting ${slug}…`)
 
-  const issueResult = await ojsGet<{ items?: OjsIssue[] }>(slug, '/issues?count=100')
+  const issueResult = await ojsGet<{ items?: OjsIssue[] }>(ojsContext(slug), '/issues?count=100')
 
   const issueById = new Map<number, OjsIssue>()
   for (const issue of issueResult?.items ?? []) {
@@ -268,7 +273,7 @@ for (const slug of JOURNAL_SLUGS) {
   }
 
   // status 3 is STATUS_PUBLISHED in OJS; anything else is not public.
-  const submissionResult = await ojsGet<{ items?: OjsSubmission[] }>(slug, '/submissions?status=3&count=100')
+  const submissionResult = await ojsGet<{ items?: OjsSubmission[] }>(ojsContext(slug), '/submissions?status=3&count=100')
   if (submissionResult === null) continue
 
   for (const submission of submissionResult.items ?? []) {
@@ -281,7 +286,7 @@ for (const slug of JOURNAL_SLUGS) {
     // the first real paper reached the site with no author, no PDF and volume
     // 1 instead of 12. The full record is one more request per paper.
     const publication =
-      (await ojsGet<OjsPublication>(slug, `/submissions/${submission.id}/publications/${summary.id}`)) ?? summary
+      (await ojsGet<OjsPublication>(ojsContext(slug), `/submissions/${submission.id}/publications/${summary.id}`)) ?? summary
 
     const title = text(publication.title)
     if (!title) continue

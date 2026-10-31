@@ -621,7 +621,7 @@ export function SearchPage({ index, extras }: Props) {
                   {j.title}
                 </Link>
                 <span style={{ fontSize: 13, color: 'var(--muted, #505C68)' }}>
-                  {j.subject} · ISSN {electronicIssn(j.slug) ?? 'applied for'} · Open access
+                  {j.subject} · ISSN {electronicIssn(j.slug) ?? 'not yet assigned'} · Open access
                 </span>
                 <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: 'var(--ink-3, #3C4854)' }}>{j.scope}</p>
               </div>
