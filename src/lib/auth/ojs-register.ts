@@ -287,3 +287,94 @@ export async function postRegister(
   return { ok: false, reason: 'rejected', ...(message ? { message } : {}) }
 }
 
+
+/* --------------------------- availability check --------------------------- */
+
+/** The fields an availability check can report on, as OJS anchors them in its error list. */
+const AVAILABILITY_FIELDS = ['username', 'email'] as const
+
+export type AvailabilityError = { field: (typeof AVAILABILITY_FIELDS)[number]; message: string }
+
+/**
+ * The username and email complaints in a rejected registration page, by field.
+ *
+ * OJS links each item in its error list to the input it is about
+ * (`<a href="#username">`), which is what lets these be shown beside the right
+ * box instead of as one sentence above the form.
+ */
+export function parseAvailabilityErrors(html: string): AvailabilityError[] {
+  const list = html.match(/class="[^"]*pkp_form_error_list[^"]*"[^>]*>([\s\S]*?)<\/(?:ul|ol)>/)?.[1]
+  if (!list) return []
+  const errors: AvailabilityError[] = []
+  for (const [, href, text] of list.matchAll(/<a[^>]*href="#([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)) {
+    const field = AVAILABILITY_FIELDS.find((f) => f === href)
+    const message = stripTags(text)
+    if (field && message) errors.push({ field, message })
+  }
+  return errors
+}
+
+/**
+ * Asks OJS whether a username and email address are free, before the person
+ * is sent a code.
+ *
+ * OJS has no "is this taken" endpoint an anonymous visitor can reach, so this
+ * submits its registration form with the real username and address and two
+ * passwords that cannot match. OJS validates the whole form at once and
+ * re-renders it with every problem listed, so the list says whether the
+ * username or the address is taken, and the mismatch guarantees no account is
+ * ever created. The final registration still runs OJS's full check; this only
+ * moves the common failures to before the email rather than after it.
+ *
+ * Returns null when OJS could not be asked, so the caller carries on and
+ * leaves the verdict to the real registration.
+ */
+export async function checkAvailability(
+  input: { email: string; username: string },
+  userAgent?: string | null,
+): Promise<AvailabilityError[] | null> {
+  const form = await fetchRegisterForm(userAgent)
+  if (!form) return null
+
+  // Two different passwords, each long enough to pass any length rule, so the
+  // mismatch is the reason OJS refuses and nothing else about them is.
+  const body = new URLSearchParams({
+    givenName: 'Availability',
+    familyName: 'Check',
+    email: input.email,
+    username: input.username,
+    password: crypto.randomUUID(),
+    password2: crypto.randomUUID(),
+    ...(form.csrfToken ? { csrfToken: form.csrfToken } : {}),
+  })
+
+  try {
+    const response = await fetch(ojsRegisterPageUrl(), {
+      method: 'POST',
+      headers: withUserAgent(
+        {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'text/html',
+          Cookie: `${OJS_SESSION_COOKIE}=${form.sid}`,
+        },
+        userAgent,
+      ),
+      body,
+      redirect: 'manual',
+      cache: 'no-store',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
+
+    if (response.status >= 300 && response.status < 400) {
+      // Cannot happen while OJS checks that the passwords match. If it ever
+      // does, an account was created by this check: say so loudly.
+      console.error(`[register] availability check was ACCEPTED by OJS for username=${JSON.stringify(input.username)}; OJS no longer rejects mismatched passwords`)
+      return null
+    }
+    if (response.status !== 200) return null
+
+    return parseAvailabilityErrors(await response.text())
+  } catch {
+    return null
+  }
+}

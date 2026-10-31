@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
-import { parseCsrfToken, parseRegisterContexts, parseRegisterError } from './ojs-register.ts'
+import { parseAvailabilityErrors, parseCsrfToken, parseRegisterContexts, parseRegisterError } from './ojs-register.ts'
 
 /**
  * Markup copied from the live OJS 3.5.0.5 registration form, trimmed to the
@@ -121,4 +121,30 @@ test('parseRegisterError strips nested markup rather than truncating at it', () 
 
 test('parseRegisterError returns null for a page with no error', () => {
   assert.equal(parseRegisterError(FORM), null)
+})
+
+test('parseAvailabilityErrors reports a taken username and address against their fields', () => {
+  assert.deepEqual(parseAvailabilityErrors(REJECTED), [
+    { field: 'username', message: 'This username is already in use.' },
+    { field: 'email', message: 'This email address is already registered.' },
+  ])
+})
+
+test('parseAvailabilityErrors ignores the deliberate password mismatch and other fields', () => {
+  const html = `
+<ul class="pkp_form_error_list">
+  <li><a href="#password">The passwords do not match.</a></li>
+  <li><a href="#username">This username is already in use.</a></li>
+  <li><a href="#privacyConsent">You must agree to the privacy statement.</a></li>
+</ul>`
+  assert.deepEqual(parseAvailabilityErrors(html), [{ field: 'username', message: 'This username is already in use.' }])
+})
+
+test('parseAvailabilityErrors finds nothing when only the password was refused', () => {
+  const html = '<ul class="pkp_form_error_list"><li><a href="#password">The passwords do not match.</a></li></ul>'
+  assert.deepEqual(parseAvailabilityErrors(html), [])
+})
+
+test('parseAvailabilityErrors returns nothing for a page with no error list', () => {
+  assert.deepEqual(parseAvailabilityErrors(FORM), [])
 })
