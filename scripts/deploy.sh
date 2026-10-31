@@ -178,6 +178,13 @@ mkdir -p "$STAGE/scripts"
 # harvest.ts ships too: the server runs it on a schedule (deploy/harvest.sh),
 # which is how a paper published in OJS reaches the site without a deploy.
 cp scripts/migrate.ts scripts/harvest.ts scripts/env.ts "$STAGE/scripts/"
+# harvest.ts imports the slug ↔ OJS path map from src/, which the release does
+# not otherwise contain (the app is compiled into .next). Shipped at the same
+# relative path so the import resolves unchanged; without it every scheduled
+# harvest fails with ERR_MODULE_NOT_FOUND. A new src/ import in a shipped
+# script needs a line here too.
+mkdir -p "$STAGE/src/lib/ojs"
+cp src/lib/ojs/contexts.ts "$STAGE/src/lib/ojs/contexts.ts"
 # The cron wrapper ships alongside so the server-side install is a copy from
 # the live release (docs/GO-LIVE.md B10), not a download.
 mkdir -p "$STAGE/deploy"
