@@ -137,8 +137,9 @@ The helpers in `src/data/pages.ts` build blocks, tables and facts.
    `journalTemplates(slug, CODE)` on the author-guidelines page.
 2. Import it and add it to `journals` in `src/data/registry.ts`.
 3. Add `<slug>: '<subjectKey>'` to `journalSubjectKey` in `src/data/subjects.ts`.
-4. Add `public/images/journals/cover-<slug>.jpg` (987×392) and `tile-<slug>.jpg`
-   (3:4).
+4. Add its portrait cover as `public/images/covers/<slug>.jpg` (375×500, 3:4)
+   and set `profile.tile` to it. When replacing a cover later, use a new
+   filename: nginx caches images in browsers forever (`expires max`).
 5. Add it to the `publications` list in `scripts/templates/build.ts`, then run
    `npm run templates` and commit `public/templates/<slug>/`.
 6. In `next.config.ts`, add the slug to the `(ijic|ijdm)` regexes for renamed
@@ -160,7 +161,7 @@ The helpers in `src/data/pages.ts` build blocks, tables and facts.
 1. Copy `src/data/series/lnmr.ts` to `<slug>.ts`. Keep all nine page ids:
    `volumes` and `propose-volume` are special-cased.
 2. Add it to `series` in `src/data/registry.ts`.
-3. Add the cover and tile images under `public/images/series/`.
+3. Add its portrait cover as `public/images/covers/<slug>.jpg` (375×500, 3:4) and set `profile.tile` to it.
 4. Add it to `scripts/templates/build.ts`, then run `npm run templates`.
 5. Volumes and chapters are created in **Admin → Book volumes**, with no code
    needed.

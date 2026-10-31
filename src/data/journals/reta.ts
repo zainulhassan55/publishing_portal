@@ -32,6 +32,7 @@ export const retaDetail: JournalDetail = {
   scope: intro, overview: [intro], metrics: [], board: [], topics, quickLinks: [],
   profile: {
     kicker: 'RETA · A NextGenIQ Press Journal',
+    tile: '/images/covers/reta.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'], intro,
     ctas: [
       { label: 'Submit a manuscript', pageId: 'submit' },

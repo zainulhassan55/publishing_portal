@@ -71,7 +71,7 @@ export const sstDetail: JournalDetail = {
   quickLinks: [],
   profile: {
     kicker: 'DTCR · A NextGenIQ Press Magazine',
-    tile: '/images/magazines/tile-sst.jpg',
+    tile: '/images/covers/sst.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [

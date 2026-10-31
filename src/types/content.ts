@@ -131,7 +131,11 @@ export type PublicationProfile = {
    * uncropped on cards and in the masthead. A title without one gets a lettered tile.
    */
   cover?: string
-  /** Portrait (3:4) crop of the cover's artwork, without the title text, for the small cover on cards. */
+  /**
+   * Portrait (3:4) cover with the title set in it, at /images/covers/<slug>.jpg (375 × 500), shown on cards and
+   * in the masthead. Use a new filename when replacing one: nginx serves images with `expires max`, so browsers
+   * keep an overwritten file forever.
+   */
   tile?: string
   /** "Open access", "Double-blind peer review", … */
   badges: string[]

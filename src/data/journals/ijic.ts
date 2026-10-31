@@ -66,7 +66,7 @@ export const ijicDetail: JournalDetail = {
   profile: {
     kicker: 'TICR · A NextGenIQ Press Journal',
     cover: '/images/journals/cover-ijic.svg',
-    tile: '/images/journals/tile-ijic.jpg',
+    tile: '/images/covers/ijic.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [
