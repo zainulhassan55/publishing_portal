@@ -4,6 +4,7 @@ import { databaseConfigured } from '@/lib/db'
 import { Validator } from '@/lib/validate'
 import { captchaGate } from '@/lib/captcha'
 import { OTP_RESEND_SECONDS, OTP_TTL_MINUTES, issueCode, normaliseEmail } from '@/lib/auth/email-otp'
+import { checkAvailability } from '@/lib/auth/ojs-register'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,9 +16,15 @@ export const dynamic = 'force-dynamic'
  * carries the captcha (registration itself no longer needs one: nobody reaches
  * it without a code from a real inbox) and three limits: per IP, per address
  * per hour, and the per-address cooldown inside issueCode.
+ *
+ * Before the code is sent, OJS is asked whether the username and address are
+ * already taken (checkAvailability). Finding that out only after the person
+ * has fetched a code from their inbox wasted the trip. The check runs after
+ * the captcha, so it is no easier to use for looking up accounts than OJS's
+ * own register form.
  */
 
-type Body = { email?: string; captchaToken?: string }
+type Body = { email?: string; username?: string; captchaToken?: string }
 
 const tooMany = (retryAfter: number, message: string) =>
   NextResponse.json(
@@ -36,6 +43,7 @@ export const POST = handler(async (request) => {
   const body = await readJson<Body>(request)
   const v = new Validator()
   const email = v.email('email', body.email)
+  const username = v.string({ field: 'username', value: body.username, label: 'Username', max: 32 })
   v.throwIfInvalid()
 
   const byAddress = rateLimit(`email-code-to:${normaliseEmail(email)}`, 5, 3_600_000)
@@ -43,6 +51,10 @@ export const POST = handler(async (request) => {
 
   const blocked = await captchaGate(request, body.captchaToken, 'email-code')
   if (blocked) return blocked
+
+  // Null means OJS could not be asked; the registration itself still checks.
+  const taken = await checkAvailability({ email, username }, request.headers.get('user-agent'))
+  if (taken?.length) return jsonError('validation', 422, { errors: taken })
 
   const result = await issueCode(email, 'register')
   if (!result.ok) {

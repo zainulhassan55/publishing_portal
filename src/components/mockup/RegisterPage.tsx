@@ -147,7 +147,7 @@ export function RegisterPage({ journals }: { journals: JournalRef[] }) {
       const response = await fetch('/api/auth/email-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: f.email, captchaToken }),
+        body: JSON.stringify({ email: f.email, username: f.username, captchaToken }),
       })
       const data = (await response.json().catch(() => ({}))) as {
         ok?: boolean
