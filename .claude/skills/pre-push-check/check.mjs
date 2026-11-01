@@ -72,6 +72,21 @@ if (branch === 'main') {
   add(critical, 'You are on main', 'A push to main deploys to production immediately. Create a branch (git switch -c my-change), push that, and open a PR.')
 }
 
+// Everything below checks the working folder, but a push sends only commits.
+// On 2026-11-01 PR #38 passed this check with its edits still uncommitted,
+// merged only the file renames, and main failed typecheck.
+const dirty = sh('git status --porcelain')
+  .split('\n')
+  .filter(Boolean)
+  .filter((l) => !l.endsWith('.claude/scheduled_tasks.lock'))
+if (dirty.length) {
+  add(
+    critical,
+    'Uncommitted changes: a push would not include them',
+    `${dirty.slice(0, 12).join('\n')}${dirty.length > 12 ? `\n… and ${dirty.length - 12} more` : ''}\nThis check ran on your working folder, but only commits are pushed. Commit everything that belongs to the change (git add <paths>, git commit), stash what does not (git stash -u), then run the check again.`,
+  )
+}
+
 step('npm run verify (typecheck, lint, tests)')
 const verify = spawnSync('npm', ['run', 'verify'], { encoding: 'utf8' })
 if (verify.status !== 0) {

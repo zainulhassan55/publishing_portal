@@ -132,7 +132,7 @@ The helpers in `src/data/pages.ts` build blocks, tables and facts.
 
 ### Add a journal
 
-1. Copy `src/data/journals/ijdm.ts` to `<slug>.ts` and fill in the slug, title,
+1. Copy `src/data/journals/jdmie.ts` to `<slug>.ts` and fill in the slug, title,
    code (`shortTitle`), intro, topics, editors, profile and the seven pages. Use
    `journalTemplates(slug, CODE)` on the author-guidelines page.
 2. Import it and add it to `journals` in `src/data/registry.ts`.
@@ -142,15 +142,18 @@ The helpers in `src/data/pages.ts` build blocks, tables and facts.
    filename: nginx caches images in browsers forever (`expires max`).
 5. Add it to the `publications` list in `scripts/templates/build.ts`, then run
    `npm run templates` and commit `public/templates/<slug>/`.
-6. In `next.config.ts`, add the slug to the `(ijic|ijdm)` regexes for renamed
+6. In `next.config.ts`, add the slug to the `(ticr|jdmie)` regexes for renamed
    pages.
 7. Ops side:
-   - Create the journal in OJS with **the same path** as the slug.
-     If the OJS path has to differ (as for the titles renamed in October 2026,
-     e.g. `ijic` is `TICR` in OJS), add the pair to `src/lib/ojs/contexts.ts`
-     with the path exactly as OJS stores it (OAI `ListSets` shows it), add it
-     to `renamedTitles` in `next.config.ts`, and use the OJS path in the nginx
-     lists below (they match in any case).
+   - Create the journal in OJS with **the same path** as the slug (OJS may
+     store it in capitals, e.g. `TICR` for slug `ticr`). Add the pair to
+     `ojsContextBySlug` in `src/lib/ojs/contexts.ts` with the path exactly as
+     OJS stores it (OAI `ListSets` shows it), and use the OJS path in the
+     nginx lists below (they match in any case).
+   - Renaming a title later: change the slug everywhere, add the old slug to
+     `legacySlugs` in `contexts.ts` and to `renamedTitles` in
+     `next.config.ts` (permanent redirect), and add a migration that updates
+     stored slugs, as `migrations/009_rename_journal_slugs.sql` does.
    - Add the slug to `JOURNAL_SLUGS` in `scripts/harvest.ts`.
    - Add it to the journal lists in `deploy/cloudpanel-vhost.conf`, then re-paste
      the vhost into CloudPanel.

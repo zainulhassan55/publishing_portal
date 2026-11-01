@@ -91,7 +91,7 @@ test('snippet on a short string neither pads nor truncates', () => {
 const corpus: ArticleHit[] = [
   withHaystack({ id: '1', journalSlug: 'ijdh', journalCode: 'IJDH', type: 'Research Article', year: 2026 }),
   withHaystack({ id: '2', journalSlug: 'ijdh', journalCode: 'IJDH', type: 'Review', year: 2026 }),
-  withHaystack({ id: '3', journalSlug: 'ijic', journalCode: 'TICR', type: 'Research Article', year: 2025 }),
+  withHaystack({ id: '3', journalSlug: 'ticr', journalCode: 'TICR', type: 'Research Article', year: 2025 }),
   withHaystack({ id: '4', journalSlug: 'ijqt', journalCode: 'IJQT', type: 'Review', year: 2025 }),
 ]
 
@@ -100,7 +100,7 @@ const optionsFor = (groups: ReturnType<typeof buildFacets>, id: string) =>
 
 test('facet counts reflect the whole corpus when nothing is selected', () => {
   const facets = buildFacets(corpus, {})
-  assert.deepEqual(optionsFor(facets, 'journal'), { ijdh: 2, ijic: 1, ijqt: 1 })
+  assert.deepEqual(optionsFor(facets, 'journal'), { ijdh: 2, ijqt: 1, ticr: 1 })
   assert.deepEqual(optionsFor(facets, 'type'), { 'Research Article': 2, Review: 2 })
   assert.deepEqual(optionsFor(facets, 'year'), { '2026': 2, '2025': 2 })
 })
@@ -109,7 +109,7 @@ test('a facet group ignores its own selection when counting', () => {
   // Selecting IJDH must not collapse the journal group to a single option, or
   // the reader could never widen the selection again.
   const facets = buildFacets(corpus, { journal: ['ijdh'] })
-  assert.deepEqual(optionsFor(facets, 'journal'), { ijdh: 2, ijic: 1, ijqt: 1 })
+  assert.deepEqual(optionsFor(facets, 'journal'), { ijdh: 2, ijqt: 1, ticr: 1 })
   // Other groups do narrow: only IJDH's two articles are in scope.
   assert.deepEqual(optionsFor(facets, 'type'), { 'Research Article': 1, Review: 1 })
 })

@@ -8,7 +8,7 @@ import { journalTemplates } from '../templates'
  * (October 2026) and reproduced as given. The remaining pages follow TICR's, as
  * the publisher asked. The editorial board is still to be appointed.
  */
-const slug = 'jaise'
+const slug = 'jaaise'
 const title = 'Journal of Agentic AI for Sustainable Energy'
 
 const intro =
@@ -45,7 +45,7 @@ const editors = [
   { name: 'Sugam Sharma', affiliation: 'Founder, Iowa State University SUF/eLegalls ai, USA' },
 ]
 
-export const jaiseDetail: JournalDetail = {
+export const jaaiseDetail: JournalDetail = {
   slug,
   title,
   shortTitle: 'JAAISE',
@@ -67,7 +67,7 @@ export const jaiseDetail: JournalDetail = {
   quickLinks: [],
   profile: {
     kicker: 'JAAISE · A NextGenIQ Press Journal',
-    tile: '/images/covers/jaise.jpg',
+    tile: '/images/covers/jaaise.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [

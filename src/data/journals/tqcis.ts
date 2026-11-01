@@ -8,7 +8,7 @@ import { journalTemplates } from '../templates'
  * reproduced as given. The remaining pages follow TICR's, as the publisher
  * asked. The editorial board is still to be appointed.
  */
-const slug = 'jqcs'
+const slug = 'tqcis'
 const title = 'Transactions on Quantum Computing and Information Security'
 
 const intro =
@@ -43,7 +43,7 @@ const editors = [
   { name: 'Domenico Santaniello', affiliation: 'University of Salerno, Italy' },
 ]
 
-export const jqcsDetail: JournalDetail = {
+export const tqcisDetail: JournalDetail = {
   slug,
   title,
   shortTitle: 'TQCIS',
@@ -65,7 +65,7 @@ export const jqcsDetail: JournalDetail = {
   quickLinks: [],
   profile: {
     kicker: 'TQCIS · A NextGenIQ Press Journal',
-    tile: '/images/covers/jqcs.jpg',
+    tile: '/images/covers/tqcis.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [

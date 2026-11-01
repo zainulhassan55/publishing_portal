@@ -9,7 +9,7 @@ import { journalTemplates } from '../templates'
  * the publisher's own terms (same topics, same closing requirement). Edit the
  * wording only on the publisher's instruction.
  */
-const slug = 'ijdm'
+const slug = 'jdmie'
 const title = 'Journal of Digital Management and Intelligent Enterprises'
 
 const intro =
@@ -45,7 +45,7 @@ const editors = [
   { name: 'Priyanka C. Bhatt', affiliation: 'Yuan Ze University, Taiwan' },
 ]
 
-export const ijdmDetail: JournalDetail = {
+export const jdmieDetail: JournalDetail = {
   slug,
   title,
   shortTitle: 'JDMIE',
@@ -67,8 +67,8 @@ export const ijdmDetail: JournalDetail = {
   quickLinks: [],
   profile: {
     kicker: 'JDMIE · A NextGenIQ Press Journal',
-    cover: '/images/journals/cover-ijdm.svg',
-    tile: '/images/covers/ijdm.jpg',
+    cover: '/images/journals/cover-jdmie.svg',
+    tile: '/images/covers/jdmie.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [

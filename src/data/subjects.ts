@@ -29,11 +29,11 @@ export const subjectList: Subject[] = Object.values(subjects)
  * files stay purely about editorial content.
  */
 export const journalSubjectKey: Record<string, SubjectKey> = {
-  ijic: 'computing',
-  ijdm: 'management',
-  jqcs: 'electronics',
-  jaise: 'energy',
-  sst: 'security',
+  ticr: 'computing',
+  jdmie: 'management',
+  tqcis: 'electronics',
+  jaaise: 'energy',
+  dtcr: 'security',
   reta: 'interdisciplinary',
 }
 

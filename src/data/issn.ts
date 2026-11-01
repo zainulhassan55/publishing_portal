@@ -14,7 +14,7 @@
  * than no ISSN: it is checkable, and it fails the check.
  */
 export const journalIssn: Record<string, { print?: string; electronic?: string }> = {
-  // ijic: { electronic: '0000-0000' },
+  // ticr: { electronic: '0000-0000' },
 }
 
 export const seriesIssn: Record<string, { print?: string; electronic?: string }> = {}

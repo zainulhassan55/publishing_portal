@@ -11,7 +11,7 @@ import { magazineTemplates } from '../templates'
  * are also printed in the templates (scripts/templates/build.ts), so change
  * both together. The editorial board is still to be appointed.
  */
-const slug = 'sst'
+const slug = 'dtcr'
 const title = 'Digital Trust & Cyber Resilience Magazine'
 
 const intro =
@@ -48,7 +48,7 @@ const editors = [
   { name: 'Sumana Maiti', affiliation: 'Indian Institute of Technology Bhubaneswar, India' },
 ]
 
-export const sstDetail: JournalDetail = {
+export const dtcrDetail: JournalDetail = {
   slug,
   kind: 'magazine',
   title,
@@ -71,7 +71,7 @@ export const sstDetail: JournalDetail = {
   quickLinks: [],
   profile: {
     kicker: 'DTCR · A NextGenIQ Press Magazine',
-    tile: '/images/covers/sst.jpg',
+    tile: '/images/covers/dtcr.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [

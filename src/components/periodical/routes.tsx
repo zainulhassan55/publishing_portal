@@ -19,7 +19,7 @@ import type { Article } from '@/types/publishing'
  * same way; they differ only in their section of the site (/journals or
  * /magazines), so each route file under those sections builds its handlers
  * here with its kind. `getPublication` refuses a slug of the other kind, so
- * /journals/sst and /magazines/ijic are 404s.
+ * /magazines/ticr is a 404.
  *
  * Every page is refreshed on the server rather than fixed at build. Published
  * papers arrive through the scheduled harvest and the admin show/hide gate,
