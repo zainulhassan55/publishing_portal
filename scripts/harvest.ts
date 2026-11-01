@@ -76,9 +76,11 @@ const apiKey = process.env.OJS_API_KEY || ''
 
 /**
  * Portal slugs. Articles and issues are stored under these; OJS is asked by
- * each title's OJS path, which differs for renamed titles (ijic → TICR).
+ * each title's OJS path, the same code in the case OJS stores it (ticr → TICR).
+ * Every journal and magazine OJS hosts must be listed, or its papers never
+ * reach the site.
  */
-const JOURNAL_SLUGS = ['ijdh', 'ijdm', 'ijds', 'ijei', 'ijic', 'ijis', 'ijmc', 'ijmr', 'ijqt', 'ijse', 'jqcs', 'jaise', 'sst', 'reta']
+const JOURNAL_SLUGS = ['ticr', 'jdmie', 'tqcis', 'jaaise', 'dtcr', 'reta']
 
 type Localised = Record<string, string> | string | undefined
 

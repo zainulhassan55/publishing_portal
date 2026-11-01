@@ -19,13 +19,13 @@ place for (book series, editorial forms, the admin panel).
 
 | Code | Title | Kind | Slug | Spec |
 | --- | --- | --- | --- | --- |
-| TICR | Transactions on Intelligent Computing and Reasoning | Journal | `ijic` | [src/data/journals/ijic.ts](src/data/journals/ijic.ts) |
-| JDMIE | Journal of Digital Management and Intelligent Enterprises | Journal | `ijdm` | [src/data/journals/ijdm.ts](src/data/journals/ijdm.ts) |
+| TICR | Transactions on Intelligent Computing and Reasoning | Journal | `ticr` | [src/data/journals/ticr.ts](src/data/journals/ticr.ts) |
+| JDMIE | Journal of Digital Management and Intelligent Enterprises | Journal | `jdmie` | [src/data/journals/jdmie.ts](src/data/journals/jdmie.ts) |
 | SISDT | Studies in Intelligent Systems and Digital Technologies | Book series | `aiisc` | [src/data/series/aiisc.ts](src/data/series/aiisc.ts) |
 | LNMRI | Lecture Notes in Multidisciplinary Research and Innovation | Book series | `lnmr` | [src/data/series/lnmr.ts](src/data/series/lnmr.ts) |
-| TQCIS | Transactions on Quantum Computing and Information Security | Journal | `jqcs` | [spec](src/data/journals/jqcs.ts) |
-| JAAISE | Journal of Agentic AI for Sustainable Energy | Journal | `jaise` | [spec](src/data/journals/jaise.ts) |
-| DTCR | Digital Trust & Cyber Resilience Magazine | Magazine | `sst` | [spec](src/data/magazines/sst.ts) |
+| TQCIS | Transactions on Quantum Computing and Information Security | Journal | `tqcis` | [spec](src/data/journals/tqcis.ts) |
+| JAAISE | Journal of Agentic AI for Sustainable Energy | Journal | `jaaise` | [spec](src/data/journals/jaaise.ts) |
+| DTCR | Digital Trust & Cyber Resilience Magazine | Magazine | `dtcr` | [spec](src/data/magazines/dtcr.ts) |
 | RETA | Reviews in Emerging Technology and Applications | Review-only journal | `reta` | [spec](src/data/journals/reta.ts) |
 
 The public titles and acronyms were updated in October 2026. Existing URL slugs

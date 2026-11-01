@@ -1,21 +1,22 @@
 import type { JournalDetail, JournalMenuGroup, JournalPage } from '@/types/content'
 import type { Series } from '@/types/publishing'
-import { ijdmDetail } from './journals/ijdm'
-import { ijicDetail } from './journals/ijic'
-import { jaiseDetail } from './journals/jaise'
-import { jqcsDetail } from './journals/jqcs'
+import { jaaiseDetail } from './journals/jaaise'
+import { jdmieDetail } from './journals/jdmie'
 import { retaDetail } from './journals/reta'
-import { sstDetail } from './magazines/sst'
+import { ticrDetail } from './journals/ticr'
+import { tqcisDetail } from './journals/tqcis'
+import { dtcrDetail } from './magazines/dtcr'
 import { aiisc } from './series/aiisc'
 import { lnmr } from './series/lnmr'
 import { subjectFor } from './subjects'
+import { currentSlug } from '@/lib/ojs/contexts'
 
 /**
  * Single ordered source of truth for the portfolio. Everything downstream —
  * routes, sitemap, search index, nav menus — derives from these arrays, so adding
  * a journal or series is one import plus one entry.
  */
-export const journals: JournalDetail[] = [ijicDetail, ijdmDetail, jqcsDetail, jaiseDetail, retaDetail, sstDetail]
+export const journals: JournalDetail[] = [ticrDetail, jdmieDetail, tqcisDetail, jaaiseDetail, retaDetail, dtcrDetail]
 
 /*
  * `journals` is every title OJS hosts, magazines included: a magazine has
@@ -37,12 +38,13 @@ export const journalSlugs = journals.map((j) => j.slug)
 
 const journalBySlug = new Map(journals.map((j) => [j.slug, j]))
 
-export const getJournal = (slug: string): JournalDetail | undefined => journalBySlug.get(slug.toLowerCase())
+/** A journal or magazine by slug, in any case. A pre-rename slug (`ijic`) finds the renamed title. */
+export const getJournal = (slug: string): JournalDetail | undefined => journalBySlug.get(currentSlug(slug))
 
-/** Root path of a journal or magazine: /journals/ijic, /magazines/sst. */
+/** Root path of a journal or magazine: /journals/ticr, /magazines/dtcr. */
 export const periodicalBase = (slug: string) => {
   const j = getJournal(slug)
-  return `/${j && isMagazine(j) ? 'magazines' : 'journals'}/${slug.toLowerCase()}`
+  return `/${j && isMagazine(j) ? 'magazines' : 'journals'}/${j?.slug ?? slug.toLowerCase()}`
 }
 
 /** The journal's code (TICR, DTCR). `shortTitle` has always held it. */

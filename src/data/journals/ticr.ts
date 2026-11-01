@@ -9,7 +9,7 @@ import { journalTemplates } from '../templates'
  * the publisher's own terms (same topics, same closing requirement). Edit the
  * wording only on the publisher's instruction.
  */
-const slug = 'ijic'
+const slug = 'ticr'
 const title = 'Transactions on Intelligent Computing and Reasoning'
 
 const intro =
@@ -43,7 +43,7 @@ const editors = [
   { name: 'Marjan Kuchaki Rafsanjani', affiliation: 'Shahid Bahonar University of Kerman, Kerman, Iran' },
 ]
 
-export const ijicDetail: JournalDetail = {
+export const ticrDetail: JournalDetail = {
   slug,
   title,
   shortTitle: 'TICR',
@@ -65,8 +65,8 @@ export const ijicDetail: JournalDetail = {
   quickLinks: [],
   profile: {
     kicker: 'TICR · A NextGenIQ Press Journal',
-    cover: '/images/journals/cover-ijic.svg',
-    tile: '/images/covers/ijic.jpg',
+    cover: '/images/journals/cover-ticr.svg',
+    tile: '/images/covers/ticr.jpg',
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [

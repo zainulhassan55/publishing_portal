@@ -51,12 +51,12 @@ type Cite = 'numbered' | 'authoryear'
 type Publication = { slug: string; code: string; name: string; kind: 'journal' | 'magazine' | 'series'; cite: Cite }
 
 const publications: Publication[] = [
-  { slug: 'ijic', code: 'TICR', name: 'Transactions on Intelligent Computing and Reasoning', kind: 'journal', cite: 'numbered' },
-  { slug: 'ijdm', code: 'JDMIE', name: 'Journal of Digital Management and Intelligent Enterprises', kind: 'journal', cite: 'authoryear' },
-  { slug: 'jqcs', code: 'TQCIS', name: 'Transactions on Quantum Computing and Information Security', kind: 'journal', cite: 'numbered' },
-  { slug: 'jaise', code: 'JAAISE', name: 'Journal of Agentic AI for Sustainable Energy', kind: 'journal', cite: 'numbered' },
+  { slug: 'ticr', code: 'TICR', name: 'Transactions on Intelligent Computing and Reasoning', kind: 'journal', cite: 'numbered' },
+  { slug: 'jdmie', code: 'JDMIE', name: 'Journal of Digital Management and Intelligent Enterprises', kind: 'journal', cite: 'authoryear' },
+  { slug: 'tqcis', code: 'TQCIS', name: 'Transactions on Quantum Computing and Information Security', kind: 'journal', cite: 'numbered' },
+  { slug: 'jaaise', code: 'JAAISE', name: 'Journal of Agentic AI for Sustainable Energy', kind: 'journal', cite: 'numbered' },
   { slug: 'reta', code: 'RETA', name: 'Reviews in Emerging Technology and Applications', kind: 'journal', cite: 'numbered' },
-  { slug: 'sst', code: 'DTCR', name: 'Digital Trust & Cyber Resilience Magazine', kind: 'magazine', cite: 'numbered' },
+  { slug: 'dtcr', code: 'DTCR', name: 'Digital Trust & Cyber Resilience Magazine', kind: 'magazine', cite: 'numbered' },
   { slug: 'aiisc', code: 'SISDT', name: 'Studies in Intelligent Systems and Digital Technologies', kind: 'series', cite: 'numbered' },
   { slug: 'lnmr', code: 'LNMRI', name: 'Lecture Notes in Multidisciplinary Research and Innovation', kind: 'series', cite: 'authoryear' },
 ]
@@ -496,7 +496,7 @@ async function titlePageDocx(pub: Publication) {
 
 /**
  * Magazine limits, printed in the templates. The author guidelines page states
- * the same limits (src/data/magazines/sst.ts); change both together.
+ * the same limits (src/data/magazines/dtcr.ts); change both together.
  */
 const MAG = { pages: 5, words: '4,500', abstract: 150, visuals: 6, equations: 3, refs: 15, bio: 75, sidebar: 300 }
 

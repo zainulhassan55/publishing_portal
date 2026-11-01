@@ -58,8 +58,8 @@ const mutate = (process.env.OJS_SPIKE_MUTATE || '')
 const mayMutate = (target: string) => mutate.includes('1') || mutate.includes('all') || mutate.includes(target)
 
 /** The journal context the credentialled checks exercise. */
-const SPIKE_CONTEXT = 'ijdh'
-const ALL_CONTEXTS = ['ijdh', 'ijdm', 'ijds', 'ijei', 'ijic', 'ijis', 'ijmc', 'ijmr', 'ijqt', 'ijse']
+const SPIKE_CONTEXT = 'TICR'
+const ALL_CONTEXTS = ['TICR', 'JDMIE', 'TQCIS', 'JAAISE', 'DTCR', 'RETA']
 
 if (!baseUrl) {
   console.error('OJS_BASE_URL is not set. Nothing to probe.')

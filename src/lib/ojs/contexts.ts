@@ -1,34 +1,56 @@
 /**
- * OJS context path of each title, where it differs from the portal slug.
+ * OJS context path of each title, and the codes titles used to have.
  *
  * In October 2026 five titles were renamed and their OJS paths changed to the
- * new codes (ijic → TICR, …). The portal kept its own URLs — /journals/ijic —
- * so links already shared and indexed keep resolving, and next.config.ts
- * redirects the new codes to them (/journals/ticr → /journals/ijic).
+ * new codes (TICR, JDMIE, …). On 2026-11-01 the portal's own URLs followed —
+ * /journals/ijic became /journals/ticr — so a portal slug is now the OJS path
+ * in lowercase. next.config.ts redirects the old URLs permanently.
  *
- * The values are the paths exactly as OJS stores them, capitals included (its
- * OAI ListSets reports TICR, JDMIE, …). OJS resolves a path in any case, but
- * writes its own links with the stored one, so using it here keeps the
+ * The map values are the paths exactly as OJS stores them, capitals included
+ * (its OAI ListSets reports TICR, JDMIE, …). OJS resolves a path in any case,
+ * but writes its own links with the stored one, so using it here keeps the
  * portal's links identical to OJS's.
  *
  * The rule: anything that builds an OJS URL or calls the OJS API goes through
  * `ojsContext`; anything that reads a context back out of OJS — an OAI
- * setSpec, a /go resolver path — goes through `portalSlug`. A title missing
- * from this map has the same path in both.
+ * setSpec, a /go resolver path — goes through `portalSlug`.
+ *
+ * This file is shipped to the server on its own (scripts/deploy.sh), because
+ * scripts/harvest.ts imports it. Keep it free of imports.
  */
 export const ojsContextBySlug: Readonly<Record<string, string>> = {
-  ijic: 'TICR',
-  ijdm: 'JDMIE',
-  jqcs: 'TQCIS',
-  jaise: 'JAAISE',
-  sst: 'DTCR',
+  ticr: 'TICR',
+  jdmie: 'JDMIE',
+  tqcis: 'TQCIS',
+  jaaise: 'JAAISE',
+  dtcr: 'DTCR',
   reta: 'RETA',
 }
 
-const slugByContext = new Map(Object.entries(ojsContextBySlug).map(([slug, context]) => [context.toLowerCase(), slug]))
+/**
+ * Codes the renamed titles had before, mapped to today's slug. Old links,
+ * bookmarked /go URLs and database rows written before the rename can still
+ * carry them.
+ */
+export const legacySlugs: Readonly<Record<string, string>> = {
+  ijic: 'ticr',
+  ijdm: 'jdmie',
+  jqcs: 'tqcis',
+  jaise: 'jaaise',
+  sst: 'dtcr',
+}
 
-/** The OJS path for a portal slug: `ijic` → `TICR`. */
-export const ojsContext = (slug: string) => ojsContextBySlug[slug.toLowerCase()] ?? slug.toLowerCase()
+/** Today's slug for any slug, old or new, in any case: `IJIC` or `ticr` → `ticr`. */
+export const currentSlug = (slug: string) => {
+  const lower = slug.toLowerCase()
+  return legacySlugs[lower] ?? lower
+}
 
-/** The portal slug for an OJS path, in any case: `TICR` or `ticr` → `ijic`. A pre-rename path (`ijic`) maps to itself. */
-export const portalSlug = (context: string) => slugByContext.get(context.toLowerCase()) ?? context.toLowerCase()
+/** The OJS path for a portal slug: `ticr` → `TICR`. An old slug (`ijic`) maps too. */
+export const ojsContext = (slug: string) => {
+  const current = currentSlug(slug)
+  return ojsContextBySlug[current] ?? current
+}
+
+/** The portal slug for an OJS path, in any case, old or new: `TICR`, `ticr` or `ijic` → `ticr`. */
+export const portalSlug = (context: string) => currentSlug(context)

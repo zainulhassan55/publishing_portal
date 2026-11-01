@@ -45,8 +45,8 @@ type Props = {
 
 /** Hero slideshow: the cover banners of the four titles, in portfolio order. */
 const HERO = [
-  { src: '/images/journals/cover-ijic.svg', alt: 'Transactions on Intelligent Computing and Reasoning' },
-  { src: '/images/journals/cover-ijdm.svg', alt: 'Journal of Digital Management and Intelligent Enterprises' },
+  { src: '/images/journals/cover-ticr.svg', alt: 'Transactions on Intelligent Computing and Reasoning' },
+  { src: '/images/journals/cover-jdmie.svg', alt: 'Journal of Digital Management and Intelligent Enterprises' },
   { src: '/images/series/cover-aiisc.svg', alt: 'Studies in Intelligent Systems and Digital Technologies' },
   { src: '/images/series/cover-lnmr.svg', alt: 'Lecture Notes in Multidisciplinary Research and Innovation' },
 ]

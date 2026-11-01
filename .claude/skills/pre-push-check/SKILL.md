@@ -147,8 +147,9 @@ content or extra work for whoever deploys.
   runs `scripts/harvest.ts`, every 15 minutes. It reads OJS over OAI and REST,
   writes `harvest.json`, and the site re-reads it. No deploy is needed to
   publish a paper.
-- **Portal slugs vs OJS paths.** Portal URLs keep the original slugs
-  (`/journals/ijic`). OJS uses the new codes (`TICR`).
+- **Portal slugs vs OJS paths.** A portal slug is the OJS path in lowercase
+  (`/journals/ticr` ↔ OJS `TICR`). The old codes (`ijic`, …) only survive as
+  permanent redirects in `next.config.ts` and `legacySlugs` in `contexts.ts`.
   `src/lib/ojs/contexts.ts` maps between them: use `ojsContext(slug)` to build
   OJS URLs, and `portalSlug(path)` to read them back.
 - **nginx** (`deploy/cloudpanel-vhost.conf`, pasted by hand into CloudPanel)

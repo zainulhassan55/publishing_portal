@@ -41,8 +41,8 @@ const securityHeaders = [
 ]
 
 /**
- * October 2026 portfolio change: the publisher kept two journals (IJIC, IJDM)
- * and two book series (AIISC, LNMR). Pages of the titles that were dropped, and
+ * October 2026 portfolio change: the publisher kept two journals (now TICR and
+ * JDMIE) and two book series (AIISC, LNMR). Pages of the titles that were dropped, and
  * journal page ids that were renamed, redirect to their nearest equivalent.
  */
 const removedJournals = ['ijdh', 'ijds', 'ijei', 'ijis', 'ijmc', 'ijmr', 'ijqt', 'ijse']
@@ -76,28 +76,29 @@ const renamedJournalPages: Record<string, string> = {
 }
 
 /**
- * Renamed titles: new code → the portal slug, which did not change. OJS now
- * serves these titles under the new code (src/lib/ojs/contexts.ts holds the
- * same pairs; this file stays self-contained because next.config.ts cannot
- * reliably import app modules), and nginx sends OJS journal pages to
- * /journals/<OJS path>, so the new codes must resolve here. Temporary, not
- * permanent, so that moving the portal URLs to the new codes later is not
- * fought by a browser-cached 308.
+ * Renamed titles: the code each title had before → where it lives now. The
+ * titles were renamed in October 2026 and the portal's URLs followed on
+ * 2026-11-01, so a portal slug is now the OJS path in lowercase (ticr ↔ TICR).
+ * src/lib/ojs/contexts.ts holds the same pairs as `legacySlugs`; this file
+ * stays self-contained because next.config.ts cannot reliably import app
+ * modules. Permanent: the old codes are retired for good.
  */
 const renamedTitles: { from: string; to: string }[] = [
-  { from: '/journals/ticr', to: '/journals/ijic' },
-  { from: '/journals/jdmie', to: '/journals/ijdm' },
-  { from: '/journals/tqcis', to: '/journals/jqcs' },
-  { from: '/journals/jaaise', to: '/journals/jaise' },
-  { from: '/magazines/dtcr', to: '/magazines/sst' },
-  { from: '/journals/dtcr', to: '/magazines/sst' },
+  { from: '/journals/ijic', to: '/journals/ticr' },
+  { from: '/journals/ijdm', to: '/journals/jdmie' },
+  { from: '/journals/jqcs', to: '/journals/tqcis' },
+  { from: '/journals/jaise', to: '/journals/jaaise' },
+  { from: '/magazines/sst', to: '/magazines/dtcr' },
+  // A magazine is not a journal; these were never real pages but are linked.
+  { from: '/journals/sst', to: '/magazines/dtcr' },
+  { from: '/journals/dtcr', to: '/magazines/dtcr' },
 ]
 
 const portfolioRedirects = [
-  ...renamedTitles.map(({ from, to }) => ({ source: from, destination: to, permanent: false })),
-  ...renamedTitles.map(({ from, to }) => ({ source: `${from}/:path*`, destination: `${to}/:path*`, permanent: false })),
+  ...renamedTitles.map(({ from, to }) => ({ source: from, destination: to, permanent: true })),
+  ...renamedTitles.map(({ from, to }) => ({ source: `${from}/:path*`, destination: `${to}/:path*`, permanent: true })),
   // Publisher-wide guidance that used to live under one journal's path.
-  { source: '/journals/:journal(ijdh|ijdm|ijds|ijei|ijic|ijis|ijmc|ijmr|ijqt|ijse)/reviewer-guidelines', destination: '/reviewers', permanent: true },
+  { source: '/journals/:journal(ijdh|ijds|ijei|ijis|ijmc|ijmr|ijqt|ijse|ticr|jdmie|tqcis|jaaise|reta)/reviewer-guidelines', destination: '/reviewers', permanent: true },
   ...removedJournals.map((slug) => ({ source: `/journals/${slug}/:path*`, destination: '/journals', permanent: true })),
   ...removedJournals.map((slug) => ({ source: `/journals/${slug}`, destination: '/journals', permanent: true })),
   { source: '/series/ngiq-lnmr/:path*', destination: '/series/lnmr', permanent: true },
@@ -105,7 +106,7 @@ const portfolioRedirects = [
   ...removedSeries.map((slug) => ({ source: `/series/${slug}/:path*`, destination: '/series', permanent: true })),
   ...removedSeries.map((slug) => ({ source: `/series/${slug}`, destination: '/series', permanent: true })),
   ...Object.entries(renamedJournalPages).map(([from, to]) => ({
-    source: `/journals/:journal(ijic|ijdm)/${from}`,
+    source: `/journals/:journal(ticr|jdmie)/${from}`,
     destination: to.startsWith('/') ? to : `/journals/:journal${to ? `/${to}` : ''}`,
     permanent: true,
   })),
