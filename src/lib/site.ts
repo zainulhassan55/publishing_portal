@@ -5,6 +5,8 @@ export const siteName = 'NextGenIQ Press'
 /** The company that operates the imprint. Shown in every footer, web and email. */
 export const operatorName = 'NextInfinitiQ Global Ltd'
 export const operatorLine = `${siteName} | Operated by ${operatorName}`
+/** The company's postal address, as supplied by the publisher. Reproduce it exactly; shown on the Contact page. */
+export const operatorAddress = '13 F.-2, No. 910, Sec. 2, Taiwan Blvd., He’an Vil., Xitun Dist., Taichung City 407600, Taiwan (R.O.C.)'
 export const siteTagline = 'Open-access journals, book series and proceedings'
 export const siteDescription =
   'NextGenIQ Press (NGIQ Press) publishes open-access journals, research books, monographs, and conference proceedings across digital, computational, and interdisciplinary fields.'

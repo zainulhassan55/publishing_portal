@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { FormLauncher } from '@/components/forms/FormLauncher'
-import { editorialEmail } from '@/lib/site'
+import { editorialEmail, operatorAddress } from '@/lib/site'
 import { withSharing } from '@/lib/metadata'
 
 export const metadata: Metadata = withSharing({
@@ -58,6 +58,13 @@ export default function ContactPage() {
               If you would rather use your own mail client, write to{' '}
               <a href={`mailto:${editorialEmail}`} style={{ fontWeight: 500 }}>{editorialEmail}</a>.
             </p>
+          </div>
+
+          <div style={{ border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, background: 'var(--surface,#fff)', padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <h2 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Company address</h2>
+            <address style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', fontStyle: 'normal' }}>
+              {operatorAddress}
+            </address>
           </div>
 
           {asides.map((a) => (
