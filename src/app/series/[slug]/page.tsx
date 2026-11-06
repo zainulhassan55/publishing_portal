@@ -36,7 +36,19 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
 
   const masthead = mastheadFor(pub, 'home', true)
   const empty = item.pages.find((p) => p.id === 'volumes')?.blocks[0]?.paragraphs?.[0] ?? ''
-  const items: HomeArticle[] = (await publishedVolumes(slug)).slice(0, 5).map((v) => ({
+  const fromAdmin = await publishedVolumes(slug)
+  const adminSlugs = new Set(fromAdmin.map((v) => v.slug))
+  const announced: HomeArticle[] = (item.volumes ?? [])
+    .filter((v) => !adminSlugs.has(v.slug))
+    .map((v) => ({
+      id: `announced-${v.slug}`,
+      href: `/series/${slug}/volumes/${v.slug}`,
+      type: 'Forthcoming',
+      title: v.title,
+      authorLine: `${v.editors.map((e) => e.name).join(', ')} (${v.editors.length > 1 ? 'eds' : 'ed'}.)`,
+      meta: [`Volume ${v.number}`, v.publishedDate ? `Published ${v.publishedDate}` : `Expected ${v.expectedDate}`].join(' · '),
+    }))
+  const items: HomeArticle[] = [...announced, ...fromAdmin.map((v) => ({
     id: String(v.id),
     href: `/series/${slug}/volumes/${v.slug}`,
     type: VOLUME_FORMATS.find((f) => f.value === v.format)?.label ?? 'Volume',
@@ -45,14 +57,14 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
     meta: [v.volumeNumber ? `Volume ${v.volumeNumber}` : '', v.publishedAt ? formatDate(v.publishedAt) : '', v.doi ? `doi.org/${v.doi}` : '']
       .filter(Boolean)
       .join(' · '),
-  }))
+  }))].slice(0, 5)
 
   return (
     <JournalHome
       masthead={masthead}
       topics={item.topics}
       aimsHref={pub.pageHref('aims-scope')}
-      listTitle="Published volumes"
+      listTitle="Forthcoming volumes"
       listHref={pub.pageHref('volumes')}
       items={items}
       emptyText={empty}

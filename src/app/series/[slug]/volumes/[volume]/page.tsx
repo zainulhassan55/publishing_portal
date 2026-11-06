@@ -3,9 +3,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PdfViewer } from '@/components/article/PdfViewer'
 import { JournalMasthead } from '@/components/mockup/JournalMasthead'
+import { AnnouncedVolumePage } from '@/components/series/AnnouncedVolumePage'
 import { contributorLine } from '@/components/series/SeriesPageView'
 import { JsonLd } from '@/components/seo/JsonLd'
-import { getSeries } from '@/data/registry'
+import { getSeries, getSeriesVolume, volumeEditorLine } from '@/data/registry'
 import { volumeCitationMeta, volumeJsonLd, volumeUrl } from '@/lib/books/meta'
 import { callIsOpen, publishedVolume } from '@/lib/books/volumes'
 import { clampText, formatDate } from '@/lib/format'
@@ -23,6 +24,15 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug, volume } = await params
   const series = getSeries(slug)
   const v = series ? await publishedVolume(slug, volume) : undefined
+  const announced = series && !v ? getSeriesVolume(slug, volume) : undefined
+  if (series && announced) {
+    return withSharing({
+      title: `${announced.title} — ${series.code}`,
+      description: clampText(announced.description[0] ?? `${announced.title}, Volume ${announced.number} in ${series.title}. Edited by ${volumeEditorLine(announced.editors)}.`),
+      alternates: { canonical: `/series/${slug}/volumes/${announced.slug}` },
+      openGraph: { type: 'book', title: announced.title, url: `/series/${slug}/volumes/${announced.slug}` },
+    })
+  }
   if (!series || !v) return {}
   const title = v.subtitle ? `${v.title}: ${v.subtitle}` : v.title
   return withSharing({
@@ -43,6 +53,8 @@ export default async function VolumePage({ params }: Params) {
   const series = getSeries(slug)
   const pub = getPublication('series', slug)
   const v = series ? await publishedVolume(slug, volume) : undefined
+  const announced = series && !v ? getSeriesVolume(slug, volume) : undefined
+  if (series && pub && announced) return <AnnouncedVolumePage series={series} pub={pub} volume={announced} />
   if (!series || !pub || !v) notFound()
 
   const base = volumeUrl(v)

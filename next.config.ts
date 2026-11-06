@@ -58,11 +58,11 @@ const renamedJournalPages: Record<string, string> = {
   apc: 'open-access-fees',
   'open-access': 'open-access-fees',
   // Indexing and archiving pages were removed from the journals in October 2026.
-  indexing: '',
-  'indexing-abstracting': '',
+  // `indexing-abstracting` and `articles-in-press` came back as real pages in
+  // November 2026, so they no longer redirect.
+  indexing: 'indexing-abstracting',
   'archiving-preservation': '',
   'editorial-office': 'contact',
-  'articles-in-press': '',
   // No articles are published yet; the journal home is the nearest page.
   articles: '',
   'special-issues': 'special-issue-guidelines',

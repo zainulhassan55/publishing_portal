@@ -1,6 +1,6 @@
 import type { JournalDetail } from '@/types/content'
 import { electronicIssn, issnLabel, printIssn } from '../issn'
-import { editorTable, editorialEmail, journalFacts, page, plain } from '../pages'
+import { editorTable, editorialEmail, journalFacts, articlesInPressPage, indexingPage, page, plain } from '../pages'
 import { journalTemplates } from '../templates'
 
 /**
@@ -122,5 +122,7 @@ export const ticrDetail: JournalDetail = {
     page('contact', 'Contact', 'Contact', 'How to contact TICR.', [
       plain([`Email ${editorialEmail}, including TICR and your manuscript reference, if available.`]),
     ]),
+    indexingPage('TICR'),
+    articlesInPressPage('TICR'),
   ],
 }

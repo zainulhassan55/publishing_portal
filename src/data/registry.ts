@@ -89,8 +89,13 @@ const journalMenu: JournalMenuGroup[] = [
     items: [
       { kind: 'page', id: 'aims-scope' },
       { kind: 'page', id: 'editorial-board' },
+      { kind: 'page', id: 'indexing-abstracting' },
       { kind: 'page', id: 'contact' },
     ],
+  },
+  {
+    label: 'Articles',
+    items: [{ kind: 'page', id: 'articles-in-press' }],
   },
   {
     label: 'Authors',
@@ -174,6 +179,15 @@ export const series: Series[] = [aiisc, lnmr]
 export const seriesSlugs = series.map((s) => s.slug)
 
 export const getSeries = (slug: string) => series.find((s) => s.slug === slug.toLowerCase())
+
+/** A volume announced in a series' data file, by its URL slug. */
+export const getSeriesVolume = (slug: string, volumeSlug: string) => getSeries(slug)?.volumes?.find((v) => v.slug === volumeSlug)
+
+/** "A (Univ, Country) and B (Univ, Country)", as the publisher writes the editor line. */
+export const volumeEditorLine = (editors: { name: string; affiliation: string }[]) => {
+  const parts = editors.map((e) => (e.affiliation ? `${e.name} (${e.affiliation})` : e.name))
+  return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : (parts[0] ?? '')
+}
 
 export const getSeriesPage = (slug: string, pageId: string): JournalPage | undefined =>
   getSeries(slug)?.pages.find((p) => p.id === pageId)

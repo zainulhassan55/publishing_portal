@@ -19,8 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const item = getSeries(slug)
   if (!item) return {}
   return withSharing({
-    title: `Published volumes — ${item.code}`,
-    description: `Volumes published in ${item.title}.`,
+    title: `Forthcoming volumes — ${item.code}`,
+    description: `Forthcoming volumes in ${item.title}.`,
     alternates: { canonical: `/series/${slug}/volumes` },
   })
 }

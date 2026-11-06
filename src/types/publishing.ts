@@ -297,4 +297,42 @@ export type Series = {
   issn: string | null
   profile: PublicationProfile
   pages: JournalPage[]
+  /**
+   * Volumes announced by the publisher, kept in the content layer so they show
+   * without a database. Volumes created in Admin → Book volumes are listed
+   * alongside them; on a slug clash the admin volume wins.
+   */
+  volumes?: SeriesVolume[]
+}
+
+/** `biography` is a list of paragraphs. */
+export type VolumeEditor = { name: string; affiliation: string; biography?: string[] }
+
+/** A volume announced in a series' data file (see `Series.volumes`). */
+export type SeriesVolume = {
+  /** URL segment under /series/<series>/volumes/. Never change it once live. */
+  slug: string
+  number: number
+  title: string
+  /** Free text, such as "December 2026". Shown until `publishedDate` is set. */
+  expectedDate: string
+  /** Free text, such as "12 December 2026"; null while the volume is forthcoming. */
+  publishedDate: string | null
+  /** Bare DOI such as "10.63521/…"; null shows "To be assigned". */
+  doi: string | null
+  /** Null shows "To be assigned". */
+  isbn: string | null
+  /** Portrait cover under /public. Without one the series cover stands in. Use a new filename to replace it (nginx caches images forever). */
+  cover?: string
+  pages: number | null
+  editors: VolumeEditor[]
+  /** Paragraphs of the book description; empty until the publisher supplies it. */
+  description: string[]
+  /** "The many academic areas covered … include:" plus its topic list. */
+  coverage?: { intro: string; topics: string[] }
+  keywords?: string[]
+  /** Table of contents (chapter titles); empty shows "Coming soon" once a description exists. */
+  contents: string[]
+  /** Who the book is for; null until supplied. */
+  readership: string | null
 }

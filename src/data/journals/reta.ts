@@ -1,5 +1,5 @@
 import type { JournalDetail } from '@/types/content'
-import { boardPending, editorialEmail, journalFacts, page, plain } from '../pages'
+import { boardPending, editorialEmail, journalFacts, articlesInPressPage, indexingPage, page, plain } from '../pages'
 import { journalTemplates } from '../templates'
 
 const slug = 'reta'
@@ -63,5 +63,7 @@ export const retaDetail: JournalDetail = {
       'Consult the publisher’s fees page for current charges and waiver arrangements. Editorial decisions are independent of payment.',
     ])]),
     page('contact', 'Contact', 'Contact', 'How to contact RETA.', [plain([`Email ${editorialEmail}, including RETA and your manuscript reference, if available.`])]),
+    indexingPage('RETA'),
+    articlesInPressPage('RETA'),
   ],
 }

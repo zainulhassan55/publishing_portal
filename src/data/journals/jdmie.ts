@@ -1,6 +1,6 @@
 import type { JournalDetail } from '@/types/content'
 import { electronicIssn, issnLabel, printIssn } from '../issn'
-import { editorTable, editorialEmail, journalFacts, page, plain } from '../pages'
+import { editorTable, editorialEmail, journalFacts, articlesInPressPage, indexingPage, page, plain } from '../pages'
 import { journalTemplates } from '../templates'
 
 /**
@@ -126,5 +126,7 @@ export const jdmieDetail: JournalDetail = {
     page('contact', 'Contact', 'Contact', 'How to contact JDMIE.', [
       plain([`Email ${editorialEmail}, including JDMIE and your manuscript reference, if available.`]),
     ]),
+    indexingPage('JDMIE'),
+    articlesInPressPage('JDMIE'),
   ],
 }
