@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { JournalHome, type HomeArticle } from '@/components/mockup/JournalHome'
 import { contributorLine } from '@/components/series/SeriesPageView'
 import { publishedVolumes } from '@/lib/books/volumes'
-import { getSeries, series } from '@/data/registry'
+import { getSeries, series, volumeDateLine } from '@/data/registry'
 import { clampText, formatDate } from '@/lib/format'
 import { VOLUME_FORMATS } from '@/lib/forms/options'
 import { getPublication, mastheadFor } from '@/lib/publication'
@@ -46,7 +46,7 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
       type: 'Forthcoming',
       title: v.title,
       authorLine: `${v.editors.map((e) => e.name).join(', ')} (${v.editors.length > 1 ? 'eds' : 'ed'}.)`,
-      meta: [`Volume ${v.number}`, v.publishedDate ? `Published ${v.publishedDate}` : `Expected ${v.expectedDate}`].join(' · '),
+      meta: [`Volume ${v.number}`, volumeDateLine(v)].join(' · '),
     }))
   const items: HomeArticle[] = [...announced, ...fromAdmin.map((v) => ({
     id: String(v.id),

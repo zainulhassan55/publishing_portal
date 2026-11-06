@@ -8,17 +8,13 @@ export function page(id: string, label: string, title: string, summary: string, 
 }
 
 /**
- * Indexing & abstracting page for a journal or magazine. Deliberately claims no
- * coverage: indexing facts must be real (audit F-03). When a service confirms
- * coverage, replace these paragraphs for that title.
+ * Indexing & abstracting page for a journal or magazine. Left blank (title
+ * only) at the publisher's request until a title is actually indexed; then pass
+ * that title's confirmed coverage as `paragraphs`. Indexing facts must be real
+ * (audit F-03), so never fill this with expected or applied-for services.
  */
-export const indexingPage = (code: string, kind: 'journal' | 'magazine' = 'journal'): JournalPage =>
-  page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and abstracting', `Indexing status of ${code}.`, [
-    plain([
-      `${code} is a new ${kind}, and no indexing coverage is currently confirmed. Eligible content will be submitted to relevant indexing and abstracting services for independent assessment; inclusion is not guaranteed.`,
-      'Confirmed coverage will be listed on this page as it is granted. Publication identifiers will be displayed once assigned. The publisher-wide indexing page sets out the status of each service and what it requires before an application can be made.',
-    ]),
-  ])
+export const indexingPage = (code: string, _kind: 'journal' | 'magazine' = 'journal', paragraphs: string[] = []): JournalPage =>
+  page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and Abstracting', `Indexing and abstracting for ${code}.`, paragraphs.length ? [plain(paragraphs)] : [])
 
 /** Articles in press page: accepted work awaiting its final issue. Text only until a list is wired to OJS. */
 export const articlesInPressPage = (code: string): JournalPage =>

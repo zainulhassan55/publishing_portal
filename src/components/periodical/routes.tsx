@@ -34,6 +34,41 @@ type PageParams = { params: Promise<{ slug: string; pageId: string }> }
 const titlesOf = (kind: PeriodicalKind) => (kind === 'magazine' ? magazines : journalsOnly)
 const slugParams = (kind: PeriodicalKind) => () => titlesOf(kind).map((j) => ({ slug: j.slug }))
 
+/**
+ * "Nothing published yet" for Latest volume / All volumes. The menu links to
+ * both routes, so they explain themselves instead of redirecting to the home
+ * page (a link that silently bounces is a dead control).
+ */
+function NothingPublishedYet({ found, kind, href, title }: { found: NonNullable<ReturnType<typeof lookup>>; kind: PeriodicalKind; href: string; title: string }) {
+  const { pub, base } = found
+  const group = groupOf(pub, href)
+  return (
+    <JournalStaticPage
+      masthead={mastheadFor(pub, group)}
+      group={group}
+      title={title}
+      blocks={toPageBlocks([
+        {
+          title: '',
+          paragraphs: [
+            `No volume of ${pub.code} has been published yet. Published volumes and their issues will be listed here as soon as they appear.`,
+            'Accepted articles that are awaiting publication are listed under Articles in press.',
+          ],
+        },
+      ])}
+      side={sideGroupsFor(pub, href)}
+      prev={undefined}
+      next={{ href: `${base}/articles-in-press`, title: 'Articles in press' }}
+      cta={{
+        title: 'Ready to submit?',
+        text: `${pub.code} accepts submissions year-round.`,
+        label: kind === 'magazine' ? 'Submit an article' : 'Submit a manuscript',
+        href: journalSubmitHref(pub.slug),
+      }}
+    />
+  )
+}
+
 /** The publication and its journal record, or undefined when the slug is not of this kind. */
 function lookup(kind: PeriodicalKind, slug: string) {
   const pub = getPublication(kind, slug)
@@ -196,7 +231,7 @@ export function issuesRoute(kind: PeriodicalKind) {
     if (!found) return {}
     const { journal, base } = found
     return withSharing({
-      title: `Issue archive — ${journalCode(journal)}`,
+      title: `All volumes — ${journalCode(journal)}`,
       description: `All published volumes and issues of ${journal.title}, newest first.`,
       alternates: { canonical: `${base}/issues` },
     })
@@ -211,7 +246,7 @@ export function issuesRoute(kind: PeriodicalKind) {
     const current = currentIssue(slug)
     const issues = issueArchive(slug)
     // Nothing published yet: there is no archive to show.
-    if (issues.length === 0) redirect(base)
+    if (issues.length === 0) return <NothingPublishedYet found={found} kind={kind} href={`${base}/issues`} title="All volumes" />
     const masthead = mastheadFor(pub, 'home')
 
     // Volumes newest first, each with its issues in the order issueArchive gives.
@@ -291,7 +326,7 @@ export function currentIssueRoute(kind: PeriodicalKind) {
 
     const code = journalCode(journal)
     const issue = currentIssue(slug)
-    const title = issue ? `${volumeIssueLabel(issue.volume, issue.number)} — ${code}` : `Current issue — ${code}`
+    const title = issue ? `${volumeIssueLabel(issue.volume, issue.number)} — ${code}` : `Latest volume — ${code}`
 
     return withSharing({
       title,
@@ -310,7 +345,7 @@ export function currentIssueRoute(kind: PeriodicalKind) {
 
     // Until OJS publishes an issue there is no table of contents to show.
     const issue = currentIssue(slug)
-    if (!issue) redirect(base)
+    if (!issue) return <NothingPublishedYet found={found} kind={kind} href={`${base}/current-issue`} title="Latest volume" />
 
     const articles = await getArticles()
     const byId = new Map(articles.map((a) => [a.id, a]))

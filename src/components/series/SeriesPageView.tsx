@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { FormLauncher } from '@/components/forms/FormLauncher'
 import { JournalStaticPage, type PageListItem } from '@/components/mockup/JournalStaticPage'
-import { getSeries, getSeriesPage, seriesPageNeighbours } from '@/data/registry'
+import { getSeries, getSeriesPage, seriesPageNeighbours, volumeDateLine } from '@/data/registry'
 import { openCalls, publishedVolumes, type BookVolume } from '@/lib/books/volumes'
 import { formatDate } from '@/lib/format'
 import { getPublication, groupOf, mastheadFor, sideGroupsFor, toPageBlocks } from '@/lib/publication'
@@ -36,7 +36,7 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
         href: `/series/${slug}/volumes/${v.slug}`,
         title: v.title,
         lead: `Volume ${v.number}`,
-        meta: [`Edited by ${v.editors.map((e) => e.name).join(', ')}`, v.publishedDate ? `Published ${v.publishedDate}` : `Expected ${v.expectedDate}`].join(' · '),
+        meta: [`Edited by ${v.editors.map((e) => e.name).join(', ')}`, volumeDateLine(v)].join(' · '),
       }))
     list = [
       ...announced,

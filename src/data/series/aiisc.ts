@@ -34,12 +34,9 @@ const editors = [
   { name: 'Nadia Nedjah', affiliation: 'State University of Rio de Janeiro, Brazil' },
 ]
 
-const editorsNote =
-  'The Series Editor guides the academic direction of the series, assesses proposals, and oversees editorial quality and independent peer review.'
-
 /**
  * Volumes supplied by the publisher ("Book series changes", November 2026).
- * Expected dates confirmed by the publisher; the page count is a placeholder.
+ * Expected dates and page counts confirmed by the publisher (November 2026).
  * Description, contents, readership and biographies follow. A fourth volume
  * (Human-Centred Industry 5.0) was withdrawn from the list for now.
  */
@@ -119,7 +116,7 @@ const volumes: SeriesVolume[] = [
     publishedDate: null,
     doi: null,
     isbn: null,
-    pages: 200,
+    pages: 230,
     // Description, coverage, keywords, readership and biographies from the
     // publisher's "Quantum-Safe Digital Systems … .docx" (November 2026).
     editors: [
@@ -191,7 +188,7 @@ const volumes: SeriesVolume[] = [
     publishedDate: null,
     doi: null,
     isbn: null,
-    pages: 200,
+    pages: 219,
     // Description, coverage, keywords, readership and biographies from the
     // publisher's "Advances in Trustworthy AI … _new.docx" (November 2026).
     editors: [
@@ -286,7 +283,6 @@ export const aiisc: Series = {
     facts: seriesFacts,
     editorsLabel: 'Series editor',
     editors,
-    editorsNote,
   },
   volumes,
   pages: [
@@ -304,7 +300,7 @@ export const aiisc: Series = {
       },
     ]),
     page('editorial-board', 'Editorial board', 'Editorial board', 'The Series Editor of SISDT.', [
-      { title: 'Series editor', table: editorTable(editors), paragraphs: [], closing: [editorsNote] },
+      { title: 'Series editor', table: editorTable(editors), paragraphs: [] },
     ]),
     page('propose-volume', 'Propose a volume', 'Propose a volume', 'What to include in an SISDT volume proposal.', [
       plain(['Proposals are welcome throughout the year. Please include:'], {
@@ -345,12 +341,7 @@ export const aiisc: Series = {
         'There is no submission fee. Any publication charges, funding arrangements, or available waivers will be disclosed before a publishing agreement is signed. Editorial decisions are independent of payment.',
       ]),
     ]),
-    page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and abstracting', 'Indexing status of SISDT.', [
-      plain([
-        'SISDT is a new series, and no indexing coverage is currently confirmed. Eligible publications may be submitted to relevant indexing services for independent assessment; inclusion is not guaranteed.',
-        'Confirmed coverage will be reported here, specifying whether it applies to the series, individual volumes, or chapters. Publication identifiers will be displayed once assigned.',
-      ]),
-    ]),
+    page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and Abstracting', 'Indexing status of SISDT.', []), // Blank until indexing is confirmed (publisher, November 2026).
     page('volumes', 'Forthcoming volumes', 'Forthcoming volumes', 'Forthcoming volumes in SISDT.', [
       plain([
         'The volumes of SISDT are listed below; each links to its own page. We currently welcome proposals for monographs, edited collections, and conference proceedings within the series scope.',

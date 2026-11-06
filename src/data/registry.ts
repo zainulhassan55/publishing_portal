@@ -94,8 +94,12 @@ const journalMenu: JournalMenuGroup[] = [
     ],
   },
   {
-    label: 'Articles',
-    items: [{ kind: 'page', id: 'articles-in-press' }],
+    label: 'Articles & Volumes',
+    items: [
+      { kind: 'current', label: 'Latest volume' },
+      { kind: 'archive', label: 'All volumes' },
+      { kind: 'page', id: 'articles-in-press' },
+    ],
   },
   {
     label: 'Authors',
@@ -148,6 +152,7 @@ function resolveMenu(menu: JournalMenuGroup[], pages: JournalPage[], base: strin
     items: group.items.flatMap<ResolvedMenuItem>((item) => {
       if (item.kind === 'submit') return [{ label: item.label, href: submitHref }]
       if (item.kind === 'archive') return [{ label: item.label, href: `${base}/issues` }]
+      if (item.kind === 'current') return [{ label: item.label, href: `${base}/current-issue` }]
       if (item.kind === 'link') return [{ label: item.label, href: item.href }]
       const page = pages.find((p) => p.id === item.id)
       return page ? [{ label: page.label, href: `${base}/${page.id}` }] : []
@@ -182,6 +187,10 @@ export const getSeries = (slug: string) => series.find((s) => s.slug === slug.to
 
 /** A volume announced in a series' data file, by its URL slug. */
 export const getSeriesVolume = (slug: string, volumeSlug: string) => getSeries(slug)?.volumes?.find((v) => v.slug === volumeSlug)
+
+/** "Expected date of publication: December 2026", or "Date of publication: …" once published. Used everywhere a volume's date shows. */
+export const volumeDateLine = (v: { expectedDate: string; publishedDate: string | null }) =>
+  v.publishedDate ? `Date of publication: ${v.publishedDate}` : `Expected date of publication: ${v.expectedDate}`
 
 /** "A (Univ, Country) and B (Univ, Country)", as the publisher writes the editor line. */
 export const volumeEditorLine = (editors: { name: string; affiliation: string }[]) => {
