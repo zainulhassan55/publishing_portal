@@ -42,7 +42,7 @@ export type SideGroup = {
 export type PageNavItem = { href: string; title: string }
 
 /** `lead` (such as "Volume 1") is shown in bold before the meta line, and the item set one size larger. */
-export type PageListItem = { href: string; title: string; meta: string; lead?: string }
+export type PageListItem = { href: string; title: string; meta: string; lead?: string; /** Cover thumbnail shown beside the entry (book volumes). */ image?: string }
 
 export type PageCta = { title: string; text: string; label: string; href: string }
 
@@ -125,7 +125,7 @@ export function JournalStaticPage({ masthead, group, title, blocks, numbered = t
 
   return (
     <>
-      <style>{`html{scroll-behavior:smooth}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}.jsp-side a:hover{color:var(--accent,#1D5DA8)}.jsp-pn:hover,.jsp-dl:hover{border-color:var(--accent,#1D5DA8)!important}@media (max-width:760px){.jsp-aside{position:static!important}.jsp-h1{font-size:30px!important}.jsp-pager{grid-template-columns:1fr!important;gap:10px!important}.jsp-pager>span:empty{display:none}.jsp-tbl{min-width:0!important}.jsp-tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.jsp-tbl tr{display:block;padding:10px 0;border-bottom:1px solid var(--line,#DCE1E6)}.jsp-tbl td{display:block;padding:2px 0!important;border:0!important}.jsp-tbl-lab td+td::before{content:attr(data-label) ': ';color:var(--muted,#505C68);font-size:12px;text-transform:uppercase;letter-spacing:.04em}}`}</style>
+      <style>{`html{scroll-behavior:smooth}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}.jsp-side a:hover{color:var(--accent,#1D5DA8)}.jsp-pn:hover,.jsp-dl:hover{border-color:var(--accent,#1D5DA8)!important}@media (max-width:760px){.jsp-aside{position:static!important}.jsp-h1{font-size:30px!important}.jsp-pager{grid-template-columns:1fr!important;gap:10px!important}.jsp-pager>span:empty{display:none}.jsp-tbl{min-width:0!important}.jsp-tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.jsp-tbl tr{display:block;padding:10px 0;border-bottom:1px solid var(--line,#DCE1E6)}.jsp-tbl td{display:block;padding:2px 0!important;border:0!important}.jsp-tbl-lab td+td::before{content:attr(data-label) ': ';color:var(--muted,#505C68);font-size:12px;text-transform:uppercase;letter-spacing:.04em}.jsp-thumb{width:64px!important}}`}</style>
       <JournalMasthead {...masthead} />
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px var(--shell-pad) 0', display: 'flex', gap: 48, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <nav aria-label={masthead.kind === 'journal' ? 'Journal pages' : 'Series pages'} className="jsp-side m-hide" style={{ width: 230, flexShrink: 0, position: 'sticky', top: 16, fontSize: 14 }}>
@@ -221,19 +221,28 @@ export function JournalStaticPage({ masthead, group, title, blocks, numbered = t
           {records && records.length > 0 ? (
             <div style={{ borderTop: '2px solid #101B27', marginTop: 8 }}>
               {records.map((r) => (
-                <article key={r.href} style={{ padding: '16px 0', borderBottom: '1px solid var(--line,#DCE1E6)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <Link href={r.href} style={{ fontFamily: 'var(--font-serif)', fontSize: r.lead ? 19 : 18, lineHeight: 1.35, color: 'var(--ink,#101B27)', fontWeight: 600 }}>
-                    {r.title}
-                  </Link>
-                  <span style={{ fontSize: r.lead ? 14 : 13, color: 'var(--muted,#505C68)' }}>
-                    {r.lead ? (
-                      <>
-                        <strong style={{ fontWeight: 700, color: 'var(--ink-2,#1F2A36)' }}>{r.lead}</strong>
-                        {r.meta ? ' · ' : ''}
-                      </>
-                    ) : null}
-                    {r.meta}
-                  </span>
+                <article key={r.href} style={{ padding: '16px 0', borderBottom: '1px solid var(--line,#DCE1E6)', display: 'flex', gap: 18, alignItems: 'flex-start' }}>
+                  {r.image ? (
+                    // The title link below carries the name; this duplicate link is hidden from keyboards and screen readers.
+                    <Link href={r.href} tabIndex={-1} aria-hidden="true" className="jsp-thumb" style={{ flex: '0 0 auto', display: 'block', width: 84 }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={r.image} alt="" width={84} height={126} loading="lazy" style={{ display: 'block', width: '100%', height: 'auto', border: '1px solid var(--line,#DCE1E6)', borderRadius: 2 }} />
+                    </Link>
+                  ) : null}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+                    <Link href={r.href} style={{ fontFamily: 'var(--font-serif)', fontSize: r.lead ? 19 : 18, lineHeight: 1.35, color: 'var(--ink,#101B27)', fontWeight: 600 }}>
+                      {r.title}
+                    </Link>
+                    <span style={{ fontSize: r.lead ? 14 : 13, color: 'var(--muted,#505C68)' }}>
+                      {r.lead ? (
+                        <>
+                          <strong style={{ fontWeight: 700, color: 'var(--ink-2,#1F2A36)' }}>{r.lead}</strong>
+                          {r.meta ? ' · ' : ''}
+                        </>
+                      ) : null}
+                      {r.meta}
+                    </span>
+                  </div>
                 </article>
               ))}
             </div>

@@ -28,13 +28,16 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
   let list: PageListItem[] | undefined
   let calls: BookVolume[] = []
   if (pageId === 'volumes') {
+    const series = getSeries(slug)
     const fromAdmin = await publishedVolumes(slug)
     const adminSlugs = new Set(fromAdmin.map((v) => v.slug))
-    const announced = (getSeries(slug)?.volumes ?? [])
+    const announced = (series?.volumes ?? [])
       .filter((v) => !adminSlugs.has(v.slug))
       .map((v) => ({
         href: `/series/${slug}/volumes/${v.slug}`,
         title: v.title,
+        // Same image the volume page shows: its own cover, else the series cover.
+        image: v.cover ?? series?.profile.tile,
         lead: `Volume ${v.number}`,
         meta: [`Edited by ${v.editors.map((e) => e.name).join(', ')}`, volumeDateLine(v)].join(' · '),
       }))
@@ -43,6 +46,7 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
       ...fromAdmin.map((v) => ({
         href: `/series/${slug}/volumes/${v.slug}`,
         title: v.subtitle ? `${v.title}: ${v.subtitle}` : v.title,
+        image: v.coverUploadId ? `/series/${slug}/volumes/${v.slug}/cover` : series?.profile.tile,
         lead: v.volumeNumber ? `Volume ${v.volumeNumber}` : undefined,
         meta: [contributorLine(v), v.publishedAt ? formatDate(v.publishedAt) : '']
           .filter(Boolean)
