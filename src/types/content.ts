@@ -106,6 +106,7 @@ export type JournalMenuItem =
   | { kind: 'page'; id: string }
   | { kind: 'submit'; label: string }
   | { kind: 'archive'; label: string }
+  | { kind: 'current'; label: string }
   | { kind: 'link'; label: string; href: string }
 
 export type JournalMenuGroup = {

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { JournalMasthead } from '@/components/mockup/JournalMasthead'
-import { volumeEditorLine } from '@/data/registry'
+import { volumeDateLine, volumeEditorLine } from '@/data/registry'
 import type { Publication } from '@/lib/publication'
 import { mastheadFor } from '@/lib/publication'
 import { doiUrl } from '@/lib/site'
@@ -118,7 +118,7 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
                   </a>
                 </p>
               ) : null}
-              <p style={fact}>{v.publishedDate ? `Date of publication: ${v.publishedDate}` : `Expected date of publication: ${v.expectedDate}`}</p>
+              <p style={fact}>{volumeDateLine(v)}</p>
               {v.pages ? <p style={fact}>Pages: {v.pages}</p> : null}
               <p style={{ ...fact, margin: 0 }}>Edited by: {volumeEditorLine(v.editors)}</p>
             </div>
