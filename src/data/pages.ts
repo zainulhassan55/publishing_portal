@@ -7,6 +7,28 @@ export function page(id: string, label: string, title: string, summary: string, 
   return { id, label, title, summary, blocks }
 }
 
+/**
+ * Indexing & abstracting page for a journal or magazine. Deliberately claims no
+ * coverage: indexing facts must be real (audit F-03). When a service confirms
+ * coverage, replace these paragraphs for that title.
+ */
+export const indexingPage = (code: string, kind: 'journal' | 'magazine' = 'journal'): JournalPage =>
+  page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and abstracting', `Indexing status of ${code}.`, [
+    plain([
+      `${code} is a new ${kind}, and no indexing coverage is currently confirmed. Eligible content will be submitted to relevant indexing and abstracting services for independent assessment; inclusion is not guaranteed.`,
+      'Confirmed coverage will be listed on this page as it is granted. Publication identifiers will be displayed once assigned. The publisher-wide indexing page sets out the status of each service and what it requires before an application can be made.',
+    ]),
+  ])
+
+/** Articles in press page: accepted work awaiting its final issue. Text only until a list is wired to OJS. */
+export const articlesInPressPage = (code: string): JournalPage =>
+  page('articles-in-press', 'Articles in press', 'Articles in press', `Accepted ${code} articles awaiting their final issue.`, [
+    plain([
+      `This page lists articles accepted for publication in ${code} ahead of their final issue. Articles in press have completed peer review and are being prepared for publication; details such as page numbers may change before final publication.`,
+      'Accepted articles will be added here as they complete production. Published articles are available from the current issue and the issue archive.',
+    ]),
+  ])
+
 /** A page whose whole body sits under its own title, so no section heading is repeated. */
 export const plain = (paragraphs: string[], extra: Omit<ContentBlock, 'title' | 'paragraphs'> = {}): ContentBlock => ({
   title: '',

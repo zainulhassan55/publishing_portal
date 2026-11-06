@@ -41,7 +41,8 @@ export type SideGroup = {
 
 export type PageNavItem = { href: string; title: string }
 
-export type PageListItem = { href: string; title: string; meta: string }
+/** `lead` (such as "Volume 1") is shown in bold before the meta line, and the item set one size larger. */
+export type PageListItem = { href: string; title: string; meta: string; lead?: string }
 
 export type PageCta = { title: string; text: string; label: string; href: string }
 
@@ -221,10 +222,18 @@ export function JournalStaticPage({ masthead, group, title, blocks, numbered = t
             <div style={{ borderTop: '2px solid #101B27', marginTop: 8 }}>
               {records.map((r) => (
                 <article key={r.href} style={{ padding: '16px 0', borderBottom: '1px solid var(--line,#DCE1E6)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <Link href={r.href} style={{ fontFamily: 'var(--font-serif)', fontSize: 18, lineHeight: 1.35, color: 'var(--ink,#101B27)', fontWeight: 600 }}>
+                  <Link href={r.href} style={{ fontFamily: 'var(--font-serif)', fontSize: r.lead ? 19 : 18, lineHeight: 1.35, color: 'var(--ink,#101B27)', fontWeight: 600 }}>
                     {r.title}
                   </Link>
-                  <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>{r.meta}</span>
+                  <span style={{ fontSize: r.lead ? 14 : 13, color: 'var(--muted,#505C68)' }}>
+                    {r.lead ? (
+                      <>
+                        <strong style={{ fontWeight: 700, color: 'var(--ink-2,#1F2A36)' }}>{r.lead}</strong>
+                        {r.meta ? ' · ' : ''}
+                      </>
+                    ) : null}
+                    {r.meta}
+                  </span>
                 </article>
               ))}
             </div>

@@ -1,4 +1,4 @@
-import type { Series } from '@/types/publishing'
+import type { Series, SeriesVolume } from '@/types/publishing'
 import { editorTable, editorialEmail, page, plain, seriesFacts } from '../pages'
 import { seriesTemplates } from '../templates'
 
@@ -37,6 +37,83 @@ const editors = [
 const editorsNote =
   'The Series Editor guides the academic direction of the series, evaluates proposals, and oversees editorial quality and independent peer review.'
 
+/**
+ * Volumes supplied by the publisher ("Book series changes", November 2026).
+ * The expected date and page count are placeholders until the publisher
+ * confirms them; description, contents, readership and biographies follow.
+ */
+const volumes: SeriesVolume[] = [
+  {
+    slug: 'agentic-generative-ai-intelligent-automation',
+    number: 1,
+    title: 'Agentic and Generative Artificial Intelligence for Intelligent Automation',
+    expectedDate: 'December 2026',
+    publishedDate: null,
+    doi: null,
+    isbn: null,
+    pages: 200,
+    editors: [
+      { name: 'Kwok Tai Chui', affiliation: 'Hong Kong Metropolitan University, Hong Kong' },
+      { name: 'Akshat Gaurav', affiliation: 'Ronin Institute, USA, and Asia University, Taichung, Taiwan' },
+    ],
+    description: [],
+    contents: [],
+    readership: null,
+  },
+  {
+    slug: 'smart-systems-advanced-computing-syscom-2026',
+    number: 2,
+    title: 'Emerging Research in Smart Systems and Advanced Computing: SysCom 2026 Poster Proceedings',
+    expectedDate: 'December 2026',
+    publishedDate: null,
+    doi: null,
+    isbn: null,
+    pages: 200,
+    editors: [
+      { name: 'Nadia Nedjah', affiliation: 'State University of Rio de Janeiro, Brazil' },
+      { name: 'Brij B. Gupta', affiliation: 'Asia University, Taiwan' },
+    ],
+    description: [],
+    contents: [],
+    readership: null,
+  },
+  {
+    slug: 'digital-health-human-centred-innovation',
+    number: 3,
+    title: 'Digital Health and Human-Centred Innovation: Technology, Design, and Care',
+    expectedDate: 'December 2026',
+    publishedDate: null,
+    doi: null,
+    isbn: null,
+    pages: 200,
+    editors: [
+      { name: 'Sunil Kumar Singh', affiliation: 'CCET, Chandigarh, India' },
+      { name: 'Sudhakar Kumar', affiliation: 'CCET, Chandigarh, India' },
+    ],
+    description: [],
+    contents: [],
+    readership: null,
+  },
+  {
+    slug: 'generative-ai-in-education',
+    number: 4,
+    title: 'Generative AI in Education: Learning, Assessment, and Academic Integrity',
+    expectedDate: 'December 2026',
+    publishedDate: null,
+    doi: null,
+    isbn: null,
+    pages: 200,
+    editors: [
+      { name: 'Tzu-Chuen Lu', affiliation: 'National Chin-Yi University of Technology, Taichung, Taiwan' },
+      { name: 'Ramakrishnan Raman', affiliation: 'Symbiosis International (Deemed University), Pune, India' },
+      { name: 'Shin-Hung Pan', affiliation: 'Chaoyang University of Technology, Taiwan' },
+    ],
+    description: [],
+    contents: [],
+    readership: null,
+  },
+]
+
 export const lnmr: Series = {
   slug: 'lnmr',
   code: 'LNMRI',
@@ -55,13 +132,14 @@ export const lnmr: Series = {
     ctas: [
       { label: 'Propose a volume', pageId: 'propose-volume' },
       { label: 'Editorial board', pageId: 'editorial-board' },
-      { label: 'Published volumes', pageId: 'volumes' },
+      { label: 'Forthcoming volumes', pageId: 'volumes' },
     ],
     facts: seriesFacts,
     editorsLabel: 'Series editor',
     editors,
     editorsNote,
   },
+  volumes,
   pages: [
     page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by LNMRI.', [
       {
@@ -126,9 +204,9 @@ export const lnmr: Series = {
         'Confirmed coverage will be reported here, specifying whether it applies to the series, individual volumes, or chapters. Publication identifiers will be displayed once assigned.',
       ]),
     ]),
-    page('volumes', 'Published volumes', 'Published volumes', 'Volumes published in LNMRI.', [
+    page('volumes', 'Forthcoming volumes', 'Forthcoming volumes', 'Forthcoming volumes in LNMRI.', [
       plain([
-        'Published volumes will be listed here as they become available. We currently welcome proposals for monographs, edited collections, and proceedings from conferences, symposia, and workshops within the series scope.',
+        'The volumes of LNMRI are listed below; each links to its own page. We currently welcome proposals for monographs, edited collections, and proceedings from conferences, symposia, and workshops within the series scope.',
       ]),
     ]),
     page('contact', 'Contact', 'Contact', 'How to contact LNMRI.', [

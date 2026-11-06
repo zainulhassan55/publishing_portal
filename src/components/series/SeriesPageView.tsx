@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { FormLauncher } from '@/components/forms/FormLauncher'
 import { JournalStaticPage, type PageListItem } from '@/components/mockup/JournalStaticPage'
-import { getSeriesPage, seriesPageNeighbours } from '@/data/registry'
+import { getSeries, getSeriesPage, seriesPageNeighbours } from '@/data/registry'
 import { openCalls, publishedVolumes, type BookVolume } from '@/lib/books/volumes'
 import { formatDate } from '@/lib/format'
 import { getPublication, groupOf, mastheadFor, sideGroupsFor, toPageBlocks } from '@/lib/publication'
@@ -28,13 +28,27 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
   let list: PageListItem[] | undefined
   let calls: BookVolume[] = []
   if (pageId === 'volumes') {
-    list = (await publishedVolumes(slug)).map((v) => ({
-      href: `/series/${slug}/volumes/${v.slug}`,
-      title: v.subtitle ? `${v.title}: ${v.subtitle}` : v.title,
-      meta: [v.volumeNumber ? `Volume ${v.volumeNumber}` : '', contributorLine(v), v.publishedAt ? formatDate(v.publishedAt) : '']
-        .filter(Boolean)
-        .join(' · '),
-    }))
+    const fromAdmin = await publishedVolumes(slug)
+    const adminSlugs = new Set(fromAdmin.map((v) => v.slug))
+    const announced = (getSeries(slug)?.volumes ?? [])
+      .filter((v) => !adminSlugs.has(v.slug))
+      .map((v) => ({
+        href: `/series/${slug}/volumes/${v.slug}`,
+        title: v.title,
+        lead: `Volume ${v.number}`,
+        meta: [`Edited by ${v.editors.map((e) => e.name).join(', ')}`, v.publishedDate ? `Published ${v.publishedDate}` : `Expected ${v.expectedDate}`].join(' · '),
+      }))
+    list = [
+      ...announced,
+      ...fromAdmin.map((v) => ({
+        href: `/series/${slug}/volumes/${v.slug}`,
+        title: v.subtitle ? `${v.title}: ${v.subtitle}` : v.title,
+        lead: v.volumeNumber ? `Volume ${v.volumeNumber}` : undefined,
+        meta: [contributorLine(v), v.publishedAt ? formatDate(v.publishedAt) : '']
+          .filter(Boolean)
+          .join(' · '),
+      })),
+    ]
     calls = await openCalls(slug)
   }
 

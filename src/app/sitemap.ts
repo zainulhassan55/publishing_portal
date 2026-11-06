@@ -85,12 +85,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ])
 
-  const volumeRoutes: MetadataRoute.Sitemap = (await Promise.all(series.map((s) => publishedVolumes(s.slug)))).flat().map((v) => ({
-    url: url(`/series/${v.seriesSlug}/volumes/${v.slug}`),
-    lastModified: v.publishedAt ? new Date(v.publishedAt) : built,
-    changeFrequency: 'yearly',
-    priority: 0.8,
-  }))
+  const adminVolumes = (await Promise.all(series.map((s) => publishedVolumes(s.slug)))).flat()
+  const adminVolumeKeys = new Set(adminVolumes.map((v) => `${v.seriesSlug}/${v.slug}`))
+  const volumeRoutes: MetadataRoute.Sitemap = [
+    ...series.flatMap((s) =>
+      (s.volumes ?? [])
+        .filter((v) => !adminVolumeKeys.has(`${s.slug}/${v.slug}`))
+        .map((v) => ({
+          url: url(`/series/${s.slug}/volumes/${v.slug}`),
+          lastModified: built,
+          changeFrequency: 'monthly' as const,
+          priority: 0.6,
+        })),
+    ),
+    ...adminVolumes.map((v) => ({
+      url: url(`/series/${v.seriesSlug}/volumes/${v.slug}`),
+      lastModified: v.publishedAt ? new Date(v.publishedAt) : built,
+      changeFrequency: 'yearly' as const,
+      priority: 0.8,
+    })),
+  ]
 
   const policyRoutes: MetadataRoute.Sitemap = policies.map((p) => ({
     url: url(`/policies/${p.slug}`),

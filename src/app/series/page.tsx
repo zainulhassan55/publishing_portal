@@ -68,7 +68,7 @@ export default function SeriesIndex() {
               <div className="srs-wide" style={{ display: 'flex', gap: '8px 18px', flexWrap: 'wrap', fontSize: 14, fontWeight: 500, marginTop: 4 }}>
                 <Link href={`/series/${s.slug}`}>Series home</Link>
                 <Link href={seriesPageHref(s.slug, 'propose-volume')}>Propose a volume</Link>
-                <Link href={seriesPageHref(s.slug, 'volumes')}>Published volumes</Link>
+                <Link href={seriesPageHref(s.slug, 'volumes')}>Forthcoming volumes</Link>
               </div>
             </div>
           </section>
