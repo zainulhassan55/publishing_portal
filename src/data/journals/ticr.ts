@@ -34,11 +34,13 @@ const topics = [
   'Applications in industry, transportation and sustainability',
 ]
 
+/** Editorial board as supplied by the publisher ("Updated EB", November 2026), in the publisher's order. */
 const editors = [
   { name: 'Amiya Nayak', affiliation: 'University of Ottawa, Canada' },
+  { name: 'Bharat S. Rawal', affiliation: 'Grambling State University, Grambling, LA, USA' },
   { name: 'Jinsong Wu', affiliation: 'University of Chile, Chile' },
   { name: 'Kwok Tai Chui', affiliation: 'Hong Kong Metropolitan University, Hong Kong' },
-  { name: 'Bharat S. Rawal', affiliation: 'Grambling State University, Grambling, LA, USA' },
+  { name: 'Joko Minardi', affiliation: 'Universitas Islam Nahdlatul Ulama Jepara, Indonesia' },
   { name: 'Priyanka Chaurasia', affiliation: 'University of Ulster, UK' },
   { name: 'Marjan Kuchaki Rafsanjani', affiliation: 'Shahid Bahonar University of Kerman, Kerman, Iran' },
 ]

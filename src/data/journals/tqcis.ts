@@ -6,7 +6,7 @@ import { journalTemplates } from '../templates'
 /**
  * Introduction and topics supplied by the publisher (October 2026) and
  * reproduced as given. The remaining pages follow TICR's, as the publisher
- * asked. The editorial board is still to be appointed.
+ * asked. Editorial board from "Updated EB" (November 2026).
  */
 const slug = 'tqcis'
 const title = 'Transactions on Quantum Computing and Information Security'
@@ -33,13 +33,14 @@ const topics = [
   'Applications of quantum computing in science, engineering and cybersecurity',
 ]
 
+/** Editorial board as supplied by the publisher ("Updated EB", November 2026), in the publisher's order. */
 const editors = [
   { name: 'Dragan Peraković', affiliation: 'University of Zagreb, Croatia' },
+  { name: 'Vijayakumar Pandi', affiliation: 'SRM University, India' },
   { name: 'Bodhisatwa Mazumdar', affiliation: 'Indian Institute of Technology Indore, India' },
   { name: 'Akshat Gaurav', affiliation: 'Ronin Institute, USA' },
-  { name: 'Satendra Kumar', affiliation: 'Indian Institute of Technology Patna, India' },
   { name: 'Ivan Cvitić', affiliation: 'University of Zagreb, Croatia' },
-  { name: 'Pradyumna Bishoyi', affiliation: 'Indian Institute of Technology Jodhpur, India' },
+  { name: 'Sumana Maiti', affiliation: 'Indian Institute of Technology Bhubaneswar, India' },
   { name: 'Domenico Santaniello', affiliation: 'University of Salerno, Italy' },
 ]
 

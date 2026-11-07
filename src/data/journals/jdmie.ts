@@ -36,9 +36,11 @@ const topics = [
 
 const honoraryEditorInChief = { name: 'Prof. Eldon Y. Li', affiliation: 'National Chung Cheng University, Taiwan' }
 
+/** Editorial board as supplied by the publisher ("Updated EB", November 2026), in the publisher's order. */
 const editors = [
   { name: 'Tzu-Chuen Lu', affiliation: 'National Chin-Yi University of Technology, Taichung, Taiwan' },
   { name: 'Vijayan Sugumaran', affiliation: 'Oakland University, Rochester, USA' },
+  { name: 'Chunjia Han', affiliation: 'Birkbeck, University of London, UK' },
   { name: 'Shin-Hung Pan', affiliation: 'Chaoyang University of Technology, Taiwan' },
   { name: 'Yi-Hui Chen', affiliation: 'Chang Gung University, Taoyuan City, Taiwan' },
   { name: 'Ramakrishnan Raman', affiliation: 'Symbiosis International (Deemed University), Pune, India' },

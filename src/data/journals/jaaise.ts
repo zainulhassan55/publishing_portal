@@ -6,7 +6,7 @@ import { journalTemplates } from '../templates'
 /**
  * Introduction, topics and closing requirement supplied by the publisher
  * (October 2026) and reproduced as given. The remaining pages follow TICR's, as
- * the publisher asked. The editorial board is still to be appointed.
+ * the publisher asked. Editorial board from "Updated EB" (November 2026).
  */
 const slug = 'jaaise'
 const title = 'Journal of Agentic AI for Sustainable Energy'
@@ -35,14 +35,26 @@ const topics = [
   'Applications in smart buildings, industry and integrated energy systems',
 ]
 
+const editorInChief = { name: 'V. P. Meena', affiliation: 'National Institute of Technology Jamshedpur, India' }
+
+/** Editorial board as supplied by the publisher ("Updated EB", November 2026), in the publisher's order. */
 const editors = [
-  { name: 'V. P. Meena', affiliation: 'National Institute of Technology Jamshedpur, India' },
-  { name: 'Chunjia Han', affiliation: 'Birkbeck, University of London, UK' },
   { name: 'Nadia Nedjah', affiliation: 'State University of Rio de Janeiro, Brazil' },
-  { name: 'Muthu Ramachandran', affiliation: 'University of South Africa, & Forti5 Tech Ltd., Leeds, UK' },
+  { name: 'Ersan KABALCI', affiliation: 'Nevşehir University, Turkey' },
   { name: 'Kwok Tai Chui', affiliation: 'Hong Kong Metropolitan University, Hong Kong' },
-  { name: 'Chi-Wen Lung', affiliation: 'Asia University, Taiwan' },
-  { name: 'Sugam Sharma', affiliation: 'Founder, Iowa State University SUF/eLegalls ai, USA' },
+  { name: 'Sanjeevikumar Padmanaban', affiliation: 'South-Eastern Norway, Norway' },
+  { name: 'Abhineet Prakash', affiliation: 'Indian Institute of Technology Bhubaneswar, India' },
+  { name: 'Muthu Ramachandran', affiliation: 'University of South Africa, & Forti5 Tech Ltd., Leeds, UK' },
+  { name: 'Ir. Azriel Christian Nurcahyo', affiliation: 'Institut Shanti Bhuana, Indonesia' },
+  { name: 'Deepak Kumar', affiliation: 'United Arab Emirates University, Al Ain, UAE' },
+  { name: 'Surya Prakash', affiliation: 'NIT, Jamshedpur, India' },
+  { name: 'Abhishek Saxena', affiliation: 'Khalifa University, Abu Dhabi, UAE' },
+  { name: 'V. P. Singh', affiliation: 'Malaviya National Institute of Technology, Jaipur, India' },
+  { name: 'Mariana Syamsudin', affiliation: 'Politeknik Negeri Pontianak, Indonesia' },
+  { name: 'Nishant Thakkar', affiliation: 'Zhejiang University, China' },
+  { name: 'Tripurari Nath Gupta', affiliation: 'National Institute of Technology Uttarakhand, India' },
+  { name: 'Vishal Kumar Gaur', affiliation: 'Motilal Nehru National Institute of Technology Allahabad, Prayagraj, India' },
+  { name: 'Sagar Bhaskar Mahajan', affiliation: 'Prince Sultan University, Saudi Arabia' },
 ]
 
 export const jaaiseDetail: JournalDetail = {
@@ -62,7 +74,7 @@ export const jaaiseDetail: JournalDetail = {
   scope: intro,
   overview: [intro],
   metrics: [],
-  board: editors.map((e) => `${e.name}, ${e.affiliation}`),
+  board: [editorInChief, ...editors].map((e) => `${e.name}, ${e.affiliation}`),
   topics,
   quickLinks: [],
   profile: {
@@ -78,6 +90,7 @@ export const jaaiseDetail: JournalDetail = {
     facts: journalFacts(electronicIssn(slug)),
     editorsLabel: 'Editors',
     editors,
+    editorsNote: `Editor-in-Chief: ${editorInChief.name}, ${editorInChief.affiliation}.`,
   },
   pages: [
     page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by JAAISE.', [
@@ -92,6 +105,7 @@ export const jaaiseDetail: JournalDetail = {
       },
     ]),
     page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of JAAISE.', [
+      { title: 'Editor-in-Chief', table: editorTable([editorInChief]) },
       { title: 'Editors', table: editorTable(editors) },
     ]),
     page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for JAAISE.', [

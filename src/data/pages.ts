@@ -16,14 +16,12 @@ export function page(id: string, label: string, title: string, summary: string, 
 export const indexingPage = (code: string, _kind: 'journal' | 'magazine' = 'journal', paragraphs: string[] = []): JournalPage =>
   page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and Abstracting', `Indexing and abstracting for ${code}.`, paragraphs.length ? [plain(paragraphs)] : [])
 
-/** Articles in press page: accepted work awaiting its final issue. Text only until a list is wired to OJS. */
-export const articlesInPressPage = (code: string): JournalPage =>
-  page('articles-in-press', 'Articles in press', 'Articles in press', `Accepted ${code} articles awaiting their final issue.`, [
-    plain([
-      `This page lists articles accepted for publication in ${code} ahead of their final issue. Articles in press have completed peer review and are being prepared for publication; details such as page numbers may change before final publication.`,
-      'Accepted articles will be added here as they complete production. Published articles are available from the current issue and the issue archive.',
-    ]),
-  ])
+/**
+ * Articles in press page. Left blank (title only) at the publisher's request
+ * until there are articles in press; then pass their entries as `paragraphs`.
+ */
+export const articlesInPressPage = (code: string, paragraphs: string[] = []): JournalPage =>
+  page('articles-in-press', 'Articles in press', 'Articles in press', `Accepted ${code} articles awaiting their final issue.`, paragraphs.length ? [plain(paragraphs)] : [])
 
 /** A page whose whole body sits under its own title, so no section heading is repeated. */
 export const plain = (paragraphs: string[], extra: Omit<ContentBlock, 'title' | 'paragraphs'> = {}): ContentBlock => ({
@@ -37,13 +35,6 @@ export const editorTable = (editors: { name: string; affiliation: string }[]) =>
   head: [],
   rows: editors.map((e) => [e.name, e.affiliation]),
 })
-
-/**
- * Editorial board text for a title whose editors have not been named yet. The
- * page's call to action links to the application form (see the [pageId] route).
- */
-export const boardPending = (code: string) =>
-  `The ${code} editorial board is being appointed, and its members will be listed here. Researchers with relevant expertise who would like to serve on the board are welcome to apply.`
 
 /** Facts strip for a journal. ISSNs read "Not yet assigned" until `issn.ts` holds an assigned number. */
 export const journalFacts = (eIssn: string | null) => [

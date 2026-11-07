@@ -9,7 +9,7 @@ import { magazineTemplates } from '../templates'
  * on IEEE magazines (short articles, limited results and equations); the limits
  * below are the site's proposal and await the publisher's confirmation. They
  * are also printed in the templates (scripts/templates/build.ts), so change
- * both together. The editorial board is still to be appointed.
+ * both together. Editorial board from "Updated EB" (November 2026).
  */
 const slug = 'dtcr'
 const title = 'Digital Trust & Cyber Resilience Magazine'
@@ -38,6 +38,7 @@ const topics = [
   'Security, safety and trust in healthcare, energy, transportation and industry',
 ]
 
+/** Editorial board as supplied by the publisher ("Updated EB", November 2026), in the publisher's order. */
 const editors = [
   { name: 'Shingo Yamaguchi', affiliation: 'Yamaguchi University, Japan' },
   { name: 'Gregorio Martinez Perez', affiliation: 'University of Murcia (UMU), Spain' },
@@ -45,7 +46,6 @@ const editors = [
   { name: 'Brij B. Gupta', affiliation: 'Asia University, Taiwan' },
   { name: 'Ayan Mondal', affiliation: 'Indian Institute of Technology Indore, India' },
   { name: 'Arcangelo Castiglione', affiliation: 'University of Salerno, Fisciano, Salerno, Italy' },
-  { name: 'Sumana Maiti', affiliation: 'Indian Institute of Technology Bhubaneswar, India' },
 ]
 
 export const dtcrDetail: JournalDetail = {

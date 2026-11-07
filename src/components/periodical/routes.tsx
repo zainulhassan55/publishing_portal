@@ -35,9 +35,10 @@ const titlesOf = (kind: PeriodicalKind) => (kind === 'magazine' ? magazines : jo
 const slugParams = (kind: PeriodicalKind) => () => titlesOf(kind).map((j) => ({ slug: j.slug }))
 
 /**
- * "Nothing published yet" for Latest volume / All volumes. The menu links to
- * both routes, so they explain themselves instead of redirecting to the home
- * page (a link that silently bounces is a dead control).
+ * Latest volume / All volumes before anything is published: the page title
+ * only, left blank at the publisher's request (like Indexing and Abstracting).
+ * The menu links to both routes, so they render instead of redirecting to the
+ * home page (a link that silently bounces is a dead control).
  */
 function NothingPublishedYet({ found, kind, href, title }: { found: NonNullable<ReturnType<typeof lookup>>; kind: PeriodicalKind; href: string; title: string }) {
   const { pub, base } = found
@@ -47,15 +48,7 @@ function NothingPublishedYet({ found, kind, href, title }: { found: NonNullable<
       masthead={mastheadFor(pub, group)}
       group={group}
       title={title}
-      blocks={toPageBlocks([
-        {
-          title: '',
-          paragraphs: [
-            `No volume of ${pub.code} has been published yet. Published volumes and their issues will be listed here as soon as they appear.`,
-            'Accepted articles that are awaiting publication are listed under Articles in press.',
-          ],
-        },
-      ])}
+      blocks={[]}
       side={sideGroupsFor(pub, href)}
       prev={undefined}
       next={{ href: `${base}/articles-in-press`, title: 'Articles in press' }}
