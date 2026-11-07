@@ -1,5 +1,5 @@
 import type { JournalDetail } from '@/types/content'
-import { boardPending, editorialEmail, journalFacts, articlesInPressPage, indexingPage, page, plain } from '../pages'
+import { editorTable, editorialEmail, journalFacts, articlesInPressPage, indexingPage, page, plain } from '../pages'
 import { journalTemplates } from '../templates'
 
 const slug = 'reta'
@@ -21,15 +21,27 @@ const reviewPolicy = [
   "The journal welcomes comprehensive surveys, systematic reviews, scoping reviews, critical and integrative reviews, umbrella reviews, and meta-analyses. Bibliometric reviews must include substantive critical synthesis beyond publication and citation statistics. Standalone original research papers and reviews without a clear technological connection are outside the journal’s scope."
 ]
 
-/** Publisher-supplied scope; no editors or assigned ISSN have been supplied. */
+/** Editorial board as supplied by the publisher ("Updated EB", November 2026), in the publisher's order. */
+const editors = [
+  { name: 'Mu-Yen Chen', affiliation: 'National Cheng Kung University, Tainan, Taiwan' },
+  { name: 'Chunjia Han', affiliation: 'Birkbeck, University of London, UK' },
+  { name: 'Chi-Wen Lung', affiliation: 'Asia University, Taiwan' },
+  { name: 'Ramakrishnan Raman', affiliation: 'Symbiosis International (Deemed University), Pune, India' },
+  { name: 'Sunneng Sandino Berutu', affiliation: 'Universitas Duta Bangsa Surakarta, Indonesia' },
+  { name: 'Subhra Mazumdar', affiliation: 'Indian Institute of Technology Indore, India' },
+  { name: 'Afu Ichsan Pradana', affiliation: 'Duta Bangsa University, Indonesia' },
+  { name: 'Sugam Sharma', affiliation: 'Iowa State University SUF/eLegalls ai, USA' },
+]
+
+/** Publisher-supplied scope; no ISSN has been assigned yet. */
 export const retaDetail: JournalDetail = {
   slug, title, shortTitle: 'RETA',
   tagline: 'Comprehensive surveys and critical reviews of emerging technologies and their applications.',
   issn: 'Not yet assigned', eIssn: 'Not yet assigned',
   area: 'Emerging Technology and Applications', access: 'Open Access',
   frequency: 'Continuous publication', publisher: 'NextGenIQ Press',
-  editor: 'Editorial board to be announced', reviewType: 'Double-blind peer review', license: 'CC BY 4.0',
-  scope: intro, overview: [intro], metrics: [], board: [], topics, quickLinks: [],
+  editor: 'Editors', reviewType: 'Double-blind peer review', license: 'CC BY 4.0',
+  scope: intro, overview: [intro], metrics: [], board: editors.map((e) => `${e.name}, ${e.affiliation}`), topics, quickLinks: [],
   profile: {
     kicker: 'RETA · A NextGenIQ Press Journal',
     tile: '/images/covers/reta.jpg',
@@ -40,14 +52,14 @@ export const retaDetail: JournalDetail = {
       { label: 'Author guidelines', pageId: 'author-guidelines' },
     ],
     facts: journalFacts(null).map(f => f.label === 'ISSN (online)' ? { ...f, value: 'Not yet assigned' } : f),
-    editorsLabel: 'Editorial board', editors: [], editorsNote: boardPending('RETA'),
+    editorsLabel: 'Editors', editors,
   },
   pages: [
     page('aims-scope', 'Aims & scope', 'Aims and Scope', 'The review-only scope of RETA.', [
       plain(["Reviews in Emerging Technology and Applications (RETA) publishes comprehensive surveys and critical reviews of emerging and advancing technologies across engineering, applied sciences, and interdisciplinary fields. The journal aims to consolidate knowledge, evaluate technological progress, and identify research gaps, practical challenges, and future directions."]),
       { title: 'Subject Areas & Core Domains', paragraphs: ['Topics of interest include comprehensive reviews and surveys in the following fields, but are not limited to:'], bullets: topics, topicList: true, closing: reviewPolicy },
     ]),
-    page('editorial-board', 'Editorial board', 'Editorial board', 'Editorial appointments for RETA.', [plain([boardPending('RETA')])]),
+    page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of RETA.', [{ title: 'Editors', table: editorTable(editors) }]),
     page('author-guidelines', 'Author guidelines', 'Author guidelines', 'Preparing a review manuscript for RETA.', [
       plain([...reviewPolicy,
         'Submit an anonymised manuscript for double-blind review, with author details provided separately. Include funding, conflicts of interest, data availability, relevant ethical approvals, and substantive AI-use disclosures.',
