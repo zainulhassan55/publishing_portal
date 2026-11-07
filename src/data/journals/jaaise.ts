@@ -40,9 +40,9 @@ const editorInChief = { name: 'V. P. Meena', affiliation: 'National Institute of
 /** Editorial board as supplied by the publisher ("Updated EB", November 2026), in the publisher's order. */
 const editors = [
   { name: 'Nadia Nedjah', affiliation: 'State University of Rio de Janeiro, Brazil' },
-  { name: 'Ersan KABALCI', affiliation: 'Nevşehir University, Turkey' },
+  { name: 'Ersan Kabalci', affiliation: 'Nevşehir University, Turkey' },
   { name: 'Kwok Tai Chui', affiliation: 'Hong Kong Metropolitan University, Hong Kong' },
-  { name: 'Sanjeevikumar Padmanaban', affiliation: 'South-Eastern Norway, Norway' },
+  { name: 'Sanjeevikumar Padmanaban', affiliation: 'University of South-Eastern Norway, Norway' },
   { name: 'Abhineet Prakash', affiliation: 'Indian Institute of Technology Bhubaneswar, India' },
   { name: 'Muthu Ramachandran', affiliation: 'University of South Africa, & Forti5 Tech Ltd., Leeds, UK' },
   { name: 'Ir. Azriel Christian Nurcahyo', affiliation: 'Institut Shanti Bhuana, Indonesia' },
