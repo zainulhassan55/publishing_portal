@@ -63,7 +63,7 @@ const volumes: SeriesVolume[] = [
     slug: 'quantum-safe-cyber-defense',
     number: 1,
     title: 'Quantum-Safe Cyber Defense: Cryptography, Protocols, and Migration Strategies',
-    expectedDate: 'December 2026',
+    expectedDate: 'November 2026',
     cover: '/images/covers/volumes/sisdt-v1-quantum-safe-cyber-defense.jpg',
     publishedDate: null,
     doi: null,

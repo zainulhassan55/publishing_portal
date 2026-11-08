@@ -58,7 +58,7 @@ const volumes: SeriesVolume[] = [
       },
       {
         name: 'Akshat Gaurav',
-        affiliation: 'Ronin Institute, USA, and Asia University, Taichung, Taiwan',
+        affiliation: 'Ronin Institute, USA',
         biography: [
           'Akshat Gaurav is a Senior IEEE Member and a recognized researcher listed in the Stanford–Elsevier Top 2% Scientists (Single-Year 2025, 2024) in Artificial Intelligence and Image Processing. He is currently a Senior Researcher at the International Center for AI and Cyber Security Research and Innovations, Asia University, Taiwan. His research spans cybersecurity, AI-driven attack detection, phishing prevention, semantic web technologies, and intelligent IoT systems. He has authored an extensive body of research published in leading venues including IEEE Transactions, Elsevier, Springer, IGI Global, and ACM.',
           'His work has earned multiple accolades, including Best Paper Awards at IEEE/ACM Cluster, Cloud and Internet Computing, and International AI & IoT conferences, as well as Best Oral Presentation at GCCE 2025. Mr. Gaurav also plays active leadership roles in the research community. He served as Session Chair at IEEE GLOBECOM 2025 and previously as Session Co-Chair at IEEE GCCE 2022. In addition, he contributes as a Technical Program Committee (TPC) member and reviewer for premier venues, including IEEE INFOCOM, GLOBECOM, ICC, ICCE, ANTS, and several high-impact IEEE Transactions and ACM journals.',
