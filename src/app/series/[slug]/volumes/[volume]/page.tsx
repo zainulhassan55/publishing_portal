@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (series && announced) {
     return withSharing({
       title: `${announced.title} — ${series.code}`,
-      description: clampText(announced.description[0] ?? `${announced.title}, Volume ${announced.number} in ${series.title}. Edited by ${volumeEditorLine(announced.editors)}.`),
+      description: clampText(announced.description[0] ?? `${announced.title}, Volume ${announced.number} in ${series.title}. ${announced.contributorRole === 'authors' ? 'By' : 'Edited by'} ${volumeEditorLine(announced.editors)}.`),
       alternates: { canonical: `/series/${slug}/volumes/${announced.slug}` },
       openGraph: { type: 'book', title: announced.title, url: `/series/${slug}/volumes/${announced.slug}` },
     })

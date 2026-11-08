@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { JournalMasthead } from '@/components/mockup/JournalMasthead'
-import { volumeDateLine, volumeEditorLine } from '@/data/registry'
+import { volumeDateLine, volumeEditorLine, volumeStatusLine } from '@/data/registry'
 import type { Publication } from '@/lib/publication'
 import { mastheadFor } from '@/lib/publication'
 import { doiUrl } from '@/lib/site'
@@ -104,7 +104,7 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
                 {series.title}
               </Link>
               <p style={{ margin: '6px 0 0', fontSize: 12, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--warm,#C2410C)', fontWeight: 600 }}>
-                Volume {v.number} · {v.publishedDate ? 'Published' : 'Forthcoming'}
+                Volume {v.number} · {volumeStatusLine(v)}
               </p>
               <h1 className="av-h1" style={{ margin: '8px 0 14px', fontFamily: 'var(--font-serif)', fontSize: 30, lineHeight: 1.25, fontWeight: 600, color: 'var(--ink,#101B27)', textWrap: 'balance' }}>
                 {v.title}
@@ -120,7 +120,17 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
               ) : null}
               <p style={fact}>{volumeDateLine(v)}</p>
               {v.pages ? <p style={fact}>Pages: {v.pages}</p> : null}
-              <p style={{ ...fact, margin: 0 }}>Edited by: {volumeEditorLine(v.editors)}</p>
+              <p style={fact}>Format: E-book</p>
+              {/* Access line only once the publisher has confirmed the model (see SeriesVolume.access). */}
+              {v.access === 'open' ? <p style={fact}>Access: Open access · CC BY 4.0</p> : null}
+              {v.access === 'subscription' ? (
+                <p style={fact}>
+                  Access: Subscription access (<Link href={`/series/${series.slug}/open-access-fees`}>terms</Link>)
+                </p>
+              ) : null}
+              <p style={{ ...fact, margin: 0 }}>
+                {v.contributorRole === 'authors' ? 'Authors' : 'Edited by'}: {volumeEditorLine(v.editors)}
+              </p>
             </div>
             <dl className="av-ids" style={{ margin: '0 0 0 auto', flex: '0 0 auto', alignSelf: 'flex-start', border: '2px solid var(--ink,#101B27)', borderRadius: 2, padding: '12px 16px', display: 'grid', gridTemplateColumns: 'max-content max-content', gap: '6px 14px', fontSize: 14 }}>
               <dt style={{ fontWeight: 600, color: 'var(--ink,#101B27)' }}>ISBN</dt>

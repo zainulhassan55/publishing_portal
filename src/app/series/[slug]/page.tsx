@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { JournalHome, type HomeArticle } from '@/components/mockup/JournalHome'
 import { contributorLine } from '@/components/series/SeriesPageView'
 import { publishedVolumes } from '@/lib/books/volumes'
-import { getSeries, series, volumeDateLine } from '@/data/registry'
+import { getSeries, series, visibleVolumes, volumeDateLine, volumeNamesLine, volumeStatusLine } from '@/data/registry'
 import { clampText, formatDate } from '@/lib/format'
 import { VOLUME_FORMATS } from '@/lib/forms/options'
 import { getPublication, mastheadFor } from '@/lib/publication'
@@ -38,14 +38,16 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
   const empty = item.pages.find((p) => p.id === 'volumes')?.blocks[0]?.paragraphs?.[0] ?? ''
   const fromAdmin = await publishedVolumes(slug)
   const adminSlugs = new Set(fromAdmin.map((v) => v.slug))
-  const announced: HomeArticle[] = (item.volumes ?? [])
+  const announced: HomeArticle[] = visibleVolumes(item)
     .filter((v) => !adminSlugs.has(v.slug))
     .map((v) => ({
       id: `announced-${v.slug}`,
       href: `/series/${slug}/volumes/${v.slug}`,
-      type: 'Forthcoming',
+      // "Forthcoming · E-book", plus the access model once confirmed (publisher, November 2026).
+      type: volumeStatusLine(v),
+      access: null,
       title: v.title,
-      authorLine: `${v.editors.map((e) => e.name).join(', ')} (${v.editors.length > 1 ? 'eds' : 'ed'}.)`,
+      authorLine: volumeNamesLine(v),
       meta: [`Volume ${v.number}`, volumeDateLine(v)].join(' · '),
     }))
   const items: HomeArticle[] = [...announced, ...fromAdmin.map((v) => ({

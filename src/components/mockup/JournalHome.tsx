@@ -8,6 +8,8 @@ export type HomeArticle = {
   title: string
   authorLine: string
   meta: string
+  /** Access badge beside the type. Omitted means "Open access" (journal articles); null shows none. */
+  access?: string | null
 }
 
 export type HomeEditor = { name: string; affiliation: string }
@@ -75,7 +77,7 @@ export function JournalHome({ masthead, topics, aimsHref, listTitle, listHref, i
               <article key={a.id} style={{ padding: '18px 0', borderBottom: '1px solid var(--line,#DCE1E6)', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', gap: 10, fontSize: 12 }}>
                   <span style={{ fontWeight: 600, color: 'var(--warm,#B5400F)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{a.type}</span>
-                  <span style={{ color: '#6E4600', fontWeight: 500 }}>● Open access</span>
+                  {a.access === null ? null : <span style={{ color: '#6E4600', fontWeight: 500 }}>● {a.access ?? 'Open access'}</span>}
                 </div>
                 <Link href={a.href} style={{ fontFamily: 'var(--font-serif)', fontSize: 18, lineHeight: 1.35, color: 'var(--ink,#101B27)', fontWeight: 600 }}>
                   {a.title}
