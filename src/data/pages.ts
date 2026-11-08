@@ -44,9 +44,19 @@ export const journalFacts = (eIssn: string | null) => [
   { label: 'Publication model', value: 'Continuous' },
 ]
 
+/** Book series facts strip ("Series information" table supplied by the publisher, November 2026). */
 export const seriesFacts = [
-  { label: 'Access', value: 'Open access' },
+  { label: 'Publication format', value: 'E-book only' },
+  { label: 'Access options', value: 'Open access or subscription' },
   { label: 'Peer review', value: 'Every volume' },
-  { label: 'Licence', value: 'CC BY 4.0' },
+  { label: 'Open access licence', value: 'CC BY 4.0' },
   { label: 'Submission fee', value: 'None' },
 ]
+
+/** Added to every series' Author & editor guidelines page (publisher, November 2026). */
+export const seriesDigitalPublication =
+  'Please prepare your manuscript and illustrations for digital publication. The publishing agreement will specify the volume’s access model, applicable terms and any publication charges.'
+
+/** Added to every series' Peer review & ethics page (publisher, November 2026). */
+export const seriesSameStandards =
+  'Every volume undergoes peer review. The same editorial standards apply to open access and subscription volumes. Publication charges and funding arrangements do not influence editorial decisions.'

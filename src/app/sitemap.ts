@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { getArticles, getNews } from '@/data/content'
 import { policies } from '@/data/policies'
 import { publishedVolumes } from '@/lib/books/volumes'
-import { journals, periodicalBase, series } from '@/data/registry'
+import { journals, periodicalBase, series, visibleVolumes } from '@/data/registry'
 import { siteUrl } from '@/lib/site'
 
 /**
@@ -89,7 +89,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const adminVolumeKeys = new Set(adminVolumes.map((v) => `${v.seriesSlug}/${v.slug}`))
   const volumeRoutes: MetadataRoute.Sitemap = [
     ...series.flatMap((s) =>
-      (s.volumes ?? [])
+      visibleVolumes(s)
         .filter((v) => !adminVolumeKeys.has(`${s.slug}/${v.slug}`))
         .map((v) => ({
           url: url(`/series/${s.slug}/volumes/${v.slug}`),

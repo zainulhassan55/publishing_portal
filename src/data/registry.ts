@@ -185,12 +185,33 @@ export const seriesSlugs = series.map((s) => s.slug)
 
 export const getSeries = (slug: string) => series.find((s) => s.slug === slug.toLowerCase())
 
-/** A volume announced in a series' data file, by its URL slug. */
-export const getSeriesVolume = (slug: string, volumeSlug: string) => getSeries(slug)?.volumes?.find((v) => v.slug === volumeSlug)
+/** The series' announced volumes the site shows: everything not marked `hidden`. */
+export const visibleVolumes = (s: Series | undefined) => (s?.volumes ?? []).filter((v) => !v.hidden)
+
+/** A visible announced volume, by its URL slug (a hidden one is not found). */
+export const getSeriesVolume = (slug: string, volumeSlug: string) => visibleVolumes(getSeries(slug)).find((v) => v.slug === volumeSlug)
+
+type Contributed = { editors: { name: string }[]; contributorRole?: 'authors' | 'editors' }
+const namesOf = (v: Contributed) => v.editors.map((e) => e.name).join(', ')
+
+/** "Authors: A, B" for an authored book, "Edited by A, B" for an edited volume (lists and summaries). */
+export const volumeByLine = (v: Contributed) => (v.contributorRole === 'authors' ? `Authors: ${namesOf(v)}` : `Edited by ${namesOf(v)}`)
+
+/** "A, B" for an authored book, "A, B (eds.)" for an edited volume (series home list). */
+export const volumeNamesLine = (v: Contributed) =>
+  v.contributorRole === 'authors' ? namesOf(v) : `${namesOf(v)} (${v.editors.length > 1 ? 'eds' : 'ed'}.)`
 
 /** "Expected date of publication: December 2026", or "Date of publication: …" once published. Used everywhere a volume's date shows. */
 export const volumeDateLine = (v: { expectedDate: string; publishedDate: string | null }) =>
   v.publishedDate ? `Date of publication: ${v.publishedDate}` : `Expected date of publication: ${v.expectedDate}`
+
+/** "Open access" / "Subscription access", or null while the publisher has not decided. */
+export const volumeAccessLabel = (v: { access?: 'open' | 'subscription' }) =>
+  v.access === 'open' ? 'Open access' : v.access === 'subscription' ? 'Subscription access' : null
+
+/** "Forthcoming · E-book · Open access" (publisher, November 2026); the access part only once confirmed. */
+export const volumeStatusLine = (v: { publishedDate: string | null; access?: 'open' | 'subscription' }) =>
+  [v.publishedDate ? 'Published' : 'Forthcoming', 'E-book', volumeAccessLabel(v)].filter(Boolean).join(' · ')
 
 /** "A (Univ, Country) and B (Univ, Country)", as the publisher writes the editor line. */
 export const volumeEditorLine = (editors: { name: string; affiliation: string }[]) => {

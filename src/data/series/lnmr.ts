@@ -1,33 +1,25 @@
 import type { Series, SeriesVolume } from '@/types/publishing'
-import { editorTable, editorialEmail, page, plain, seriesFacts } from '../pages'
+import { editorTable, editorialEmail, page, plain, seriesDigitalPublication, seriesFacts, seriesSameStandards } from '../pages'
 import { seriesTemplates } from '../templates'
 
 /**
- * Text supplied by the publisher (October 2026) and reproduced as given, except
- * the Aims and Scope page, which was rewritten at the site owner's request in
- * the publisher's own terms (same topics, same closing requirement). Edit the
+ * Introduction, aims and scope, topics, the proposal and access pages follow
+ * the publisher's "Book series info updates" (November 2026): volumes are
+ * e-books only, each under an open access or a subscription model. Edit the
  * wording only on the publisher's instruction.
  */
 const intro =
-  'Lecture Notes in Multidisciplinary Research and Innovation (LNMRI) publishes research monographs, edited volumes, and conference proceedings that connect perspectives across disciplines. The series welcomes original research, methodological advances, and critical syntheses addressing scientific, technological, and societal challenges.'
+  'Lecture Notes in Multidisciplinary Research and Innovation (LNMRI) publishes research monographs, edited volumes and conference proceedings that bring together perspectives from different disciplines. The series welcomes original research, new methods and critical syntheses addressing scientific, technological and societal questions. All volumes are published exclusively as e-books. Each volume’s publication page identifies its access model and licence or reader access terms.'
 
 const topics = [
-  'Artificial intelligence and society',
-  'Digital transformation',
-  'Healthcare technologies',
-  'Public health and wellbeing',
-  'Education and learning technologies',
-  'Skills development',
-  'Business innovation and entrepreneurship',
-  'Digital economies',
-  'Sustainability and environmental research',
-  'Resilient infrastructure',
-  'Technology policy and governance',
-  'Ethics and inclusion',
-  'Digital humanities',
-  'Communication and social research',
-  'Research methods and open science',
-  'Interdisciplinary collaboration',
+  'Artificial intelligence, society and digital transformation',
+  'Healthcare technologies, public health and wellbeing',
+  'Education, learning technologies and skills development',
+  'Business innovation, entrepreneurship and digital economies',
+  'Sustainability, environmental research and resilient infrastructure',
+  'Technology policy, governance, ethics and inclusion',
+  'Digital humanities, communication and social research',
+  'Research methods, open science and interdisciplinary collaboration',
 ]
 
 const editors = [
@@ -46,13 +38,15 @@ const volumes: SeriesVolume[] = [
     number: 1,
     title: 'Agentic and Generative Artificial Intelligence for Intelligent Automation',
     expectedDate: 'December 2026',
-    cover: '/images/covers/volumes/lnmri-v1-agentic-generative-ai.jpg',
+    cover: '/images/covers/volumes/lnmri-v1-agentic-generative-ai-authors.jpg', // "Authors:" artwork (November 2026)
     publishedDate: null,
     doi: null,
     isbn: null,
     pages: 250,
     // Description, coverage, keywords, readership and biographies from the
     // publisher's "Agentic and Generative Artificial Intelligence … _new.docx" (November 2026).
+    // An authored book: shown as "Authors", not "Edited by" (publisher, November 2026).
+    contributorRole: 'authors',
     editors: [
       {
         name: 'Kwok Tai Chui',
@@ -200,7 +194,7 @@ export const lnmr: Series = {
     kicker: 'LNMRI · A NextGenIQ Press Book Series',
     cover: '/images/series/cover-lnmr.svg',
     tile: '/images/covers/lnmr.jpg',
-    badges: ['Open access', 'Peer reviewed', 'CC BY 4.0'],
+    badges: ['E-books only', 'Peer reviewed', 'Open access and subscription options'],
     intro,
     ctas: [
       { label: 'Propose a volume', pageId: 'propose-volume' },
@@ -216,33 +210,35 @@ export const lnmr: Series = {
     page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by LNMRI.', [
       {
         title: '',
-        lead: 'A book series connecting perspectives across disciplines',
         paragraphs: [
-          'Many of today’s most pressing scientific, technological and societal challenges, from public health and sustainability to the social effects of artificial intelligence, cannot be understood from within a single discipline. Progress depends on research that brings methods, evidence and ideas from different fields together around a shared problem.',
-          'Lecture Notes in Multidisciplinary Research and Innovation (LNMRI) is a peer-reviewed, open-access book series that publishes research monographs, edited volumes and conference proceedings connecting perspectives across disciplines. LNMRI brings together scholarship from computing, engineering, health, education, business, the humanities and the social sciences, and welcomes original research, methodological advances and critical syntheses. Contributions should demonstrate how multiple disciplinary perspectives advance understanding of a shared research problem. Topics include, but are not limited to:',
+          'Lecture Notes in Multidisciplinary Research and Innovation (LNMRI) publishes peer-reviewed research that draws on more than one discipline to answer a shared question. A volume might examine how AI changes clinical decision-making, how digital platforms affect access to education, or how engineering and public policy shape the resilience of infrastructure.',
+          'The series welcomes research monographs, edited volumes and conference proceedings in areas including:',
         ],
         bullets: topics,
         topicList: true,
-        closing: ['Each volume should have a coherent theme, a clearly defined readership, and a substantive scholarly contribution.'],
+        closing: [
+          'Each volume should explain what the participating disciplines contribute and how their findings fit together. The intended readership includes researchers, postgraduate students, practitioners and policymakers.',
+          'All volumes are published exclusively as e-books under an open access or subscription model.',
+        ],
       },
     ]),
     page('editorial-board', 'Editorial board', 'Editorial board', 'The Series Editor of LNMRI.', [
       { title: 'Series editor', table: editorTable(editors), paragraphs: [] },
     ]),
     page('propose-volume', 'Propose a volume', 'Propose a volume', 'What to include in an LNMRI volume proposal.', [
-      plain(['Proposals are welcome throughout the year. Please include:'], {
-        bullets: [
-          'Proposed title, publication format, aims, and intended readership.',
-          'Scholarly contribution and explanation of the multidisciplinary focus.',
-          'Preliminary table of contents and estimated manuscript length.',
-          'Author or editor biographies and proposed contributors.',
-          'Manuscript preparation and submission timeline.',
-          'For proceedings: event details, programme committee, and peer-review arrangements.',
+      plain(
+        [
+          'LNMRI welcomes proposals for research monographs, edited volumes and conference proceedings throughout the year. Please describe the central research question, the disciplines involved and the readership the volume will serve.',
+          'All accepted volumes are published as e-books. When submitting your proposal, please indicate your preferred publication model.',
+          '**Preferred publication model**',
         ],
+        {
+        bullets: ['Open access', 'Subscription access', 'To be discussed with the publisher'],
         closing: [
           `Email ${editorialEmail} with the subject “LNMRI Proposal — [Title]”. Proposal approval does not guarantee acceptance of the completed manuscript.`,
         ],
-      }),
+        },
+      ),
     ]),
     page(
       'author-editor-guidelines',
@@ -254,6 +250,7 @@ export const lnmr: Series = {
           'Manuscripts must be original, clearly structured, and appropriately referenced. Authors should explain specialised terminology, justify their methods, present supporting evidence, and acknowledge limitations.',
           'Contributors must disclose funding, conflicts of interest, and substantive use of generative AI. Ethical approvals, participant consent, and permissions for third-party material must be obtained where required.',
           'Volume editors coordinate contributors, maintain thematic coherence, and ensure that revisions are completed. Formatting requirements will be provided during the proposal process.',
+          seriesDigitalPublication,
         ]),
         seriesTemplates('lnmr', 'LNMRI'),
       ],
@@ -262,12 +259,16 @@ export const lnmr: Series = {
       plain([
         'All volumes undergo editorial assessment and independent peer review. Monographs are assessed as complete works; chapters and proceedings papers are reviewed individually, alongside assessment of the volume’s overall coherence.',
         'Where appropriate, reviewers from complementary disciplines assess the contribution. Submissions involving an editor’s own work or a conflict of interest are handled independently. All contributions must comply with NextGenIQ Press publication ethics policies.',
+        seriesSameStandards,
       ]),
     ]),
-    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for LNMRI volumes.', [
+    // The page id (and so the URL /series/lnmr/open-access-fees) is kept so shared links keep working.
+    page('open-access-fees', 'Access options & fees', 'Access options and fees', 'Access options and charges for LNMRI volumes.', [
       plain([
-        'Published volumes are freely available online under CC BY 4.0, permitting sharing and adaptation with appropriate attribution. Third-party material may carry separate restrictions.',
-        'There is no submission fee. Any publication charges, funding arrangements, or available waivers will be disclosed before a publishing agreement is signed. Editorial decisions are independent of payment.',
+        'LNMRI publishes exclusively as e-books. Each volume’s page identifies how readers can access and use it.',
+        '**Open access.** Anyone may read, share and adapt open access volumes under the CC BY 4.0 licence with appropriate attribution. Third-party material may carry separate terms, as indicated in its credit line.',
+        '**Subscription access.** Subscribers may read these e-books online under the publisher’s subscription terms.',
+        '**Fees and waivers.** There is no submission fee. NextGenIQ Press discloses any publication charges, funding arrangements and available waivers before the publishing agreement is signed. Editorial decisions are independent of payment.',
       ]),
     ]),
     page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and Abstracting', 'Indexing status of LNMRI.', []), // Blank until indexing is confirmed (publisher, November 2026).

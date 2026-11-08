@@ -1,32 +1,27 @@
 import type { Series, SeriesVolume } from '@/types/publishing'
-import { editorTable, editorialEmail, page, plain, seriesFacts } from '../pages'
+import { editorTable, editorialEmail, page, plain, seriesDigitalPublication, seriesFacts, seriesSameStandards } from '../pages'
 import { seriesTemplates } from '../templates'
 
 /**
- * Text supplied by the publisher (October 2026) and reproduced as given, except
- * the Aims and Scope page, which was rewritten at the site owner's request in
- * the publisher's own terms (same topics, same closing requirement). Edit the
- * wording only on the publisher's instruction.
+ * Text supplied by the publisher (October 2026) and reproduced as given. Aims
+ * and scope, topics, the proposal and access pages follow the publisher's "Book
+ * series info updates" (November 2026): volumes are e-books only, each under an
+ * open access or a subscription model. Edit the wording only on the
+ * publisher's instruction.
  */
 const intro =
   'Studies in Intelligent Systems and Digital Technologies (SISDT) publishes research monographs, edited volumes, and conference proceedings on artificial intelligence, intelligent systems, and advanced computing. The series welcomes theoretical advances, innovative methods, and applications supported by rigorous analysis and evidence.'
 
 const topics = [
-  'Machine learning',
-  'Generative AI and foundation models',
-  'Agentic AI',
+  'Machine learning, generative AI and foundation models',
+  'Agentic AI and autonomous systems',
   'Computational intelligence and optimisation',
-  'Autonomous systems',
-  'Explainable and responsible AI',
-  'Secure and privacy-preserving AI',
-  'Data science and knowledge engineering',
-  'Decision support systems',
-  'Computer vision and language processing',
-  'Multimedia intelligence',
+  'Explainable, responsible, secure and privacy-preserving AI',
+  'Data science, knowledge engineering and decision support',
+  'Computer vision, natural language processing and multimedia intelligence',
   'Cloud, edge and distributed computing',
   'Quantum and neuromorphic computing',
-  'Intelligent IoT and cyber-physical systems',
-  'Digital twins',
+  'Intelligent IoT, cyber-physical systems and digital twins',
   'Applications in healthcare, education, industry, transportation and sustainability',
 ]
 
@@ -34,15 +29,88 @@ const editors = [
   { name: 'Nadia Nedjah', affiliation: 'State University of Rio de Janeiro, Brazil' },
 ]
 
+/** Biographies shared by SISDT books (publisher-supplied). */
+const vijayanSugumaran = {
+  name: 'Vijayan Sugumaran',
+  affiliation: 'Oakland University, USA',
+  biography: [
+    'Vijayan Sugumaran is Distinguished University Professor and Janke Scholar of Management Information Systems at Oakland University, where he chairs the Department of Decision and Information Sciences, co-directs the Institute for Data Science, and directs the Master of Science in Business Analytics. He joined the faculty in 1999, became a professor in 2007, and was named Distinguished Professor in 2020. He received his Ph.D. in information technology from George Mason University. His research covers big data management and analytics, ontologies and the semantic web, and intelligent and multi-agent systems. He has published more than 350 peer-reviewed articles and has edited twenty books, with work in Information Systems Research, ACM Transactions on Database Systems, Communications of the ACM, and several IEEE transactions.',
+    'He is editor-in-chief of the International Journal of Intelligent Information Technologies and the Journal of Web Engineering, and he serves on the editorial boards of eight journals. He is co-principal investigator on a $2 million National Science Foundation grant (2023–2028) to train students in data science and entrepreneurship, and he has also held grants from the Korea Research Foundation and the Research Grants Council of Hong Kong. In 2025 SAS named him a SAS Educator for leadership in data and artificial-intelligence education; student teams he guided won the energy track of the SAS Hackathon in 2024 and the forecasting track in 2023. He received Oakland University’s Research Excellence Award in 2010, was a Fulbright Specialist in 2012, and was a visiting professor at Sogang University in Seoul and an international expert at Shanghai University. He has chaired the Intelligent Agent and Multi-Agent Systems track at the Americas Conference on Information Systems since 1999 and has been program chair of conferences including NLDB, ACIS, and the IEEE International Conference on Big Data Service and Applications.',
+  ],
+}
+
+const brijGupta = {
+  name: 'Brij B. Gupta',
+  affiliation: 'Asia University, Taiwan',
+  biography: [
+    'Brij B. Gupta (Senior Member, IEEE) is a distinguished professor in the Department of Computer Science and Information Engineering and the director of the International Center for AI and Cyber Security Research and Innovations (CCRI) at Asia University, Taiwan. He also serves as an adjunct professor at the University of Ottawa, Canada, and Korea University, South Korea. Professor Gupta has a PhD in computer science and engineering and over 20 years of academic and research experience. He has authored more than 500 high-quality research papers, over 35 books, and holds multiple patents. He is recognized globally for his outstanding research contributions, and since 2020, he has been consistently ranked among the top 2% of scientists worldwide by Stanford University and Elsevier. He is also a Clarivate Highly Cited Researcher (top 1%) in computer science, reflecting his exceptional research impact.',
+    'Professor Gupta has received numerous prestigious national and international awards, including the Canadian Commonwealth Scholarship, Faculty Research Fellowship Award, IEEE GCCE Outstanding Paper Award, and multiple Best Paper and Best Faculty Awards. He actively contributes to the global research community through editorial leadership roles, serving as editor-in-chief and editorial board member for several high-impact international journals. He has also served as a Distinguished Lecturer of the IEEE Consumer Technology Society and as a Member-at-Large on its Board of Governors, along with key roles in organizing and chairing numerous top-tier IEEE conferences.',
+    'His research spans artificial intelligence, cybersecurity, blockchain technologies, cloud and edge computing, intrusion detection systems, cyber-physical systems, and social network analysis. He has been actively involved in international collaborations, interdisciplinary research, and mentoring students and researchers at the undergraduate, postgraduate, and doctoral levels.',
+  ],
+}
+
 /**
  * Volumes supplied by the publisher ("Book series changes", November 2026).
  * Expected dates and page counts confirmed by the publisher (November 2026).
  * Description, contents, readership and biographies follow. A fourth volume
  * (Human-Centred Industry 5.0) was withdrawn from the list for now.
+ * November 2026: the first two volumes are hidden; "Quantum-Safe Cyber Defense"
+ * (authored) is now volume 1 and TAIIS 2026 is volume 2.
  */
 const volumes: SeriesVolume[] = [
   {
+    // Publisher's "Aim and Scope (updated volume 1)" (November 2026). An authored book, not an edited volume.
+    slug: 'quantum-safe-cyber-defense',
+    number: 1,
+    title: 'Quantum-Safe Cyber Defense: Cryptography, Protocols, and Migration Strategies',
+    expectedDate: 'December 2026',
+    cover: '/images/covers/volumes/sisdt-v1-quantum-safe-cyber-defense.jpg',
+    publishedDate: null,
+    doi: null,
+    isbn: null,
+    pages: 180,
+    contributorRole: 'authors',
+    editors: [brijGupta, vijayanSugumaran],
+    description: [
+      'Quantum-Safe Cyber Defense: Cryptography, Protocols, and Migration Strategies provides a comprehensive exploration of emerging quantum computing threats and the development of quantum-resistant cybersecurity mechanisms. The book focuses on the theoretical foundations, cryptographic algorithms, security protocols, and practical strategies required to protect modern digital infrastructures against the evolving challenges of the quantum computing era.',
+      'This book brings together fundamental concepts, advanced cryptographic techniques, emerging security standards, and practical implementation strategies for quantum-safe cybersecurity. The book also explores applications in cloud computing, the Internet of Things (IoT), edge computing, industrial systems, and next-generation communication networks, highlighting implementation challenges, performance evaluation, and future research opportunities.',
+    ],
+    coverage: {
+      intro: 'The many academic areas covered in this publication include, but are not limited to:',
+      topics: [
+        'Quantum computing fundamentals and cybersecurity implications.',
+        'Quantum algorithms and threats to conventional cryptographic systems.',
+        'Mathematical foundations of post-quantum cryptography.',
+        'Lattice-based, code-based, and hash-based cryptographic algorithms.',
+        'Quantum-resistant key encapsulation mechanisms and digital signatures.',
+        'NIST post-quantum cryptographic standards and security frameworks.',
+        'Quantum-safe authentication, key management, and digital certificates.',
+        'Post-quantum TLS, VPNs, IPsec, and secure communication protocols.',
+        'Quantum-resistant network security architectures and Zero Trust frameworks.',
+        'Lightweight post-quantum cryptography for IoT and embedded systems.',
+        'Quantum-safe security for cloud, edge, and 5G/6G networks.',
+        'Cryptographic agility, hybrid cryptography, and interoperability.',
+        'Quantum risk assessment and post-quantum migration strategies.',
+        'Performance optimization, side-channel attacks, and security evaluation.',
+        'Standardization, implementation challenges, and future research directions.',
+      ],
+    },
+    keywords: [
+      'Post-Quantum Cryptography',
+      'Quantum-Safe Cybersecurity',
+      'Quantum-Resistant Cryptography',
+      'Quantum Computing',
+      'Cryptographic Agility',
+      'Lattice-Based Cryptography',
+    ],
+    contents: [],
+    readership:
+      'This book is intended for researchers, academicians, postgraduate students, cybersecurity professionals, cryptographers, network security engineers, and industry practitioners interested in post-quantum cryptography and quantum-resilient cybersecurity.',
+  },
+  {
     slug: 'agentic-ai-autonomous-systems',
+    // Withdrawn from the site for now (publisher, November 2026); remove `hidden` to restore.
+    hidden: true,
     number: 1,
     title: 'Agentic AI and Autonomous Systems: Architectures, Collaboration, and Applications',
     expectedDate: 'December 2026',
@@ -53,25 +121,7 @@ const volumes: SeriesVolume[] = [
     pages: 200,
     // Description, coverage, keywords, readership and biographies from the
     // publisher's "Agentic AI and Autonomous Systems … _new.docx" (November 2026).
-    editors: [
-      {
-        name: 'Vijayan Sugumaran',
-        affiliation: 'Oakland University, USA',
-        biography: [
-          'Vijayan Sugumaran is Distinguished University Professor and Janke Scholar of Management Information Systems at Oakland University, where he chairs the Department of Decision and Information Sciences, co-directs the Institute for Data Science, and directs the Master of Science in Business Analytics. He joined the faculty in 1999, became a professor in 2007, and was named Distinguished Professor in 2020. He received his Ph.D. in information technology from George Mason University. His research covers big data management and analytics, ontologies and the semantic web, and intelligent and multi-agent systems. He has published more than 350 peer-reviewed articles and has edited twenty books, with work in Information Systems Research, ACM Transactions on Database Systems, Communications of the ACM, and several IEEE transactions.',
-          'He is editor-in-chief of the International Journal of Intelligent Information Technologies and the Journal of Web Engineering, and he serves on the editorial boards of eight journals. He is co-principal investigator on a $2 million National Science Foundation grant (2023–2028) to train students in data science and entrepreneurship, and he has also held grants from the Korea Research Foundation and the Research Grants Council of Hong Kong. In 2025 SAS named him a SAS Educator for leadership in data and artificial-intelligence education; student teams he guided won the energy track of the SAS Hackathon in 2024 and the forecasting track in 2023. He received Oakland University’s Research Excellence Award in 2010, was a Fulbright Specialist in 2012, and was a visiting professor at Sogang University in Seoul and an international expert at Shanghai University. He has chaired the Intelligent Agent and Multi-Agent Systems track at the Americas Conference on Information Systems since 1999 and has been program chair of conferences including NLDB, ACIS, and the IEEE International Conference on Big Data Service and Applications.',
-        ],
-      },
-      {
-        name: 'Brij B. Gupta',
-        affiliation: 'Asia University, Taiwan',
-        biography: [
-          'Brij B. Gupta (Senior Member, IEEE) is a distinguished professor in the Department of Computer Science and Information Engineering and the director of the International Center for AI and Cyber Security Research and Innovations (CCRI) at Asia University, Taiwan. He also serves as an adjunct professor at the University of Ottawa, Canada, and Korea University, South Korea. Professor Gupta has a PhD in computer science and engineering and over 20 years of academic and research experience. He has authored more than 500 high-quality research papers, over 35 books, and holds multiple patents. He is recognized globally for his outstanding research contributions, and since 2020, he has been consistently ranked among the top 2% of scientists worldwide by Stanford University and Elsevier. He is also a Clarivate Highly Cited Researcher (top 1%) in computer science, reflecting his exceptional research impact.',
-          'Professor Gupta has received numerous prestigious national and international awards, including the Canadian Commonwealth Scholarship, Faculty Research Fellowship Award, IEEE GCCE Outstanding Paper Award, and multiple Best Paper and Best Faculty Awards. He actively contributes to the global research community through editorial leadership roles, serving as editor-in-chief and editorial board member for several high-impact international journals. He has also served as a Distinguished Lecturer of the IEEE Consumer Technology Society and as a Member-at-Large on its Board of Governors, along with key roles in organizing and chairing numerous top-tier IEEE conferences.',
-          'His research spans artificial intelligence, cybersecurity, blockchain technologies, cloud and edge computing, intrusion detection systems, cyber-physical systems, and social network analysis. He has been actively involved in international collaborations, interdisciplinary research, and mentoring students and researchers at the undergraduate, postgraduate, and doctoral levels.',
-        ],
-      },
-    ],
+    editors: [vijayanSugumaran, brijGupta],
     description: [
       'Agentic AI and Autonomous Systems: Architectures, Collaboration, and Applications presents a comprehensive exploration of the emerging paradigm of Agentic Artificial Intelligence (AI), focusing on the design, development, coordination, and deployment of intelligent autonomous systems that can reason, plan, make decisions, and interact with dynamic environments.',
       'Unlike conventional AI systems that primarily respond to predefined instructions or perform isolated predictive tasks, Agentic AI introduces autonomous and goal-directed capabilities that enable intelligent agents to perceive their surroundings, formulate strategies, execute actions, collaborate with other agents, and adapt to changing conditions with varying degrees of human supervision.',
@@ -109,6 +159,8 @@ const volumes: SeriesVolume[] = [
   },
   {
     slug: 'quantum-safe-digital-systems',
+    // Withdrawn from the site for now (publisher, November 2026); remove `hidden` to restore.
+    hidden: true,
     number: 2,
     title: 'Quantum-Safe Digital Systems: Cryptography, Security, and Migration Strategies',
     expectedDate: 'January 2027',
@@ -181,10 +233,10 @@ const volumes: SeriesVolume[] = [
   },
   {
     slug: 'trustworthy-ai-intelligent-iot-taiis-2026',
-    number: 3,
+    number: 2,
     title: 'Advances in Trustworthy AI and Intelligent IoT Systems: TAIIS 2026 Poster Proceedings',
     expectedDate: 'January 2027',
-    cover: '/images/covers/volumes/sisdt-v3-trustworthy-ai-taipei.jpg',
+    cover: '/images/covers/volumes/sisdt-v2-trustworthy-ai-taipei.jpg', // "Volume 2" artwork (November 2026)
     publishedDate: null,
     doi: null,
     isbn: null,
@@ -273,7 +325,7 @@ export const aiisc: Series = {
     kicker: 'SISDT · A NextGenIQ Press Book Series',
     cover: '/images/series/cover-aiisc.svg',
     tile: '/images/covers/aiisc.jpg',
-    badges: ['Open access', 'Peer reviewed', 'CC BY 4.0'],
+    badges: ['E-books only', 'Peer reviewed', 'Open access and subscription options'],
     intro,
     ctas: [
       { label: 'Propose a volume', pageId: 'propose-volume' },
@@ -289,28 +341,20 @@ export const aiisc: Series = {
     page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by SISDT.', [
       {
         title: '',
-        lead: 'A book series on artificial intelligence, intelligent systems and advanced computing',
         paragraphs: [
-          'Artificial intelligence and advanced computing are moving rapidly from research laboratories into everyday systems, from clinical decision support and smart manufacturing to transport networks and digital public services. This creates a need for authoritative, book-length treatments that consolidate new methods, connect theory with engineering practice, and examine how intelligent systems can be made reliable, efficient and trustworthy.',
-          'Studies in Intelligent Systems and Digital Technologies (SISDT) is a peer-reviewed, open-access book series that publishes research monographs, edited volumes and conference proceedings on artificial intelligence, intelligent systems and advanced computing. The series connects advances in computational methods with the development of intelligent, reliable and efficient systems, and welcomes theoretical advances, innovative methods and applications supported by rigorous analysis and evidence. Topics include, but are not limited to:',
+          'Studies in Intelligent Systems and Digital Technologies (SISDT) is a peer-reviewed book series on artificial intelligence, intelligent systems and advanced computing. The series publishes research monographs, edited volumes and conference proceedings exclusively as e-books. Each volume is published under either an open access or a subscription model, as indicated on its publication page.',
+          'SISDT connects advances in computational methods with the engineering of reliable, efficient and trustworthy systems. It welcomes theoretical contributions, new methods and applications supported by rigorous analysis and evidence. Topics include:',
         ],
         bullets: topics,
         topicList: true,
-        closing: ['Each volume should offer a coherent scholarly contribution for researchers, postgraduate students, or practitioners.'],
+        closing: ['Each volume should offer researchers, postgraduate students or practitioners a coherent treatment of its subject and explain how its findings advance research or inform practice.'],
       },
     ]),
     page('editorial-board', 'Editorial board', 'Editorial board', 'The Series Editor of SISDT.', [
       { title: 'Series editor', table: editorTable(editors), paragraphs: [] },
     ]),
     page('propose-volume', 'Propose a volume', 'Propose a volume', 'What to include in an SISDT volume proposal.', [
-      plain(['Proposals are welcome throughout the year. Please include:'], {
-        bullets: [
-          'Proposed title, publication format, aims, and intended readership.',
-          'Original contribution and preliminary table of contents.',
-          'Author or editor biographies and proposed contributors.',
-          'Estimated manuscript length and submission timeline.',
-          'For proceedings: event details, programme committee, and peer-review arrangements.',
-        ],
+      plain(['We welcome proposals for research monographs, edited volumes, and conference proceedings throughout the year. All accepted volumes are published as e-books. Please indicate in your proposal whether you prefer open access or subscription publication.'], {
         closing: [
           `Email ${editorialEmail} with the subject “SISDT Proposal — [Title]”. Proposal approval does not guarantee acceptance of the completed manuscript.`,
         ],
@@ -325,6 +369,7 @@ export const aiisc: Series = {
         plain([
           'Manuscripts must be original, clearly organised, and appropriately referenced. Authors should explain their methods, present supporting evidence, acknowledge limitations, and provide data or code availability information where applicable.',
           'Contributors must disclose funding, conflicts of interest, and substantive use of generative AI, and obtain necessary permissions for third-party material. Volume editors coordinate contributors, maintain thematic coherence, and oversee completion of revisions.',
+          seriesDigitalPublication,
         ]),
         seriesTemplates('aiisc', 'SISDT'),
       ],
@@ -333,12 +378,16 @@ export const aiisc: Series = {
       plain([
         'All volumes undergo editorial assessment and independent peer review. Monographs are assessed as complete works; chapters and proceedings papers are reviewed individually, alongside assessment of the volume’s overall coherence.',
         'Submissions involving an editor’s own work or a conflict of interest are handled independently. All contributions must comply with NextGenIQ Press publication ethics policies.',
+        seriesSameStandards,
       ]),
     ]),
-    page('open-access-fees', 'Open access & fees', 'Open access and fees', 'Licensing and charges for SISDT volumes.', [
+    // The page id (and so the URL /series/aiisc/open-access-fees) is kept so shared links keep working.
+    page('open-access-fees', 'Access options & fees', 'Access options and fees', 'Access options and charges for SISDT volumes.', [
       plain([
-        'Published volumes are freely available online under CC BY 4.0, permitting sharing and adaptation with appropriate attribution. Third-party material may carry separate restrictions.',
-        'There is no submission fee. Any publication charges, funding arrangements, or available waivers will be disclosed before a publishing agreement is signed. Editorial decisions are independent of payment.',
+        'Studies in Intelligent Systems and Digital Technologies publishes exclusively as e-books. Each volume’s page identifies its access model and applicable terms.',
+        '**Open access.** Readers can freely access, share, and adapt these volumes under the CC BY 4.0 licence with appropriate attribution. Third-party material may have separate terms, as indicated in its credit line.',
+        '**Subscription access.** Subscribers can read these volumes online under the publisher’s subscription terms.',
+        '**Fees and waivers.** There is no submission fee. The publisher discloses any publication charges, funding arrangements, and available waivers before authors or editors sign a publishing agreement. Editorial decisions are independent of payment.',
       ]),
     ]),
     page('indexing-abstracting', 'Indexing & abstracting', 'Indexing and Abstracting', 'Indexing status of SISDT.', []), // Blank until indexing is confirmed (publisher, November 2026).

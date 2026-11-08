@@ -8,7 +8,7 @@ import { withSharing } from '@/lib/metadata'
 export const metadata: Metadata = withSharing({
   title: 'Book series',
   description:
-    'Open-access, peer-reviewed book series from NextGenIQ Press publishing research monographs, edited volumes and conference proceedings.',
+    'Peer-reviewed book series from NextGenIQ Press publishing research monographs, edited volumes and conference proceedings as e-books, with open access and subscription options.',
   alternates: { canonical: '/series' },
 })
 

@@ -322,6 +322,16 @@ export type SeriesVolume = {
   doi: string | null
   /** Null shows "To be assigned". */
   isbn: string | null
+  /**
+   * How readers get the e-book. Leave unset until the publisher confirms it: the
+   * volume then reads "Forthcoming · E-book". `open` adds "Open access" and the
+   * CC BY 4.0 licence; `subscription` adds "Subscription access".
+   */
+  access?: 'open' | 'subscription'
+  /** `authors` for an authored book ("Authors: …"); omitted means an edited volume ("Edited by …", "(eds.)"). */
+  contributorRole?: 'authors' | 'editors'
+  /** Kept in the data but withdrawn from the site: not listed, and its page is a 404. Remove the flag to restore it. */
+  hidden?: boolean
   /** Portrait cover under /public. Without one the series cover stands in. Use a new filename to replace it (nginx caches images forever). */
   cover?: string
   pages: number | null

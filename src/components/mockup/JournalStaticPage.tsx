@@ -114,6 +114,20 @@ function DownloadList({ files }: { files: PageDownload[] }) {
   )
 }
 
+/**
+ * A paragraph that starts with a bold run-in label, written `**Open access.** Readers can…`,
+ * renders the label in bold. Any other text renders exactly as written.
+ */
+function RunIn({ text }: { text: string }) {
+  const m = /^\*\*(.+?)\*\*\s*([\s\S]*)$/.exec(text)
+  if (!m) return <>{text}</>
+  return (
+    <>
+      <strong style={{ fontWeight: 600, color: 'var(--ink,#101B27)' }}>{m[1]}</strong> {m[2]}
+    </>
+  )
+}
+
 const para = { margin: '0 0 16px', fontSize: 17, lineHeight: 1.7, color: 'var(--ink-2,#1F2A36)', textWrap: 'pretty' } as const
 const list = { margin: '0 0 20px', paddingLeft: 22, fontSize: 17, lineHeight: 1.7, color: 'var(--ink-2,#1F2A36)' } as const
 
@@ -164,7 +178,7 @@ export function JournalStaticPage({ masthead, group, title, blocks, numbered = t
               ) : null}
               {b.p.map((t) => (
                 <p key={t} style={para}>
-                  {t}
+                  <RunIn text={t} />
                 </p>
               ))}
               {b.topics && b.ul.length > 0 ? (
@@ -189,7 +203,7 @@ export function JournalStaticPage({ masthead, group, title, blocks, numbered = t
               {b.downloads.length > 0 ? <DownloadList files={b.downloads} /> : null}
               {b.closing.map((t) => (
                 <p key={t} style={para}>
-                  {t}
+                  <RunIn text={t} />
                 </p>
               ))}
               {b.sub.map((s) => (
