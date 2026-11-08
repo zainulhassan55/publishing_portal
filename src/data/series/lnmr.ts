@@ -42,7 +42,7 @@ const volumes: SeriesVolume[] = [
     publishedDate: null,
     doi: null,
     isbn: null,
-    pages: 250,
+    pages: 150,
     // Description, coverage, keywords, readership and biographies from the
     // publisher's "Agentic and Generative Artificial Intelligence … _new.docx" (November 2026).
     // An authored book: shown as "Authors", not "Edited by" (publisher, November 2026).
