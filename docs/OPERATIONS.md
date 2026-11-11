@@ -173,7 +173,7 @@ These live in `~/portal/.env` on the server. `.env.example` documents each one:
 | `OJS_SESSION_COOKIE` | `OJSSID` |
 | `PORTAL_NATIVE_SIGNIN` | `1`. Gates the sign-in relay endpoint |
 | `PORTAL_DATABASE_URL` | `mysql://portal:…@127.0.0.1:3306/portal` |
-| `OJS_DATABASE_URL` | Optional. `mysql://portal_ojs_ro:…@127.0.0.1:3306/ojs`, the read-only role lookup. See §7 |
+| `OJS_DATABASE_URL` | Optional. `mysql://portalojsro:…@127.0.0.1:3306/ojs`, the read-only role lookup. See §7 |
 | `HARVEST_PATH` | `/home/nextgeniqpress/portal/shared/harvest.json` |
 | `PORTAL_REVALIDATE_SECRET` | Long random string (`openssl rand -hex 32`) |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Portal email |
@@ -234,23 +234,35 @@ Set an uptime monitor, such as UptimeRobot, to watch `/api/health` for a
 ### Read-only role lookup
 
 The dashboard sorts each person's papers into "As author", "As editor" and "As
-reviewer" from six OJS tables (`src/lib/ojs/db.ts`). Create a user that can
-read only those, as MySQL root on the server:
+reviewer" from six OJS tables (`src/lib/ojs/db.ts`), read through their own
+read-only MySQL user.
+
+**As set up in production (2026-11-12):** CloudPanel → Sites →
+www.nextgeniqpress.com → Databases → Add User, name `portalojsro`, database
+`ojs`, permission **Read Only**. CloudPanel accepts letters and digits only in
+the name. The site user has no `sudo`, so CloudPanel was the only way in
+without Hostinger root.
+
+That grant is read access to the whole `ojs` database, which is wider than the
+lookup needs. To narrow it to the six tables, as MySQL root (Hostinger hPanel →
+VPS → Browser terminal, then `clpctl db:show:master-credentials`):
 
 ```sql
-CREATE USER 'portal_ojs_ro'@'127.0.0.1' IDENTIFIED BY '<long random password>';
-GRANT SELECT ON ojs.user_user_groups   TO 'portal_ojs_ro'@'127.0.0.1';
-GRANT SELECT ON ojs.user_groups        TO 'portal_ojs_ro'@'127.0.0.1';
-GRANT SELECT ON ojs.stage_assignments  TO 'portal_ojs_ro'@'127.0.0.1';
-GRANT SELECT ON ojs.review_assignments TO 'portal_ojs_ro'@'127.0.0.1';
-GRANT SELECT ON ojs.submissions        TO 'portal_ojs_ro'@'127.0.0.1';
-GRANT SELECT ON ojs.journals           TO 'portal_ojs_ro'@'127.0.0.1';
+REVOKE ALL PRIVILEGES ON ojs.* FROM 'portalojsro'@'%';
+GRANT SELECT ON ojs.user_user_groups   TO 'portalojsro'@'%';
+GRANT SELECT ON ojs.user_groups        TO 'portalojsro'@'%';
+GRANT SELECT ON ojs.stage_assignments  TO 'portalojsro'@'%';
+GRANT SELECT ON ojs.review_assignments TO 'portalojsro'@'%';
+GRANT SELECT ON ojs.submissions        TO 'portalojsro'@'%';
+GRANT SELECT ON ojs.journals           TO 'portalojsro'@'%';
 ```
 
-Use the OJS database's real name if it is not `ojs` (it is `name` under
-`[database]` in OJS's `config.inc.php`). Then add
-`OJS_DATABASE_URL=mysql://portal_ojs_ro:<password>@127.0.0.1:3306/ojs` to
-`~/portal/.env` and run `pm2 restart ngiq-portal --update-env`.
+Check the host part first with `SELECT user, host FROM mysql.user WHERE user =
+'portalojsro'` and use it in place of `%` if it differs.
+
+The portal reads it from `~/portal/.env`:
+`OJS_DATABASE_URL=mysql://portalojsro:<password>@127.0.0.1:3306/ojs`, followed
+by `pm2 restart ngiq-portal --update-env`.
 
 `/api/health` then reports `dependencies.ojsDatabase.ok: true`. If it reports
 an error instead, the message names the missing grant or renamed column. The
@@ -310,5 +322,6 @@ The code for each of these is done. Confirm the server side on the box:
 - [ ] OJS `repository_id` is set to the real host. RUNBOOK lists it as
       `localhost:8000`.
 - [ ] The `spike-author` test account in OJS has been deleted.
-- [ ] The read-only `portal_ojs_ro` MySQL user exists, `OJS_DATABASE_URL` is
+- [x] The read-only `portalojsro` MySQL user exists (2026-11-12).
+- [ ] `OJS_DATABASE_URL` is
       set, and `/api/health` shows `ojsDatabase.ok: true` (§7).
