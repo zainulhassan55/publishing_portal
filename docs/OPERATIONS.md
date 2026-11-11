@@ -173,6 +173,7 @@ These live in `~/portal/.env` on the server. `.env.example` documents each one:
 | `OJS_SESSION_COOKIE` | `OJSSID` |
 | `PORTAL_NATIVE_SIGNIN` | `1`. Gates the sign-in relay endpoint |
 | `PORTAL_DATABASE_URL` | `mysql://portal:…@127.0.0.1:3306/portal` |
+| `OJS_DATABASE_URL` | Optional. `mysql://portal_ojs_ro:…@127.0.0.1:3306/ojs`, the read-only role lookup. See §7 |
 | `HARVEST_PATH` | `/home/nextgeniqpress/portal/shared/harvest.json` |
 | `PORTAL_REVALIDATE_SECRET` | Long random string (`openssl rand -hex 32`) |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Portal email |
@@ -228,7 +229,32 @@ Set an uptime monitor, such as UptimeRobot, to watch `/api/health` for a
 | Redacted reference copy | `ojs/config/config.inc.php.example` |
 | Theme | `ojs/theme-dmpedia/`, a child of the default theme whose links point back to the portal. Install it by copying into `plugins/themes/` |
 | Diagnose the integration | `npm run spike` with `OJS_BASE_URL` set (see [LOCAL-DEV.md](LOCAL-DEV.md)) |
-| After an OJS upgrade | See [DEVELOPMENT.md](DEVELOPMENT.md#upgrade-ojs) |
+| After an OJS upgrade | See [DEVELOPMENT.md](DEVELOPMENT.md#upgrade-ojs), then check `ojsDatabase` in `/api/health` |
+
+### Read-only role lookup
+
+The dashboard sorts each person's papers into "As author", "As editor" and "As
+reviewer" from six OJS tables (`src/lib/ojs/db.ts`). Create a user that can
+read only those, as MySQL root on the server:
+
+```sql
+CREATE USER 'portal_ojs_ro'@'127.0.0.1' IDENTIFIED BY '<long random password>';
+GRANT SELECT ON ojs.user_user_groups   TO 'portal_ojs_ro'@'127.0.0.1';
+GRANT SELECT ON ojs.user_groups        TO 'portal_ojs_ro'@'127.0.0.1';
+GRANT SELECT ON ojs.stage_assignments  TO 'portal_ojs_ro'@'127.0.0.1';
+GRANT SELECT ON ojs.review_assignments TO 'portal_ojs_ro'@'127.0.0.1';
+GRANT SELECT ON ojs.submissions        TO 'portal_ojs_ro'@'127.0.0.1';
+GRANT SELECT ON ojs.journals           TO 'portal_ojs_ro'@'127.0.0.1';
+```
+
+Use the OJS database's real name if it is not `ojs` (it is `name` under
+`[database]` in OJS's `config.inc.php`). Then add
+`OJS_DATABASE_URL=mysql://portal_ojs_ro:<password>@127.0.0.1:3306/ojs` to
+`~/portal/.env` and run `pm2 restart ngiq-portal --update-env`.
+
+`/api/health` then reports `dependencies.ojsDatabase.ok: true`. If it reports
+an error instead, the message names the missing grant or renamed column. The
+dashboard keeps working in the meantime, using the OJS API.
 
 ## 8. Backups
 
@@ -284,3 +310,5 @@ The code for each of these is done. Confirm the server side on the box:
 - [ ] OJS `repository_id` is set to the real host. RUNBOOK lists it as
       `localhost:8000`.
 - [ ] The `spike-author` test account in OJS has been deleted.
+- [ ] The read-only `portal_ojs_ro` MySQL user exists, `OJS_DATABASE_URL` is
+      set, and `/api/health` shows `ojsDatabase.ok: true` (§7).
