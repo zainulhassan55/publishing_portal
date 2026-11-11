@@ -44,8 +44,16 @@ Some public OJS pages are redirected to the portal by nginx
 
 Two hard rules:
 
-1. **The portal never touches the OJS database.** It talks to OJS only through
-   REST, OAI-PMH, and OJS's own web forms.
+1. **The portal never writes the OJS database, and reads it in one place
+   only.** It talks to OJS through REST, OAI-PMH, and OJS's own web forms. The
+   one exception is `src/lib/ojs/db.ts`, which reads who holds which role on
+   which paper and in which journal, through a MySQL user with `SELECT` on six
+   tables. The OJS API cannot answer that without a request per paper, and
+   cannot see an unanswered review invitation at all. That lookup only labels
+   submissions the API already returned to the person's own session, so OJS
+   still decides what anyone may see. It is optional: without
+   `OJS_DATABASE_URL` the dashboard reads roles from the API instead. Nothing
+   else may read OJS tables. Ask before adding a second query.
 2. **The portal never becomes a second account store.** Its rows refer to people
    by `ojs_user_id`.
 

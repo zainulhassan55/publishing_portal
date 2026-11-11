@@ -33,6 +33,7 @@ import { formatDate, formatDateShort } from '@/lib/format'
 import { ojsDashboardUrl, ojsEditorialUrl, ojsHandoffUrl, ojsProfileUrlRelative, ojsReviewUrl } from '@/lib/ojs/config'
 import { portalSlug } from '@/lib/ojs/contexts'
 import { hasEditorialRole } from '@/lib/auth/roles'
+import type { SubmissionRole } from '@/lib/ojs/submission-role'
 import type { Submission, SubmissionStatus } from '@/types/publishing'
 
 export type JournalRef = { slug: string; code: string; title: string }
@@ -51,6 +52,8 @@ type ApiSubmission = {
   submittedIso?: string
   updatedIso: string
   coauthors: string[]
+  /** The hat this user wears on the paper. See src/lib/ojs/submission-role.ts. */
+  role?: SubmissionRole
   ojsUrl: string | null
   publishedUrl: string | null
 }
@@ -70,8 +73,9 @@ type Row = {
   action?: string
   co: string
   stage: number
+  role: SubmissionRole
   letter?: Letter
-  /** OJS's own per-submission author workflow URL. Where actions go. */
+  /** OJS's own per-submission workflow URL for this user's role. Where actions go. */
   ojsUrl?: string | null
   publishedUrl?: string | null
 }
@@ -119,6 +123,13 @@ const STATUS_STAGE: Record<SubmissionStatus, number> = {
   Published: 6,
   Rejected: -1,
   Withdrawn: -1,
+}
+
+/** Which submissions each tab lists. */
+const TAB_ROLE: Record<'author' | 'reviewer' | 'editorial', SubmissionRole> = {
+  author: 'author',
+  reviewer: 'reviewer',
+  editorial: 'editor',
 }
 
 const GROUPS: Record<string, (s: Row) => boolean> = {
@@ -205,7 +216,7 @@ export function DashboardPage({ journals }: Props) {
   const roleNeededJournal = portalSlug(sp.get('journal') ?? '')
 
   const requestedTab = sp.get('tab')
-  const [tab, setTab] = useState<'author' | 'reviewer' | 'editorial'>(
+  const [tabChoice, setTab] = useState<'author' | 'reviewer' | 'editorial'>(
     requestedTab === 'reviewer' || requestedTab === 'editorial' ? requestedTab : 'author',
   )
   const [filter, setFilter] = useState<'all' | 'action' | 'progress' | 'closed'>('all')
@@ -217,6 +228,13 @@ export function DashboardPage({ journals }: Props) {
   const [apiSubs, setApiSubs] = useState<ApiSubmission[]>([])
   /** Journal slugs this account holds a role in, per OJS. See /api/submissions. */
   const [roleJournals, setRoleJournals] = useState<string[]>([])
+  /**
+   * Roles per journal and waiting review invitations, read from the OJS
+   * database. Null means unknown — the lookup is not configured or failed —
+   * and the dashboard then behaves as it did before it had them.
+   */
+  const [journalRoles, setJournalRoles] = useState<Record<string, string[]> | null>(null)
+  const [pendingReviews, setPendingReviews] = useState<Record<string, number> | null>(null)
   const [avail, setAvail] = useState(true)
   const prefsRef = useRef<Record<string, unknown> | null>(null)
 
@@ -232,6 +250,8 @@ export function DashboardPage({ journals }: Props) {
         if (cancelled || !data?.ok) return
         if (Array.isArray(data.submissions)) setApiSubs(data.submissions)
         if (Array.isArray(data.journals)) setRoleJournals(data.journals)
+        if (data.journalRoles && typeof data.journalRoles === 'object') setJournalRoles(data.journalRoles)
+        if (data.pendingReviews && typeof data.pendingReviews === 'object') setPendingReviews(data.pendingReviews)
       })
       .catch(() => {})
     fetch('/api/profile/prefs', { cache: 'no-store' })
@@ -272,6 +292,9 @@ export function DashboardPage({ journals }: Props) {
             : undefined,
         co: s.coauthors.length ? s.coauthors.join(', ') : 'None added',
         stage: STATUS_STAGE[s.status],
+        // An API response from before roles were read carries none, and every
+        // row then was the author's own.
+        role: s.role ?? 'author',
         ojsUrl: s.ojsUrl,
         publishedUrl: s.publishedUrl,
       }
@@ -282,8 +305,37 @@ export function DashboardPage({ journals }: Props) {
   const select = (id: string) => setPanel((p) => (p.sel === id ? p : { sel: id, count: p.count + 1, letter: false }))
   const toggleLetter = () => setPanel((p) => ({ ...p, letter: !p.letter }))
 
-  const list = subs.filter(GROUPS[filter])
-  const cur = subs.find((s) => s.id === panel.sel) ?? subs[0]
+  // Shown only to accounts OJS reports an editorial role for. An author
+  // seeing an empty "As editor" tab would be reading it as a permission they
+  // do not have.
+  const editorial = hasEditorialRole(user?.roles) || subs.some((s) => s.role === 'editor')
+  const countFor = (role: SubmissionRole) => subs.filter((s) => s.role === role).length
+  const pendingTotal = Object.values(pendingReviews ?? {}).reduce((a, b) => a + b, 0)
+
+  // The journals each workspace link list offers. With per-journal roles known,
+  // only the ones where this person holds the role — every other journal's
+  // queue would refuse them. Unknown, all of them, and OJS decides.
+  const journalsWith = (has: (roles: string[]) => boolean) =>
+    journalRoles ? journals.filter((j) => has(journalRoles[j.slug] ?? [])) : journals
+  const reviewerJournals = journalsWith((roles) => roles.includes('reviewer'))
+  const editorJournals = journalsWith(hasEditorialRole)
+
+  // Hidden only when the database says this person reviews for no journal and
+  // has nothing to review. Without that knowledge the tab stays, as it always
+  // has: review invitations arrive by email and must have somewhere to land.
+  const reviewer = !journalRoles || reviewerJournals.length > 0 || countFor('reviewer') > 0 || pendingTotal > 0
+
+  // A `?tab=` link to a tab this account does not have lands on its own papers.
+  const tab =
+    (tabChoice === 'reviewer' && !reviewer) || (tabChoice === 'editorial' && !editorial) ? 'author' : tabChoice
+
+  // OJS returns everything assigned to this user — their own papers, the ones
+  // they handle as an editor and the ones they review — so each tab lists only
+  // the rows for its role. Listing them all under "As author" presented an
+  // editor's queue as their own submissions.
+  const tabSubs = subs.filter((s) => s.role === TAB_ROLE[tab])
+  const list = tabSubs.filter(GROUPS[filter])
+  const cur = tabSubs.find((s) => s.id === panel.sel) ?? tabSubs[0]
   const flipA = panel.count % 2 === 0
   const timeline = cur ? buildTimeline(cur) : []
 
@@ -311,11 +363,22 @@ export function DashboardPage({ journals }: Props) {
   // no enrolment known at all, the profile page is the one OJS page every
   // signed-in account can open.
   const ojsHome = roleJournals[0] ? ojsDashboardUrl(roleJournals[0]) : ojsProfileUrlRelative
-  const ojsHref = ojsHandoffUrl(cur?.ojsUrl ?? (cur?.journalSlug ? ojsDashboardUrl(cur.journalSlug) : ojsHome))
+  const ojsHref = ojsHandoffUrl(
+    cur?.ojsUrl ??
+      (cur?.journalSlug
+        ? cur.role === 'reviewer'
+          ? ojsReviewUrl(cur.journalSlug)
+          : ojsDashboardUrl(cur.journalSlug)
+        : ojsHome),
+  )
 
   const actions: ActionDef[] = !cur
     ? []
-    : cur.status === 'Revisions requested'
+    : cur.role === 'editor'
+      ? [{ label: 'Open in the editorial system', href: ojsHref, external: true, primary: true }]
+      : cur.role === 'reviewer'
+        ? [{ label: 'Open your review in the editorial system', href: ojsHref, external: true, primary: true }]
+        : cur.status === 'Revisions requested'
         ? [
             { label: 'Submit revision in the editorial system', href: ojsHref, external: true, primary: true },
             { label: 'Message editorial office', href: '/contact' },
@@ -363,11 +426,6 @@ export function DashboardPage({ journals }: Props) {
     }).catch(() => {})
   }
 
-  // Shown only to accounts OJS reports an editorial role for. An author
-  // seeing an empty "As editor" tab would be reading it as a permission they
-  // do not have.
-  const editorial = hasEditorialRole(user?.roles)
-
   // OJS refuses the submission wizard and the author dashboard to an account
   // that holds no Author role, with a bare "The current role does not have
   // access to this operation" page. On this install author self-registration
@@ -378,11 +436,14 @@ export function DashboardPage({ journals }: Props) {
 
   const roleTabs = (
     [
-      ['author', 'As author', subs.length],
-      // No count: OJS exposes no reviewer resource, so the portal cannot know
-      // how many invitations there are. A "0" would be a claim, not a fact.
-      ['reviewer', 'As reviewer', null],
-      ...(editorial ? ([['editorial', 'As editor', null]] as const) : []),
+      ['author', 'As author', countFor('author')],
+      // Without the database lookup, counted only when there is something to
+      // count: the API cannot see an invitation nobody has accepted yet, so a
+      // "0" would be a claim, not a fact. With it, waiting invitations count.
+      ...(reviewer
+        ? ([['reviewer', 'As reviewer', pendingReviews ? countFor('reviewer') + pendingTotal : countFor('reviewer') || null]] as const)
+        : []),
+      ...(editorial ? ([['editorial', 'As editor', countFor('editor') || null]] as const) : []),
     ] as const
   ).map(([k, label, n]) => ({
     k,
@@ -396,7 +457,9 @@ export function DashboardPage({ journals }: Props) {
   const filters = (
     [
       ['all', 'All'],
-      ['action', 'Needs your action'],
+      // The author's to-do list (a revision to upload, an unfinished draft).
+      // On a paper someone else wrote those are not the reader's action.
+      ...(tab === 'author' ? ([['action', 'Needs your action']] as const) : []),
       ['progress', 'In progress'],
       ['closed', 'Completed'],
     ] as const
@@ -405,7 +468,7 @@ export function DashboardPage({ journals }: Props) {
     return {
       k,
       label,
-      n: subs.filter(GROUPS[k]).length,
+      n: tabSubs.filter(GROUPS[k]).length,
       pressed: a,
       bg: a ? 'var(--accent-soft,#E8F0FA)' : 'var(--surface,#fff)',
       fg: a ? 'var(--accent-dark,#174C8A)' : 'var(--ink-2,#1F2A36)',
@@ -550,7 +613,10 @@ export function DashboardPage({ journals }: Props) {
                   key={t.k}
                   role="tab"
                   aria-selected={t.sel}
-                  onClick={() => setTab(t.k)}
+                  onClick={() => {
+                    setTab(t.k)
+                    setFilter('all')
+                  }}
                   style={{
                     border: 0,
                     background: 'transparent',
@@ -571,7 +637,7 @@ export function DashboardPage({ journals }: Props) {
               ))}
             </div>
 
-            {tab === 'author' ? (
+            {tab === 'author' || tabSubs.length > 0 ? (
               <>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', padding: '16px 0' }}>
                   {filters.map((fl) => (
@@ -622,7 +688,7 @@ export function DashboardPage({ journals }: Props) {
                       <tbody>
                         {list.map((r) => {
                           const [chipBg, chipFg, chipBorder] = S[r.status]
-                          const isSel = panel.sel ? r.id === panel.sel : r.id === cur?.id
+                          const isSel = r.id === cur?.id
                           return (
                             <tr
                               key={r.id}
@@ -705,7 +771,9 @@ export function DashboardPage({ journals }: Props) {
                         {list.length === 0 ? (
                           <tr>
                             <td colSpan={3} style={{ padding: '18px 14px', fontSize: 14, color: 'var(--muted,#505C68)', lineHeight: 1.6 }}>
-                              {canAuthor ? (
+                              {tab !== 'author' ? (
+                                'Nothing in this view.'
+                              ) : canAuthor ? (
                                 <>
                                   Nothing in progress. <Link href="/submit">Start a submission</Link>, or{' '}
                                   <a href={ojsHandoffUrl(ojsHome)}>check submissions already with the editorial system</a>.
@@ -940,7 +1008,7 @@ export function DashboardPage({ journals }: Props) {
                             fontWeight: 600,
                           }}
                         >
-                          Co-authors
+                          {cur.role === 'author' ? 'Co-authors' : 'Authors'}
                         </span>
                         <span>{cur.co}</span>
                       </div>
@@ -977,8 +1045,20 @@ export function DashboardPage({ journals }: Props) {
                       Invitations, manuscripts and review forms are all held there. Open the reviewer workspace for the
                       journal that invited you — the invitation email links straight to it.
                     </p>
+                    {pendingTotal > 0 ? (
+                      <p role="status" style={{ margin: 0, fontSize: 14, color: '#8A5300', lineHeight: 1.55 }}>
+                        {pendingTotal === 1 ? 'One review invitation is' : `${pendingTotal} review invitations are`}{' '}
+                        waiting for your response
+                        {' — '}
+                        {journals
+                          .filter((j) => pendingReviews?.[j.slug])
+                          .map((j) => `${j.code} (${pendingReviews?.[j.slug]})`)
+                          .join(', ')}
+                        . Accept or decline in the editorial system.
+                      </p>
+                    ) : null}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 2 }}>
-                      {journals.map((j) => (
+                      {(reviewerJournals.length ? reviewerJournals : journals).map((j) => (
                         <a
                           key={j.slug}
                           href={ojsHandoffUrl(ojsReviewUrl(j.slug))}
@@ -1081,7 +1161,7 @@ export function DashboardPage({ journals }: Props) {
                     editorial queue for the journal you work on — you will arrive already signed in.
                   </p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 2 }}>
-                    {journals.map((j) => (
+                    {(editorJournals.length ? editorJournals : journals).map((j) => (
                       <a
                         key={j.slug}
                         href={ojsHandoffUrl(ojsEditorialUrl(j.slug))}

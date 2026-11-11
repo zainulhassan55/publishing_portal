@@ -6,6 +6,8 @@ import { PORTAL_SESSION_COOKIE, readSession } from '@/lib/auth/portal-session'
 import { ojsFetch } from '@/lib/ojs/client'
 import { ojsBaseUrl } from '@/lib/ojs/config'
 import { ojsContext } from '@/lib/ojs/contexts'
+import { ojsRolesFor, submissionKey } from '@/lib/ojs/db'
+import { roleFromParticipants, type OjsParticipant, type SubmissionRole } from '@/lib/ojs/submission-role'
 import { journalSlugs } from '@/data/registry'
 import type { SubmissionStatus } from '@/types/publishing'
 
@@ -62,6 +64,21 @@ export const dynamic = 'force-dynamic'
  * which is expected and silently skipped — it means "nothing of yours here",
  * not an error. Ten small parallel requests is the cost of OJS having no
  * cross-journal endpoint for an author.
+ *
+ * ## Role per submission
+ *
+ * Because `mine` covers all three kinds of assignment, each submission is
+ * tagged with the role the user holds on it, and the dashboard tabs split on
+ * that tag. Before this, every assignment rendered under "As author" — an
+ * editor saw the papers they were handling as their own.
+ *
+ * The role comes from the OJS database when the read-only connection is
+ * configured (src/lib/ojs/db.ts) — three queries for the whole list, which also
+ * say which journals the person works in and how many review invitations are
+ * waiting. Without it, or for a paper the database did not cover, the role is
+ * read from the API instead (src/lib/ojs/submission-role.ts): one or two extra
+ * requests per submission, run a few at a time. Either way the list itself is
+ * what OJS returned to the person's own session.
  */
 
 type OjsSubmission = {
@@ -75,6 +92,8 @@ type OjsSubmission = {
   revisionsRequested?: boolean
   submissionProgress?: string | number
   urlAuthorWorkflow?: string
+  /** The editorial workflow page. Where an editor's actions go. */
+  urlWorkflow?: string
   urlPublished?: string
   publications?: {
     id?: number
@@ -142,6 +161,20 @@ const STAGE_INDEX: Record<SubmissionStatus, number> = {
   Withdrawn: 3,
 }
 
+/** Map with at most `limit` calls in flight — an editor can have a hundred papers. */
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length)
+  let next = 0
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++
+      out[i] = await fn(items[i])
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+  return out
+}
+
 const isoDate = (value: string | null | undefined): string | undefined =>
   value ? value.replace(' ', 'T').slice(0, 19) + 'Z' : undefined
 
@@ -188,6 +221,10 @@ export const GET = handler(async (request) => {
   const query =
     resolved.scope === 'all' ? '/submissions?count=100' : `/submissions?count=100&assignedTo[]=${session.user.id}`
 
+  const userId = session.user.id
+  // Started now so it runs alongside the per-journal API calls.
+  const snapshotPending = resolved.scope === 'mine' ? ojsRolesFor(userId) : Promise.resolve(null)
+
   const perJournal = await Promise.all(
     journalSlugs.map(async (slug) => {
       const result = await ojsFetch<{ items?: OjsSubmission[] }>(ojsContext(slug), query, { auth })
@@ -207,9 +244,47 @@ export const GET = handler(async (request) => {
   // refused for a user who can open ijdh/dashboard/mySubmissions fine.
   const journals = perJournal.filter((j) => j.enrolled).map((j) => j.slug)
 
-  const submissions = perJournal
-    .flatMap(({ slug, items }) => items.map((item) => ({ slug, item })))
-    .map(({ slug, item }) => {
+  const snapshot = await snapshotPending
+
+  /**
+   * The user's role on one submission. Stage participants first: that answers
+   * author and editor. A participant list OJS refuses (401 — an account with no
+   * editorial role in that journal) means the user cannot be editing the paper.
+   * Anyone left over is either a reviewer, which the submission's own review
+   * assignments say, or an editor assigned only at a later stage.
+   */
+  const roleOn = async (slug: string, item: OjsSubmission): Promise<SubmissionRole> => {
+    const context = ojsContext(slug)
+    const participants = await ojsFetch<OjsParticipant[]>(context, `/submissions/${item.id}/participants/1`, { auth })
+    if (participants.ok && Array.isArray(participants.data)) {
+      const role = roleFromParticipants(participants.data, userId)
+      if (role) return role
+    }
+    const detail = await ojsFetch<{ reviewAssignments?: { isCurrentUserAssigned?: boolean }[] }>(
+      context,
+      `/submissions/${item.id}`,
+      { auth },
+    )
+    if (detail.ok && detail.data.reviewAssignments?.some((a) => a.isCurrentUserAssigned)) return 'reviewer'
+    // Unreadable participants: not an editor here, so it is their own paper —
+    // which is also what every row was labelled before roles were read.
+    return participants.ok ? 'editor' : 'author'
+  }
+
+  const assigned = perJournal.flatMap(({ slug, items }) => items.map((item) => ({ slug, item })))
+  const roles =
+    resolved.scope === 'all'
+      ? // The administrator's whole-queue view is not "mine" in any role.
+        assigned.map(() => 'editor' as const)
+      : await mapLimit(
+          assigned,
+          6,
+          async ({ slug, item }) => snapshot?.submissions[submissionKey(slug, item.id)] ?? roleOn(slug, item),
+        )
+
+  const submissions = assigned
+    .map(({ slug, item }, index) => {
+      const role = roles[index]
       const publication =
         item.publications?.find((p) => p.id === item.currentPublicationId) ?? item.publications?.[0]
       const status = toPortalStatus(item)
@@ -226,9 +301,11 @@ export const GET = handler(async (request) => {
         coauthors: (publication?.authors ?? [])
           .map((a) => a.fullName ?? '')
           .filter((n) => n && n !== session.user!.fullName),
-        // OJS supplies this per submission; everything the author has to *do*
-        // happens behind it.
-        ojsUrl: item.urlAuthorWorkflow ?? null,
+        role,
+        // OJS supplies these per submission; everything the user has to *do*
+        // happens behind them. A reviewer's link is left to the dashboard,
+        // which sends them to the journal's review queue.
+        ojsUrl: role === 'author' ? item.urlAuthorWorkflow ?? null : role === 'editor' ? item.urlWorkflow ?? null : null,
         publishedUrl: item.urlPublished ?? null,
       }
     })
@@ -236,5 +313,15 @@ export const GET = handler(async (request) => {
 
   // The scope is echoed so the client can label the list honestly rather than
   // assuming it is looking at the reader's own work.
-  return jsonOk({ submissions, journals, scope: resolved.scope })
+  //
+  // `journalRoles` and `pendingReviews` are null when the database lookup is
+  // unavailable, which tells the dashboard it does not know — not that the
+  // person holds no roles.
+  return jsonOk({
+    submissions,
+    journals,
+    journalRoles: snapshot?.journals ?? null,
+    pendingReviews: snapshot?.pendingReviews ?? null,
+    scope: resolved.scope,
+  })
 })

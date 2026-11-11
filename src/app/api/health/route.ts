@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { pingDatabase } from '@/lib/db'
 import { readHarvest } from '@/lib/ojs/harvest-cache'
 import { ojsBaseUrl } from '@/lib/ojs/config'
+import { probeOjsDatabase } from '@/lib/ojs/db'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,9 +54,12 @@ async function probeOjs(): Promise<{ ok: boolean; via: string; reason?: string }
 
 export async function GET() {
   const harvest = readHarvest()
-  const [database, ojs] = await Promise.all([pingDatabase(), probeOjs()])
+  const [database, ojs, ojsDatabase] = await Promise.all([pingDatabase(), probeOjs(), probeOjsDatabase()])
 
-  const dependencies = { database, ojs }
+  // `ojsDatabase` is the read-only role lookup behind the dashboard tabs. It is
+  // reported but never degrades the probe: without it the dashboard falls back
+  // to the OJS API and still works, only more slowly.
+  const dependencies = { database, ojs, ojsDatabase }
   const degraded = !database.ok || !ojs.ok
 
   return NextResponse.json(
