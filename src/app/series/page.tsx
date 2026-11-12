@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { series, seriesPageHref } from '@/data/registry'
+import { series, seriesPageHref, visibleVolumes, volumeDateLine, volumeNamesLine } from '@/data/registry'
 import { subjects } from '@/data/subjects'
 import { withSharing } from '@/lib/metadata'
 
@@ -12,10 +12,17 @@ export const metadata: Metadata = withSharing({
   alternates: { canonical: '/series' },
 })
 
+// Every forthcoming (not yet published) volume across the series, soonest first, for the
+// featured strip at the top of the page. expectedDate is "Month YYYY".
+const forthcoming = series
+  .flatMap((s) => visibleVolumes(s).map((v) => ({ s, v })))
+  .filter(({ v }) => !v.publishedDate)
+  .sort((a, b) => Date.parse(`1 ${a.v.expectedDate}`) - Date.parse(`1 ${b.v.expectedDate}`))
+
 export default function SeriesIndex() {
   return (
     <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
-      <style>{`@media (max-width:760px){.srs-row{grid-template-columns:64px minmax(0,1fr)!important;gap:8px 14px!important}.srs-row>.srs-cover{width:64px!important;height:86px!important;padding:6px!important;grid-row:1/span 2}.srs-row>.srs-cover>span:first-child{font-size:13px!important}.srs-row>.srs-cover>span:last-child{font-size:5px!important}.srs-body{display:contents!important}.srs-body>*{grid-column:2}.srs-body>.srs-wide{grid-column:1/-1}.srs-body h2{font-size:20px!important}}`}</style>
+      <style>{`@media (max-width:1000px){.fc-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}@media (max-width:760px){.fc-grid{gap:24px 16px!important}.fc-grid h3{font-size:16px!important}.srs-row{grid-template-columns:64px minmax(0,1fr)!important;gap:8px 14px!important}.srs-row>.srs-cover{width:64px!important;height:86px!important;padding:6px!important;grid-row:1/span 2}.srs-row>.srs-cover>span:first-child{font-size:13px!important}.srs-row>.srs-cover>span:last-child{font-size:5px!important}.srs-body{display:contents!important}.srs-body>*{grid-column:2}.srs-body>.srs-wide{grid-column:1/-1}.srs-body h2{font-size:20px!important}}`}</style>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
@@ -27,6 +34,50 @@ export default function SeriesIndex() {
           Our book series publish research monographs, edited volumes, and conference proceedings. Every volume is peer reviewed and freely available online under CC BY 4.0. Proposals are welcome throughout the year.
         </p>
       </div>
+
+      {forthcoming.length > 0 && (
+        <section aria-labelledby="forthcoming-heading" style={{ padding: '32px 0 36px', borderBottom: '1px solid var(--line,#DCE1E6)' }}>
+          <h2 id="forthcoming-heading" style={{ margin: '0 0 22px', fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 600, color: 'var(--ink,#101B27)' }}>
+            Forthcoming volumes
+          </h2>
+          <ul className="fc-grid" style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: '32px 28px' }}>
+            {forthcoming.map(({ s, v }) => {
+              const href = `/series/${s.slug}/volumes/${v.slug}`
+              return (
+                <li key={`${s.slug}/${v.slug}`} style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+                  <Link
+                    href={href}
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    className="fc-cover"
+                    style={{ position: 'relative', display: 'block', aspectRatio: '2 / 3', borderRadius: 3, overflow: 'hidden', background: 'var(--brand,#0F2B46)', boxShadow: '0 8px 22px rgba(16,27,39,.18)', marginBottom: 6 }}
+                  >
+                    {v.cover && <Image src={v.cover} alt="" fill sizes="(max-width:760px) 45vw, 300px" style={{ objectFit: 'cover' }} />}
+                  </Link>
+                  <span style={{ fontSize: 12, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-3,#3C4854)' }}>
+                    {s.code} · Volume {v.number}
+                  </span>
+                  <h3 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 19, fontWeight: 600, lineHeight: 1.3 }}>
+                    <Link href={href} style={{ color: 'var(--ink,#101B27)' }}>
+                      {v.title}
+                    </Link>
+                  </h3>
+                  <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--ink-3,#3C4854)' }}>{volumeNamesLine(v)}</p>
+                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: 'var(--muted,#505C68)' }}>
+                    {volumeDateLine(v)}
+                    {v.isbn && (
+                      <>
+                        <br />
+                        ISBN {v.isbn}
+                      </>
+                    )}
+                  </p>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
 
       {series.map((s) => {
         const subject = subjects[s.subjectKey]

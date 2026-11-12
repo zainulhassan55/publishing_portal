@@ -1,11 +1,11 @@
 import Link from 'next/link'
 import { JournalMasthead } from '@/components/mockup/JournalMasthead'
-import { volumeDateLine, volumeEditorLine, volumeStatusLine } from '@/data/registry'
+import type { ReactNode } from 'react'
+import { volumeAccessLabel, volumeDateLine, volumeEditorLine, volumeStatusLine } from '@/data/registry'
 import type { Publication } from '@/lib/publication'
 import { mastheadFor } from '@/lib/publication'
-import { doiUrl } from '@/lib/site'
+import { doiUrl, siteName } from '@/lib/site'
 import type { Series, SeriesVolume } from '@/types/publishing'
-import { VolumeTabs } from './VolumeTabs'
 
 const body = { margin: '0 0 14px', fontSize: 16, lineHeight: 1.7, color: 'var(--ink-2,#1F2A36)' } as const
 const label = { margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: 'var(--ink,#101B27)' } as const
@@ -14,10 +14,55 @@ const fact = { margin: '0 0 4px', fontSize: 14, color: 'var(--ink-3,#3C4854)' } 
 const tba = { color: 'var(--muted,#505C68)', fontStyle: 'italic' } as const
 const list = { margin: '0 0 18px', paddingLeft: 22, listStyle: 'disc', fontSize: 16, lineHeight: 1.8, color: 'var(--ink-2,#1F2A36)' } as const
 
+/**
+ * One collapsible section of the volume page ("Bibliographic Information",
+ * "Table of Contents", …), modelled on publishers' book pages. A native
+ * <details>: no JavaScript, keyboard and screen-reader friendly, and the
+ * content stays in the server-rendered HTML for search engines.
+ */
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <details className="av-sec" style={{ borderBottom: '1px solid var(--line,#DCE1E6)' }}>
+      <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '20px 4px', cursor: 'pointer', listStyle: 'none', fontSize: 20, fontWeight: 600, color: 'var(--ink,#101B27)' }}>
+        <span>{title}</span>
+        <span className="av-chev" aria-hidden="true" style={{ flex: '0 0 auto', width: 11, height: 11, borderRight: '2px solid var(--ink-3,#3C4854)', borderBottom: '2px solid var(--ink-3,#3C4854)', transform: 'rotate(45deg)', marginRight: 6, transition: 'transform .15s' }} />
+      </summary>
+      <div style={{ padding: '0 4px 24px' }}>{children}</div>
+    </details>
+  )
+}
+
 /** The page of a volume announced in a series' data file (`Series.volumes`). */
 export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series; pub: Publication; volume: SeriesVolume }) {
-  const hasDescription = v.description.length > 0 || v.contents.length > 0 || v.readership !== null
+  const hasDescription = v.description.length > 0 || v.readership !== null || Boolean(v.coverage)
   const seriesHome = `/series/${series.slug}`
+  const authored = v.contributorRole === 'authors'
+
+  const bibliographic: [string, ReactNode][] = [
+    ['Series', `${series.title} (${series.code})`],
+    ['Volume', String(v.number)],
+    [authored ? 'Authors' : 'Editors', volumeEditorLine(v.editors)],
+    ['Publisher', siteName],
+    ['Format', 'E-book (PDF)'],
+    ...(v.pages ? ([['Pages', String(v.pages)]] as [string, ReactNode][]) : []),
+    ['ISBN', v.isbn ?? <span style={tba}>To be assigned</span>],
+    ...(v.doi ? ([['DOI', <a key="doi" href={doiUrl(v.doi)}>{doiUrl(v.doi)}</a>]] as [string, ReactNode][]) : []),
+    [v.publishedDate ? 'Date of publication' : 'Expected date of publication', v.publishedDate ?? v.expectedDate],
+    ...(volumeAccessLabel(v) ? ([['Access', v.access === 'open' ? 'Open access · CC BY 4.0' : 'Subscription access']] as [string, ReactNode][]) : []),
+  ]
+
+  const contents = v.contents.length ? (
+    <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+      {v.contents.map((c, i) => (
+        <li key={c} style={{ display: 'grid', gridTemplateColumns: '92px minmax(0,1fr)', gap: 12, padding: '12px 0', borderTop: i ? '1px solid var(--line,#DCE1E6)' : 'none', fontSize: 16, lineHeight: 1.55, color: 'var(--ink-2,#1F2A36)' }}>
+          <span style={{ fontWeight: 600, color: 'var(--ink,#101B27)' }}>Chapter {i + 1}</span>
+          <span>{c}</span>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <p style={{ ...pending, margin: 0 }}>Coming soon.</p>
+  )
 
   const description = hasDescription ? (
     <>
@@ -42,16 +87,6 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
           <strong style={{ color: 'var(--ink,#101B27)' }}>Keywords:</strong> {v.keywords.join(', ')}
         </p>
       ) : null}
-      <p style={label}>Table of Contents:</p>
-      {v.contents.length ? (
-        <ul style={list}>
-          {v.contents.map((c) => (
-            <li key={c}>{c}</li>
-          ))}
-        </ul>
-      ) : (
-        <p style={pending}>Coming soon.</p>
-      )}
       {v.readership ? (
         <p style={body}>
           <strong style={{ color: 'var(--ink,#101B27)' }}>Readership:</strong> {v.readership}
@@ -59,7 +94,7 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
       ) : null}
     </>
   ) : (
-    <p style={pending}>The book description, table of contents and readership will be published here soon.</p>
+    <p style={{ ...pending, margin: 0 }}>The book description and readership will be published here soon.</p>
   )
 
   const authors = (
@@ -84,7 +119,7 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
 
   return (
     <>
-      <style>{`@media (max-width:640px){.av-head{flex-direction:column!important}.av-ids{margin:0!important}.av-cover{width:140px!important}.av-h1{font-size:25px!important}}`}</style>
+      <style>{`.av-sec>summary::-webkit-details-marker{display:none}.av-sec>summary:hover>span:first-child{color:var(--accent,#0C8375)}.av-sec>summary:focus-visible{outline:2px solid var(--accent,#0C8375);outline-offset:2px}.av-sec[open]>summary>.av-chev{transform:rotate(-135deg)!important}@media (max-width:640px){.av-head{flex-direction:column!important}.av-ids{margin:0!important}.av-cover{width:140px!important}.av-h1{font-size:25px!important}.av-sec>summary{font-size:18px!important}.av-sec ol>li{grid-template-columns:1fr!important;gap:2px!important}}`}</style>
       <JournalMasthead {...mastheadFor(pub, 'Volumes')} />
       <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px var(--shell-pad) 48px' }}>
         <article style={{ maxWidth: 960 }}>
@@ -138,14 +173,23 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
             </dl>
           </div>
 
-          <VolumeTabs
-            tabs={[
-              { id: 'description', label: 'Description', panel: description },
-              { id: 'authors', label: 'Authors', panel: authors },
-            ]}
-          />
+          <div style={{ borderTop: '1px solid var(--line,#DCE1E6)' }}>
+            <Section title="Bibliographic Information">
+              <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: 'max-content minmax(0,1fr)', gap: '10px 24px', fontSize: 15 }}>
+                {bibliographic.map(([k, val]) => (
+                  <div key={k} style={{ display: 'contents' }}>
+                    <dt style={{ fontWeight: 600, color: 'var(--ink,#101B27)' }}>{k}</dt>
+                    <dd style={{ margin: 0, color: 'var(--ink-2,#1F2A36)', overflowWrap: 'anywhere' }}>{val}</dd>
+                  </div>
+                ))}
+              </dl>
+            </Section>
+            <Section title="Description & Coverage">{description}</Section>
+            <Section title="Table of Contents">{contents}</Section>
+            <Section title={authored ? 'Author Bios' : 'Editor Bios'}>{authors}</Section>
+          </div>
 
-          {/* Outside the tabs, so both stay visible on Description and Authors. */}
+          {/* Below the sections, so both stay visible whichever sections are open. */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 28 }}>
             <Link
               href={seriesHome}
