@@ -93,7 +93,18 @@ const volumes: SeriesVolume[] = [
       'Autonomous Intelligent Agents',
       'Large Language Models',
     ],
-    contents: [],
+    // Table of contents from the publisher's ToC file (November 2026).
+    contents: [
+      'Foundations of Intelligent Automation: Generative Models, Autonomous Agents, and Workflows',
+      'Large Language Models for Automation: Prompt Design, Retrieval-Augmented Generation, and Structured Outputs',
+      'Designing AI Agents: Architectures, Tool Use, Memory, and State Management',
+      'Reasoning and Planning: Task Decomposition, Decision-Making, and Learning from Feedback',
+      'Multi-Agent Systems: Communication, Task Allocation, and Coordination',
+      'Building Agentic Workflows: Process Design, System Integration, and Error Recovery',
+      'Trustworthy Automation: Security, Privacy, Explainability, and Human Oversight',
+      'Evaluation and Deployment: Task Success, Reliability, Cost, and Monitoring',
+      'Applied Intelligent Automation: Case Studies in Manufacturing, Healthcare, and Cyber Defense',
+    ],
     readership:
       'Researchers, academics, postgraduate students, and industry professionals in agentic AI, generative artificial intelligence, intelligent automation, and intelligent decision-making.',
   },

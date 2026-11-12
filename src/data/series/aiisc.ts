@@ -103,7 +103,17 @@ const volumes: SeriesVolume[] = [
       'Cryptographic Agility',
       'Lattice-Based Cryptography',
     ],
-    contents: [],
+    // Table of contents from the publisher's ToC file (November 2026).
+    contents: [
+      'Quantum Computing and the Evolving Cybersecurity Threat Landscape: Foundations, Challenges, and Security Implications',
+      'Post-Quantum Cryptography: Mathematical Foundations, Quantum-Resistant Algorithms, and Security Models',
+      'Quantum-Safe Cryptographic Protocols: Key Encapsulation, Digital Signatures, and Secure Communication',
+      'Quantum-Resistant Network Security Architectures: Secure Transport, Authentication, and Key Management',
+      'Quantum-Safe Security for Cloud, IoT, Edge Computing, and Next-Generation Communication Networks',
+      'Cryptographic Agility and Post-Quantum Migration: Risk Assessment, Hybrid Cryptography, and Transition Frameworks',
+      'Implementation Challenges and Security Evaluation of Post-Quantum Cryptographic Systems: Performance, Vulnerabilities, and Deployment',
+      'Emerging Trends in Quantum-Safe Cyber Defense: Standardization, Quantum-Resilient Infrastructures, and Future Research Directions',
+    ],
     readership:
       'This book is intended for researchers, academicians, postgraduate students, cybersecurity professionals, cryptographers, network security engineers, and industry practitioners interested in post-quantum cryptography and quantum-resilient cybersecurity.',
   },
