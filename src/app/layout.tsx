@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { IBM_Plex_Mono, IBM_Plex_Sans, Source_Serif_4 } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import { SiteChrome } from '@/components/mockup/SiteChrome'
 import { RevealObserver } from '@/components/motion/RevealObserver'
@@ -9,27 +9,33 @@ import { organizationJsonLd, websiteJsonLd } from '@/lib/jsonld'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { shareImage } from '@/lib/metadata'
 
-// next/font downloads and self-hosts at build time, so the CSP can keep
-// font-src to 'self' and there is no render-blocking request to Google.
-const plexSans = IBM_Plex_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+// The fonts are stored in ./fonts (the latin files Google Fonts served for these
+// weights) and served from our own origin, so the CSP can keep font-src to
+// 'self' and the build needs no network: fetching them from Google during
+// `next build` started failing in Turbopack in November 2026 and broke deploys.
+// See ./fonts/README.md. The CSS variable names are unchanged (globals.css).
+const plexSans = localFont({
+  src: [{ path: './fonts/ibm-plex-sans-latin-400-700-variable.woff2', weight: '400 700', style: 'normal' }],
   display: 'swap',
   variable: '--font-plex-sans',
 })
 
-const sourceSerif = Source_Serif_4({
-  subsets: ['latin'],
-  weight: ['400', '600', '700'],
+const sourceSerif = localFont({
+  src: [{ path: './fonts/source-serif-4-latin-400-700-variable.woff2', weight: '400 700', style: 'normal' }],
   display: 'swap',
   variable: '--font-source-serif',
+  adjustFontFallback: 'Times New Roman',
 })
 
-const plexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
+const plexMono = localFont({
+  src: [
+    { path: './fonts/ibm-plex-mono-latin-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/ibm-plex-mono-latin-500.woff2', weight: '500', style: 'normal' },
+  ],
   display: 'swap',
   variable: '--font-plex-mono',
+  // Arial/Times metrics would mis-size a monospace fallback; let the system monospace stand in.
+  adjustFontFallback: false,
 })
 
 export const metadata: Metadata = {
