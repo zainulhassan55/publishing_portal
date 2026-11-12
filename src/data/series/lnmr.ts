@@ -41,7 +41,7 @@ const volumes: SeriesVolume[] = [
     cover: '/images/covers/volumes/lnmri-v1-agentic-generative-ai-authors.jpg', // "Authors:" artwork (November 2026)
     publishedDate: null,
     doi: null,
-    isbn: null,
+    isbn: '978-626-93492-1-0', // assigned by the NCL ISBN Center (e-book, PDF), November 2026
     pages: 150,
     // Description, coverage, keywords, readership and biographies from the
     // publisher's "Agentic and Generative Artificial Intelligence … _new.docx" (November 2026).

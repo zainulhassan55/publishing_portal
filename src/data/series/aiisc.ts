@@ -67,7 +67,7 @@ const volumes: SeriesVolume[] = [
     cover: '/images/covers/volumes/sisdt-v1-quantum-safe-cyber-defense.jpg',
     publishedDate: null,
     doi: null,
-    isbn: null,
+    isbn: '978-626-93492-0-3', // assigned by the NCL ISBN Center (e-book, PDF), November 2026
     pages: 180,
     contributorRole: 'authors',
     editors: [brijGupta, vijayanSugumaran],
