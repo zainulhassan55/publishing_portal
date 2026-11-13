@@ -255,7 +255,7 @@ function VolumeEditor({ volume, series, csrfToken, onSaved, onClose }: { volume:
         <div style={grid}>
           <TextInput name="isbnOnline" label="ISBN (online)" {...field} />
           <TextInput name="isbnPrint" label="ISBN (print)" {...field} />
-          <TextInput name="doi" label="DOI" hint="For example 10.63521/aiisc.1" {...field} />
+          <TextInput name="doi" label="DOI" hint="For example 10.63521/sisdt.1" {...field} />
           <TextInput name="licence" label="Licence" required {...field} />
           <TextInput name="pages" label="Pages" {...field} />
         </div>

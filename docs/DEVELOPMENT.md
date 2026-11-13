@@ -161,7 +161,7 @@ The helpers in `src/data/pages.ts` build blocks, tables and facts.
 
 ### Add a book series
 
-1. Copy `src/data/series/lnmr.ts` to `<slug>.ts`. Keep all nine page ids:
+1. Copy `src/data/series/lnmri.ts` to `<slug>.ts`. Keep all nine page ids:
    `volumes` and `propose-volume` are special-cased.
 2. Add it to `series` in `src/data/registry.ts`.
 3. Add its portrait cover as `public/images/covers/<slug>.jpg` (375×500, 3:4) and set `profile.tile` to it.
@@ -174,6 +174,25 @@ The helpers in `src/data/pages.ts` build blocks, tables and facts.
 Remove it from the registry, then add a 308 redirect in `next.config.ts`. See
 `removedJournals` and `removedSeries` there for how the October 2026 removals
 were done.
+
+Renaming a **book series** slug (done in November 2026: `aiisc` → `sisdt`,
+`lnmr` → `lnmri`):
+
+1. Rename `src/data/series/<old>.ts` and its `slug`, the entry in
+   `scripts/templates/build.ts`, and `public/templates/<old>/` (the template
+   files do not contain the slug, so a move equals a rebuild).
+2. Add the pair to `legacySeriesSlugs` in `src/lib/books/series-slugs.ts`, so
+   database rows still stored under the old slug (`book_volumes`,
+   `book_submissions`, `editorial_applications`) keep resolving.
+3. Add `/series/<old>` and `/templates/<old>` to `renamedTitles` in
+   `next.config.ts` (308, with every sub-path).
+4. Update any code that tests the slug (for example `series === 'lnmri'` in the
+   book proposal form and route) and `scripts/check-ssr.mjs`.
+
+No migration ships with the rename itself: migrations run before the new code
+is live and are not rolled back, so renaming rows in the same release would
+hide them from the old code during the switch or after a rollback. A tidy-up
+migration (like `009_rename_journal_slugs.sql`) can follow in a later release.
 
 ### Add a policy page
 

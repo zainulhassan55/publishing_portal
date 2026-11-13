@@ -1,4 +1,5 @@
 import { databaseConfigured, execute, insert, query } from '../db/index.ts'
+import { currentSeriesSlug, seriesSlugAliases } from './series-slugs.ts'
 
 /**
  * Book series volumes and chapters (migration 006).
@@ -89,7 +90,8 @@ const toChapter = (r: Record<string, unknown>): BookChapter => ({
 
 const toVolume = (r: VolumeRow, chapters: BookChapter[]): BookVolume => ({
   id: Number(r.id),
-  seriesSlug: String(r.series_slug),
+  // Rows written before the November 2026 rename still say aiisc/lnmr.
+  seriesSlug: currentSeriesSlug(String(r.series_slug)),
   slug: String(r.slug),
   volumeNumber: r.volume_number === null || r.volume_number === undefined ? null : Number(r.volume_number),
   title: String(r.title),
@@ -147,8 +149,14 @@ const today = () => new Date().toISOString().slice(0, 10)
 const isPublic = (v: BookVolume) => !v.hidden && v.publishedAt !== null && v.publishedAt <= today()
 
 /** Published, visible volumes of a series, newest first, with visible chapters only. */
+/** A series' rows, stored under its current slug or a pre-rename one (series-slugs.ts). */
+const seriesRows = (seriesSlug: string) => {
+  const slugs = seriesSlugAliases(seriesSlug)
+  return safeRead(`series:${slugs[0]}`, `WHERE series_slug IN (${slugs.map(() => '?').join(',')}) ORDER BY published_at DESC, id DESC`, slugs)
+}
+
 export async function publishedVolumes(seriesSlug: string): Promise<BookVolume[]> {
-  const all = await safeRead(`series:${seriesSlug}`, 'WHERE series_slug = ? ORDER BY published_at DESC, id DESC', [seriesSlug])
+  const all = await seriesRows(seriesSlug)
   return all.filter(isPublic).map((v) => ({ ...v, chapters: v.chapters.filter((c) => !c.hidden) }))
 }
 
@@ -160,7 +168,7 @@ export const callIsOpen = (v: BookVolume) => v.cfpOpen && (!v.cfpDeadline || v.c
 
 /** Volumes accepting chapter submissions, published or not. */
 export async function openCalls(seriesSlug: string): Promise<BookVolume[]> {
-  const all = await safeRead(`series:${seriesSlug}`, 'WHERE series_slug = ? ORDER BY published_at DESC, id DESC', [seriesSlug])
+  const all = await seriesRows(seriesSlug)
   return all.filter((v) => !v.hidden && callIsOpen(v))
 }
 

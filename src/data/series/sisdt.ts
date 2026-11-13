@@ -322,8 +322,8 @@ const volumes: SeriesVolume[] = [
   },
 ]
 
-export const aiisc: Series = {
-  slug: 'aiisc',
+export const sisdt: Series = {
+  slug: 'sisdt', // was 'aiisc' until November 2026; old URLs redirect (next.config.ts)
   code: 'SISDT',
   title: 'Studies in Intelligent Systems and Digital Technologies',
   kind: 'book',
@@ -381,7 +381,7 @@ export const aiisc: Series = {
           'Contributors must disclose funding, conflicts of interest, and substantive use of generative AI, and obtain necessary permissions for third-party material. Volume editors coordinate contributors, maintain thematic coherence, and oversee completion of revisions.',
           seriesDigitalPublication,
         ]),
-        seriesTemplates('aiisc', 'SISDT'),
+        seriesTemplates('sisdt', 'SISDT'),
       ],
     ),
     page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How SISDT volumes are reviewed.', [
@@ -391,7 +391,7 @@ export const aiisc: Series = {
         seriesSameStandards,
       ]),
     ]),
-    // The page id (and so the URL /series/aiisc/open-access-fees) is kept so shared links keep working.
+    // The page id (and so the URL /series/sisdt/open-access-fees) is kept so shared links keep working.
     page('open-access-fees', 'Access options & fees', 'Access options and fees', 'Access options and charges for SISDT volumes.', [
       plain([
         'Studies in Intelligent Systems and Digital Technologies publishes exclusively as e-books. Each volume’s page identifies its access model and applicable terms.',

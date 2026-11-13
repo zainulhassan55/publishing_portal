@@ -39,7 +39,7 @@ export function BookProposalForm({ series, code }: { series: string; code: strin
   const { errors, summary, busy, failure, reference, submit } = useSubmit('/api/forms/book-proposal')
   const field = { values, errors, set }
   const isProceedings = values.format === 'proceedings'
-  const isLnmr = series === 'lnmr'
+  const isLnmr = series === 'lnmri'
 
   if (reference) {
     return (

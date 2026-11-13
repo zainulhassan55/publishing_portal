@@ -21,8 +21,8 @@ place for (book series, editorial forms, the admin panel).
 | --- | --- | --- | --- | --- |
 | TICR | Transactions on Intelligent Computing and Reasoning | Journal | `ticr` | [src/data/journals/ticr.ts](src/data/journals/ticr.ts) |
 | JDMIE | Journal of Digital Management and Intelligent Enterprises | Journal | `jdmie` | [src/data/journals/jdmie.ts](src/data/journals/jdmie.ts) |
-| SISDT | Studies in Intelligent Systems and Digital Technologies | Book series | `aiisc` | [src/data/series/aiisc.ts](src/data/series/aiisc.ts) |
-| LNMRI | Lecture Notes in Multidisciplinary Research and Innovation | Book series | `lnmr` | [src/data/series/lnmr.ts](src/data/series/lnmr.ts) |
+| SISDT | Studies in Intelligent Systems and Digital Technologies | Book series | `sisdt` | [src/data/series/sisdt.ts](src/data/series/sisdt.ts) |
+| LNMRI | Lecture Notes in Multidisciplinary Research and Innovation | Book series | `lnmri` | [src/data/series/lnmri.ts](src/data/series/lnmri.ts) |
 | TQCIS | Transactions on Quantum Computing and Information Security | Journal | `tqcis` | [spec](src/data/journals/tqcis.ts) |
 | JAAISE | Journal of Agentic AI for Sustainable Energy | Journal | `jaaise` | [spec](src/data/journals/jaaise.ts) |
 | DTCR | Digital Trust & Cyber Resilience Magazine | Magazine | `dtcr` | [spec](src/data/magazines/dtcr.ts) |

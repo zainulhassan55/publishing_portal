@@ -42,7 +42,7 @@ const securityHeaders = [
 
 /**
  * October 2026 portfolio change: the publisher kept two journals (now TICR and
- * JDMIE) and two book series (AIISC, LNMR). Pages of the titles that were dropped, and
+ * JDMIE) and two book series (now SISDT and LNMRI). Pages of the titles that were dropped, and
  * journal page ids that were renamed, redirect to their nearest equivalent.
  */
 const removedJournals = ['ijdh', 'ijds', 'ijei', 'ijis', 'ijmc', 'ijmr', 'ijqt', 'ijse']
@@ -92,6 +92,13 @@ const renamedTitles: { from: string; to: string }[] = [
   // A magazine is not a journal; these were never real pages but are linked.
   { from: '/journals/sst', to: '/magazines/dtcr' },
   { from: '/journals/dtcr', to: '/magazines/dtcr' },
+  // Book series slugs followed their codes in November 2026 (SISDT, LNMRI).
+  // src/lib/books/series-slugs.ts maps the same pairs for database rows.
+  { from: '/series/aiisc', to: '/series/sisdt' },
+  { from: '/series/lnmr', to: '/series/lnmri' },
+  // Manuscript templates live under the series slug (public/templates/<slug>/).
+  { from: '/templates/aiisc', to: '/templates/sisdt' },
+  { from: '/templates/lnmr', to: '/templates/lnmri' },
 ]
 
 const portfolioRedirects = [
@@ -101,8 +108,8 @@ const portfolioRedirects = [
   { source: '/journals/:journal(ijdh|ijds|ijei|ijis|ijmc|ijmr|ijqt|ijse|ticr|jdmie|tqcis|jaaise|reta)/reviewer-guidelines', destination: '/reviewers', permanent: true },
   ...removedJournals.map((slug) => ({ source: `/journals/${slug}/:path*`, destination: '/journals', permanent: true })),
   ...removedJournals.map((slug) => ({ source: `/journals/${slug}`, destination: '/journals', permanent: true })),
-  { source: '/series/ngiq-lnmr/:path*', destination: '/series/lnmr', permanent: true },
-  { source: '/series/ngiq-lnmr', destination: '/series/lnmr', permanent: true },
+  { source: '/series/ngiq-lnmr/:path*', destination: '/series/lnmri', permanent: true },
+  { source: '/series/ngiq-lnmr', destination: '/series/lnmri', permanent: true },
   ...removedSeries.map((slug) => ({ source: `/series/${slug}/:path*`, destination: '/series', permanent: true })),
   ...removedSeries.map((slug) => ({ source: `/series/${slug}`, destination: '/series', permanent: true })),
   ...Object.entries(renamedJournalPages).map(([from, to]) => ({
