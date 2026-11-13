@@ -151,6 +151,8 @@ export type PublicationProfile = {
   editorsNote?: string
   /** Shown as "In association with" logos (TQCIS: CCRI and Asia University, November 2026). */
   affiliations?: Affiliation[]
+  /** External page the masthead cover opens in a new tab instead of the publication's home (TQCIS: its CCRI page). */
+  coverHref?: { href: string; label: string }
 }
 
 /** A research centre or university the publication is run with; its logo shows in the masthead and on the home page. */

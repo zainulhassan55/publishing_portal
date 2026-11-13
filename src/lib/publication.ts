@@ -87,6 +87,7 @@ export function mastheadFor(pub: Publication, tab: string, showIntro = false): J
       ctas: pub.profile.ctas.map((c) => ({ label: c.label, href: pub.pageHref(c.pageId) })),
       facts: pub.profile.facts,
       affiliations: pub.profile.affiliations,
+      coverHref: pub.profile.coverHref,
     },
   }
 }

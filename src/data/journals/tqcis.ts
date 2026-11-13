@@ -77,6 +77,8 @@ export const tqcisDetail: JournalDetail = {
   profile: {
     kicker: 'TQCIS · A NextGenIQ Press Journal',
     tile: '/images/covers/tqcis.jpg',
+    // The cover opens the journal's page on the CCRI site (publisher, November 2026).
+    coverHref: { href: 'https://aicybersecuritycenter.com/journals/tqcis', label: 'TQCIS on the CCRI website' },
     badges: ['Open access', 'Double-blind peer review', 'Continuous publication'],
     intro,
     ctas: [

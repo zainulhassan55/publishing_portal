@@ -28,6 +28,8 @@ export type MastheadProfile = {
   facts: { label: string; value: string }[]
   /** Logos of the centres the publication is run with, under the badges. */
   affiliations?: { name: string; short?: string; detail?: string; logo: string; logoSize: [number, number]; href?: string }[]
+  /** External page the cover image opens (in a new tab) instead of the publication's home. */
+  coverHref?: { href: string; label: string }
 }
 
 export type PublicationKind = 'journal' | 'magazine' | 'series'
@@ -99,7 +101,18 @@ export function JournalMasthead({ j, kind, tab, groups, profile, showIntro = fal
           <span style={{ color: 'var(--ink-2,#1F2A36)' }}>{j.title}</span>
         </nav>
         <div className="jm-id" style={{ display: 'flex', gap: 28, padding: '20px 0 24px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-          {profile.tile ? (
+          {profile.tile && profile.coverHref ? (
+            <a
+              href={profile.coverHref.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${profile.coverHref.label} (opens in a new tab)`}
+              className="jm-cover"
+              style={{ position: 'relative', width: 112, height: 150, flexShrink: 0, borderRadius: 2, overflow: 'hidden', borderTop: `5px solid ${j.color}`, boxShadow: '0 6px 14px rgba(16,27,39,.18)' }}
+            >
+              <Image src={profile.tile} alt="" fill sizes="112px" priority style={{ objectFit: 'cover' }} />
+            </a>
+          ) : profile.tile ? (
             <Link href={homeHref} aria-label={section.home} className="jm-cover" style={{ position: 'relative', width: 112, height: 150, flexShrink: 0, borderRadius: 2, overflow: 'hidden', borderTop: `5px solid ${j.color}`, boxShadow: '0 6px 14px rgba(16,27,39,.18)' }}>
               <Image src={profile.tile} alt="" fill sizes="112px" priority style={{ objectFit: 'cover' }} />
             </Link>
