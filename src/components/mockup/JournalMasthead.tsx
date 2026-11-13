@@ -26,6 +26,8 @@ export type MastheadProfile = {
   intro: string
   ctas: { label: string; href: string }[]
   facts: { label: string; value: string }[]
+  /** Logos of the centres the publication is run with, under the badges. */
+  affiliations?: { name: string; short?: string; detail?: string; logo: string; logoSize: [number, number]; href?: string }[]
 }
 
 export type PublicationKind = 'journal' | 'magazine' | 'series'
@@ -130,6 +132,29 @@ export function JournalMasthead({ j, kind, tab, groups, profile, showIntro = fal
                 </span>
               ))}
             </div>
+            {profile.affiliations?.length ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px 18px', flexWrap: 'wrap', marginTop: 4 }}>
+                <span style={{ fontSize: 12, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--muted,#505C68)' }}>In association with</span>
+                {profile.affiliations.map((a) => {
+                  const body = (
+                    <>
+                      <Image src={a.logo} alt="" title={a.name} width={Math.round((40 * a.logoSize[0]) / a.logoSize[1])} height={40} style={{ height: 40, width: 'auto' }} />
+                      <span style={{ fontSize: 13, lineHeight: 1.3, fontWeight: 600, color: 'var(--ink-2,#1F2A36)' }}>{a.short ?? a.name}</span>
+                    </>
+                  )
+                  const style = { display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' } as const
+                  return a.href ? (
+                    <a key={a.name} href={a.href} target="_blank" rel="noopener noreferrer" style={style}>
+                      {body}
+                    </a>
+                  ) : (
+                    <span key={a.name} style={style}>
+                      {body}
+                    </span>
+                  )
+                })}
+              </div>
+            ) : null}
             {showIntro ? (
               <p className="jm-intro" style={{ margin: '4px 0 0', fontSize: 16, lineHeight: 1.6, color: 'var(--ink-3,#3C4854)', maxWidth: '72ch', textWrap: 'pretty' }}>{profile.intro}</p>
             ) : null}

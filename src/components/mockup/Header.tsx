@@ -8,7 +8,7 @@ import { useSession } from '@/components/auth/SessionProvider'
 import { useHydrated } from '@/lib/hooks/client-state'
 import { hasEditorialRole, roleLabel } from '@/lib/auth/roles'
 import { normalise } from '@/lib/search-core'
-import { journalCode, journals, journalsOnly, magazines, periodicalBase, series, seriesPageHref } from '@/data/registry'
+import { journalCode, journalMenuGroups, journals, journalsOnly, magazines, periodicalBase, series, seriesPageHref, visibleVolumes } from '@/data/registry'
 import type { TypeaheadIndex } from '@/lib/search'
 
 /**
@@ -19,7 +19,34 @@ import type { TypeaheadIndex } from '@/lib/search'
 
 type SugItem = { t: string; meta: string; href: string }
 
-type NavEntry = { label: string; href: string; key: string; children?: { label: string; href: string }[] }
+type NavLink = { label: string; href: string }
+/** A dropdown entry; one with `children` opens its own flyout (a journal's or a series' pages). */
+type NavChild = NavLink & { children?: NavLink[] }
+type NavEntry = { label: string; href: string; key: string; children?: NavChild[]; flip?: boolean }
+
+/** These page labels, in this order, from a periodical's resolved masthead menu. */
+const pickPages = (slug: string, labels: string[]): NavLink[] => {
+  const items = journalMenuGroups(slug).flatMap((g) => g.items)
+  return labels.flatMap((l) => items.filter((i) => i.label === l))
+}
+
+const journalFlyout = (slug: string): NavLink[] => [
+  { label: 'Journal home', href: periodicalBase(slug) },
+  ...pickPages(slug, ['Aims & scope', 'Editorial board', 'Latest volume', 'Author guidelines', 'Submit a manuscript']),
+]
+
+const magazineFlyout = (slug: string): NavLink[] => [
+  { label: 'Magazine home', href: periodicalBase(slug) },
+  ...pickPages(slug, ['Aims & scope', 'Editorial board', 'Author guidelines', 'Submit an article']),
+]
+
+/** Series home, each volume by its short title, then the volume list and the proposal page. */
+const seriesFlyout = (s: (typeof series)[number]): NavLink[] => [
+  { label: 'Series home', href: `/series/${s.slug}` },
+  ...visibleVolumes(s).map((v) => ({ label: `Volume ${v.number}: ${v.title.split(':')[0]}`, href: `/series/${s.slug}/volumes/${v.slug}` })),
+  { label: 'All volumes', href: seriesPageHref(s.slug, 'volumes') },
+  { label: 'Propose a volume', href: seriesPageHref(s.slug, 'propose-volume') },
+]
 
 /**
  * Primary navigation. Every entry but Contact opens a dropdown of its pages on
@@ -32,15 +59,14 @@ const NAV: NavEntry[] = [
     label: 'Journals',
     href: '/journals',
     key: 'journals',
-    children: [...journalsOnly.map((j) => ({ label: `${j.title} (${journalCode(j)})`, href: periodicalBase(j.slug) })), { label: 'All journals', href: '/journals' }],
+    children: [...journalsOnly.map((j) => ({ label: `${j.title} (${journalCode(j)})`, href: periodicalBase(j.slug), children: journalFlyout(j.slug) })), { label: 'All journals', href: '/journals' }],
   },
   {
     label: 'Magazines',
     href: '/magazines',
     key: 'magazines',
     children: [
-      ...magazines.map((m) => ({ label: `${m.title} (${journalCode(m)})`, href: periodicalBase(m.slug) })),
-      ...magazines.map((m) => ({ label: `${journalCode(m)} author guidelines`, href: `${periodicalBase(m.slug)}/author-guidelines` })),
+      ...magazines.map((m) => ({ label: `${m.title} (${journalCode(m)})`, href: periodicalBase(m.slug), children: magazineFlyout(m.slug) })),
       { label: 'All magazines', href: '/magazines' },
     ],
   },
@@ -49,8 +75,7 @@ const NAV: NavEntry[] = [
     href: '/series',
     key: 'series',
     children: [
-      ...series.map((s) => ({ label: `${s.title} (${s.code})`, href: `/series/${s.slug}` })),
-      ...series.map((s) => ({ label: `Propose a volume for ${s.code}`, href: seriesPageHref(s.slug, 'propose-volume') })),
+      ...series.map((s) => ({ label: `${s.title} (${s.code})`, href: `/series/${s.slug}`, children: seriesFlyout(s) })),
       { label: 'All book series', href: '/series' },
     ],
   },
@@ -89,9 +114,14 @@ const NAV: NavEntry[] = [
     label: 'For authors',
     href: '/authors',
     key: 'authors',
+    flip: true,
     children: [
       { label: 'Submit a manuscript', href: '/submit' },
-      ...journals.map((j) => ({ label: `${journalCode(j)} author guidelines`, href: `${periodicalBase(j.slug)}/author-guidelines` })),
+      {
+        label: 'Author guidelines',
+        href: '/authors',
+        children: journals.map((j) => ({ label: `${journalCode(j)} author guidelines`, href: `${periodicalBase(j.slug)}/author-guidelines` })),
+      },
       { label: 'Open access and fees', href: '/authors#apc' },
       { label: 'Author resources', href: '/authors' },
     ],
@@ -121,6 +151,12 @@ const NAV: NavEntry[] = [
   },
   { label: 'Contact', href: '/contact', key: 'contact' },
 ]
+
+/** "All journals", "All volumes", … lead their menu (publisher, November 2026); the rest keep their order. */
+const allFirst = <T extends NavLink>(items: T[]): T[] => [...items.filter((i) => i.label.startsWith('All ')), ...items.filter((i) => !i.label.startsWith('All '))]
+const NAV_ORDERED: NavEntry[] = NAV.map((e) =>
+  e.children ? { ...e, children: allFirst(e.children).map((c) => (c.children ? { ...c, children: allFirst(c.children) } : c)) } : e,
+)
 
 const activeKey = (pathname: string): string => {
   if (pathname === '/authors') return 'authors'
@@ -203,7 +239,7 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
   }, [menu])
 
   const a = activeKey(pathname || '')
-  const nav = NAV.map((item) => ({ ...item, active: item.key === a }))
+  const nav = NAV_ORDERED.map((item) => ({ ...item, active: item.key === a }))
 
   const signedIn = !!user
   const fullName = user?.fullName || ''
@@ -292,6 +328,15 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
 .ngiqNavDrop a{display:block;padding:8px 16px;font-size:14px;line-height:1.35;color:var(--ink-2,#1F2A36);text-decoration:none;white-space:nowrap}
 .ngiqNavDrop a:hover,.ngiqNavDrop a:focus-visible{background:var(--surface-2,#F5F6F7);color:var(--accent,#1D5DA8)}
 .ngiqNavCaret{font-size:9px;margin-left:5px;color:var(--muted,#6B7682)}
+.ngiqNavSub{position:relative}
+.ngiqNavSub>a{display:flex!important;align-items:center;justify-content:space-between;gap:18px}
+.ngiqNavSub>a::after{content:"";flex:0 0 auto;width:6px;height:6px;border-right:1.5px solid var(--muted,#6B7682);border-top:1.5px solid var(--muted,#6B7682);transform:rotate(45deg)}
+.ngiqNavFly{display:none;position:absolute;left:100%;top:-9px;min-width:250px;max-width:340px;padding:8px 0;background:var(--surface,#fff);border:1px solid var(--line,#DCE1E6);border-left:2px solid var(--accent,#1D5DA8);border-radius:0 3px 3px 0;box-shadow:0 10px 28px rgba(16,27,39,.12);animation:ngiqDrop .12s ease}
+.ngiqNavFly a{white-space:normal!important}
+.ngiqNavSub:hover>.ngiqNavFly,.ngiqNavSub:focus-within>.ngiqNavFly{display:block}
+.ngiqNavSub:hover>a{background:var(--surface-2,#F5F6F7);color:var(--accent,#1D5DA8)}
+.ngiqNavFlip .ngiqNavDrop{left:auto;right:-14px}
+.ngiqNavFlip .ngiqNavFly{left:auto;right:100%;border-left:1px solid var(--line,#DCE1E6);border-right:2px solid var(--accent,#1D5DA8);border-radius:3px 0 0 3px}
 .ngiqHdrMenuItem:hover{background:var(--surface-2,#F5F6F7)!important;color:var(--accent,#1D5DA8)!important}
 .ngiqHdrSignOut:hover{background:#FBEAEA!important}
 .ngiqHdrSubmit:hover{background:var(--accent-dark,#174C8A)!important}
@@ -315,6 +360,7 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
 .ngiqHdrMNav [aria-current="page"]{color:var(--accent,#0C8375);font-weight:600}
 .ngiqHdrMNav details div{padding:0 0 10px;background:var(--surface-3,#FAFBFB)}
 .ngiqHdrMNav details div a{display:block;padding:9px var(--shell-pad) 9px calc(var(--shell-pad) + 14px);font-size:14px;line-height:1.4;color:var(--ink-2,#1F2A36);text-decoration:none}
+.ngiqHdrMNav details div a.ngiqMSub{padding-left:calc(var(--shell-pad) + 30px);font-size:13px;color:var(--ink-3,#3C4854)}
 `}</style>
       <div className="ngiqHdrRow" data-open={mobileOpen ? 'true' : 'false'} style={{ maxWidth: 1280, margin: '0 auto', padding: '16px var(--shell-pad)', display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
@@ -436,11 +482,16 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
                 <summary aria-current={item.active ? 'page' : undefined}>{item.label}</summary>
                 <div>
                   {item.children.some((c) => c.href === item.href) ? null : <Link href={item.href}>{item.label}: overview</Link>}
-                  {item.children.map((c) => (
+                  {item.children.map((c) => [
                     <Link key={c.href + c.label} href={c.href}>
                       {c.label}
-                    </Link>
-                  ))}
+                    </Link>,
+                    ...(c.children ?? []).map((g) => (
+                      <Link key={c.href + g.href + g.label} href={g.href} className="ngiqMSub">
+                        {g.label}
+                      </Link>
+                    )),
+                  ])}
                 </div>
               </details>
             ) : (
@@ -510,7 +561,7 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
       <nav aria-label="Primary" className="ngiqHdrNav" style={{ maxWidth: 1280, margin: '0 auto', padding: '0 var(--shell-pad)' }}>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', gap: '0 26px', flexWrap: 'wrap' }}>
           {nav.map((item) => (
-            <li key={item.key} className={`ngiqNavItem${closedNav === item.key ? ' ngiqNavClosed' : ''}`} onMouseLeave={() => setClosedNav(null)}>
+            <li key={item.key} className={`ngiqNavItem${item.flip ? ' ngiqNavFlip' : ''}${closedNav === item.key ? ' ngiqNavClosed' : ''}`} onMouseLeave={() => setClosedNav(null)}>
               <Link
                 href={item.href}
                 onClick={(e) => {
@@ -527,18 +578,33 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
               </Link>
               {item.children ? (
                 <div className="ngiqNavDrop">
-                  {item.children.map((c) => (
-                    <Link
-                      key={c.href + c.label}
-                      href={c.href}
-                      onClick={(e) => {
-                        setClosedNav(item.key)
-                        e.currentTarget.blur()
-                      }}
-                    >
-                      {c.label}
-                    </Link>
-                  ))}
+                  {item.children.map((c) => {
+                    const close = (e: React.MouseEvent<HTMLAnchorElement>) => {
+                      setClosedNav(item.key)
+                      e.currentTarget.blur()
+                    }
+                    if (!c.children) {
+                      return (
+                        <Link key={c.href + c.label} href={c.href} onClick={close}>
+                          {c.label}
+                        </Link>
+                      )
+                    }
+                    return (
+                      <div key={c.href + c.label} className="ngiqNavSub">
+                        <Link href={c.href} onClick={close} aria-haspopup="true">
+                          {c.label}
+                        </Link>
+                        <div className="ngiqNavFly">
+                          {c.children.map((g) => (
+                            <Link key={g.href + g.label} href={g.href} onClick={close}>
+                              {g.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               ) : null}
             </li>

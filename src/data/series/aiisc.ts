@@ -64,7 +64,7 @@ const volumes: SeriesVolume[] = [
     number: 1,
     title: 'Quantum-Safe Cyber Defense: Cryptography, Protocols, and Migration Strategies',
     expectedDate: 'November 2026',
-    cover: '/images/covers/volumes/sisdt-v1-quantum-safe-cyber-defense.jpg',
+    cover: '/images/covers/volumes/sisdt-v1-quantum-safe-cyber-defense-publisher.jpg', // publisher-logo artwork, Volume badge top right (November 2026)
     publishedDate: null,
     doi: null,
     isbn: '978-626-93492-0-3', // assigned by the NCL ISBN Center (e-book, PDF), November 2026

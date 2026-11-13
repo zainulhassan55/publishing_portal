@@ -157,7 +157,7 @@ export default async function VolumePage({ params }: Params) {
             {facts.map(([k, val]) => (
               <div key={k} style={{ display: 'contents' }}>
                 <dt style={dt}>{k}</dt>
-                <dd style={dd}>{val}</dd>
+                <dd style={k.startsWith('ISBN') ? { ...dd, fontWeight: 700 } : dd}>{val}</dd>
               </div>
             ))}
           </dl>

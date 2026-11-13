@@ -1,4 +1,6 @@
+import Image from 'next/image'
 import Link from 'next/link'
+import type { Affiliation } from '@/types/content'
 import { JournalMasthead, type JournalMastheadProps, type MastheadGroup } from './JournalMasthead'
 
 export type HomeArticle = {
@@ -10,6 +12,12 @@ export type HomeArticle = {
   meta: string
   /** Access badge beside the type. Omitted means "Open access" (journal articles); null shows none. */
   access?: string | null
+  /** Book volumes: cover thumbnail beside the entry. */
+  image?: string
+  /** Book volumes: "Volume 1", bold before the meta line; also sets the author line and ISBN bold. */
+  lead?: string
+  /** Book volumes: the ISBN, or null for "To be assigned". */
+  isbn?: string | null
 }
 
 export type HomeEditor = { name: string; affiliation: string }
@@ -27,6 +35,8 @@ export type JournalHomeProps = {
   editorsLabel: string
   editors: HomeEditor[]
   editorsNote?: string
+  /** Centres the publication is run with, shown with their logos at the top of the sidebar. */
+  affiliations?: Affiliation[]
   boardHref: string
   cta: { title: string; text: string; label: string; href: string; secondary: { label: string; href: string } }
   groups: MastheadGroup[]
@@ -39,7 +49,7 @@ const head = { display: 'flex', alignItems: 'baseline', justifyContent: 'space-b
 /** Editors shown in the sidebar before linking out to the full board. */
 const PREVIEW_EDITORS = 2
 
-export function JournalHome({ masthead, topics, aimsHref, listTitle, listHref, items, emptyText, editorsLabel, editors, editorsNote, boardHref, cta, groups }: JournalHomeProps) {
+export function JournalHome({ masthead, topics, aimsHref, listTitle, listHref, items, emptyText, editorsLabel, editors, editorsNote, affiliations, boardHref, cta, groups }: JournalHomeProps) {
   const label = masthead.kind === 'journal' ? 'Journal information' : 'Series information'
 
   return (
@@ -74,7 +84,15 @@ export function JournalHome({ masthead, topics, aimsHref, listTitle, listHref, i
               </Link>
             </div>
             {items.map((a) => (
-              <article key={a.id} style={{ padding: '18px 0', borderBottom: '1px solid var(--line,#DCE1E6)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <article key={a.id} style={{ padding: '18px 0', borderBottom: '1px solid var(--line,#DCE1E6)', display: 'flex', gap: 18, alignItems: 'flex-start' }}>
+                {a.image ? (
+                  // The title link carries the name; this duplicate link is hidden from keyboards and screen readers.
+                  <Link href={a.href} tabIndex={-1} aria-hidden="true" style={{ flex: '0 0 auto', display: 'block', width: 84 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={a.image} alt="" width={84} height={126} loading="lazy" style={{ display: 'block', width: '100%', height: 'auto', border: '1px solid var(--line,#DCE1E6)', borderRadius: 2 }} />
+                  </Link>
+                ) : null}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
                 <div style={{ display: 'flex', gap: 10, fontSize: 12 }}>
                   <span style={{ fontWeight: 600, color: 'var(--warm,#B5400F)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{a.type}</span>
                   {a.access === null ? null : <span style={{ color: '#6E4600', fontWeight: 500 }}>● {a.access ?? 'Open access'}</span>}
@@ -82,8 +100,22 @@ export function JournalHome({ masthead, topics, aimsHref, listTitle, listHref, i
                 <Link href={a.href} style={{ fontFamily: 'var(--font-serif)', fontSize: 18, lineHeight: 1.35, color: 'var(--ink,#101B27)', fontWeight: 600 }}>
                   {a.title}
                 </Link>
-                <span style={{ fontSize: 14 }}>{a.authorLine}</span>
-                <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>{a.meta}</span>
+                <span style={{ fontSize: 14, fontWeight: a.lead ? 700 : undefined }}>{a.authorLine}</span>
+                <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>
+                  {a.lead ? (
+                    <>
+                      <strong style={{ fontWeight: 700, color: 'var(--ink-2,#1F2A36)' }}>{a.lead}</strong>
+                      {a.meta ? ' · ' : ''}
+                    </>
+                  ) : null}
+                  {a.meta}
+                </span>
+                {a.isbn !== undefined ? (
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-2,#1F2A36)' }}>
+                    ISBN: {a.isbn ?? <span style={{ fontWeight: 400, fontStyle: 'italic', color: 'var(--muted,#505C68)' }}>To be assigned</span>}
+                  </span>
+                ) : null}
+                </div>
               </article>
             ))}
             {items.length === 0 ? (
@@ -94,6 +126,36 @@ export function JournalHome({ masthead, topics, aimsHref, listTitle, listHref, i
         </div>
 
         <aside className="m-full" style={{ display: 'flex', flexDirection: 'column', gap: 32, flex: '1 1 300px', maxWidth: 360 }}>
+          {affiliations?.length ? (
+            <section aria-labelledby="aff-h" style={{ border: '1px solid var(--line,#DCE1E6)', borderRadius: 3, padding: '16px 18px 18px', background: 'var(--surface,#fff)' }}>
+              <h2 id="aff-h" style={{ margin: '0 0 12px', fontSize: 13, letterSpacing: '.08em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-3,#3C4854)' }}>
+                In association with
+              </h2>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 18 }}>
+                {affiliations.map((a) => {
+                  const body = (
+                    <>
+                      <Image src={a.logo} alt="" width={Math.round((96 * a.logoSize[0]) / a.logoSize[1])} height={96} style={{ height: 96, width: 'auto', maxWidth: '100%' }} />
+                      <span style={{ fontSize: 14, lineHeight: 1.4, fontWeight: 600, color: 'var(--ink,#101B27)' }}>{a.name}</span>
+                      {a.detail ? <span style={{ fontSize: 13, lineHeight: 1.4, color: 'var(--ink-3,#3C4854)' }}>{a.detail}</span> : null}
+                    </>
+                  )
+                  const style = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, textAlign: 'center', textDecoration: 'none' } as const
+                  return (
+                    <li key={a.name}>
+                      {a.href ? (
+                        <a href={a.href} target="_blank" rel="noopener noreferrer" style={style}>
+                          {body}
+                        </a>
+                      ) : (
+                        <div style={style}>{body}</div>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          ) : null}
           <section aria-labelledby="board-h" style={{ background: 'var(--accent-tint,#F3F9F8)', border: '1px solid var(--accent-soft,#CDF0E7)', borderTop: '4px solid var(--accent,#0B7265)', borderRadius: 3, padding: '16px 18px 18px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, paddingBottom: 8 }}>
               <h2 id="board-h" style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 600, color: 'var(--ink,#101B27)' }}>{editorsLabel}</h2>

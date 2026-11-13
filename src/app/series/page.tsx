@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { series, seriesPageHref, visibleVolumes, volumeDateLine, volumeNamesLine } from '@/data/registry'
+import { series, seriesPageHref, visibleVolumes, volumeByLine, volumeDateLine, volumeNamesLine } from '@/data/registry'
 import { subjects } from '@/data/subjects'
 import { withSharing } from '@/lib/metadata'
 
@@ -19,10 +19,17 @@ const forthcoming = series
   .filter(({ v }) => !v.publishedDate)
   .sort((a, b) => Date.parse(`1 ${a.v.expectedDate}`) - Date.parse(`1 ${b.v.expectedDate}`))
 
+/** The first ~240 characters of a volume's description, cut at a word, for the hover preview. */
+const excerpt = (text: string | undefined, max = 240) => {
+  if (!text) return ''
+  if (text.length <= max) return text
+  return `${text.slice(0, text.lastIndexOf(' ', max)).replace(/[,;:.]$/, '')}…`
+}
+
 export default function SeriesIndex() {
   return (
     <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '20px var(--shell-pad) 0' }}>
-      <style>{`@media (max-width:1000px){.fc-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}@media (max-width:760px){.fc-grid{gap:24px 16px!important}.fc-grid h3{font-size:16px!important}.srs-row{grid-template-columns:64px minmax(0,1fr)!important;gap:8px 14px!important}.srs-row>.srs-cover{width:64px!important;height:86px!important;padding:6px!important;grid-row:1/span 2}.srs-row>.srs-cover>span:first-child{font-size:13px!important}.srs-row>.srs-cover>span:last-child{font-size:5px!important}.srs-body{display:contents!important}.srs-body>*{grid-column:2}.srs-body>.srs-wide{grid-column:1/-1}.srs-body h2{font-size:20px!important}}`}</style>
+      <style>{`.fc-cover{transition:transform .25s ease,box-shadow .25s ease}.fc-cover img{transition:transform .35s ease}.fc-card:hover .fc-cover,.fc-card:focus-within .fc-cover{transform:translateY(-4px) scale(1.03);box-shadow:0 18px 36px rgba(16,27,39,.28)!important}.fc-card:hover .fc-cover img,.fc-card:focus-within .fc-cover img{transform:scale(1.06)}.fc-peek{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;padding:18px 18px 16px;background:linear-gradient(180deg,rgba(9,20,33,.86),rgba(9,20,33,.95));color:#fff;opacity:0;transform:translateY(10px);transition:opacity .25s ease,transform .25s ease;overflow:hidden}.fc-card:hover .fc-peek,.fc-card:focus-within .fc-peek{opacity:1;transform:none}.fc-peek p{margin:0}@media (hover:none){.fc-peek{display:none}}@media (prefers-reduced-motion:reduce){.fc-cover,.fc-cover img,.fc-peek{transition:none}}@media (max-width:1000px){.fc-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}@media (max-width:760px){.fc-grid{gap:24px 16px!important}.fc-grid h3{font-size:16px!important}.srs-row{grid-template-columns:64px minmax(0,1fr)!important;gap:8px 14px!important}.srs-row>.srs-cover{width:64px!important;height:86px!important;padding:6px!important;grid-row:1/span 2}.srs-row>.srs-cover>span:first-child{font-size:13px!important}.srs-row>.srs-cover>span:last-child{font-size:5px!important}.srs-body{display:contents!important}.srs-body>*{grid-column:2}.srs-body>.srs-wide{grid-column:1/-1}.srs-body h2{font-size:20px!important}}`}</style>
       <nav aria-label="Breadcrumb" style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted,#505C68)' }}>
         <Link href="/">Home</Link>
         <span aria-hidden="true">/</span>
@@ -44,7 +51,7 @@ export default function SeriesIndex() {
             {forthcoming.map(({ s, v }) => {
               const href = `/series/${s.slug}/volumes/${v.slug}`
               return (
-                <li key={`${s.slug}/${v.slug}`} style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+                <li key={`${s.slug}/${v.slug}`} className="fc-card" style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
                   <Link
                     href={href}
                     tabIndex={-1}
@@ -53,24 +60,31 @@ export default function SeriesIndex() {
                     style={{ position: 'relative', display: 'block', aspectRatio: '2 / 3', borderRadius: 3, overflow: 'hidden', background: 'var(--brand,#0F2B46)', boxShadow: '0 8px 22px rgba(16,27,39,.18)', marginBottom: 6 }}
                   >
                     {v.cover && <Image src={v.cover} alt="" fill sizes="(max-width:760px) 45vw, 300px" style={{ objectFit: 'cover' }} />}
+                    {/* Brief preview shown over the cover on hover (pointer devices only). */}
+                    <span className="fc-peek">
+                      <span style={{ fontSize: 11, letterSpacing: '.08em', textTransform: 'uppercase', color: '#F2C14E', fontWeight: 600 }}>
+                        {s.code} · Volume {v.number}
+                      </span>
+                      <span style={{ fontSize: 13, lineHeight: 1.45, fontWeight: 700 }}>{volumeByLine(v)}</span>
+                      <span style={{ fontSize: 12.5, lineHeight: 1.4, color: '#D5DEE7' }}>
+                        {[v.pages ? `${v.pages} pages` : '', 'E-book', v.expectedDate].filter(Boolean).join(' · ')}
+                      </span>
+                      <span style={{ fontSize: 13, lineHeight: 1.55, color: '#E8EEF4', flex: '1 1 auto', overflow: 'hidden' }}>{excerpt(v.description[0])}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>View book details →</span>
+                    </span>
                   </Link>
                   <span style={{ fontSize: 12, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-3,#3C4854)' }}>
-                    {s.code} · Volume {v.number}
+                    {s.code} · <strong style={{ fontWeight: 700, color: 'var(--ink,#101B27)' }}>Volume {v.number}</strong>
                   </span>
                   <h3 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: 19, fontWeight: 600, lineHeight: 1.3 }}>
                     <Link href={href} style={{ color: 'var(--ink,#101B27)' }}>
                       {v.title}
                     </Link>
                   </h3>
-                  <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: 'var(--ink-3,#3C4854)' }}>{volumeNamesLine(v)}</p>
-                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: 'var(--muted,#505C68)' }}>
-                    {volumeDateLine(v)}
-                    {v.isbn && (
-                      <>
-                        <br />
-                        ISBN {v.isbn}
-                      </>
-                    )}
+                  <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, fontWeight: 700, color: 'var(--ink-2,#1F2A36)' }}>{volumeNamesLine(v)}</p>
+                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: 'var(--muted,#505C68)' }}>{volumeDateLine(v)}</p>
+                  <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, fontWeight: 700, color: 'var(--ink-2,#1F2A36)' }}>
+                    ISBN: {v.isbn ?? <span style={{ fontWeight: 400, fontStyle: 'italic', color: 'var(--muted,#505C68)' }}>To be assigned</span>}
                   </p>
                 </li>
               )
