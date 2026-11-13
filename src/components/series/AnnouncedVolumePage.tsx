@@ -12,6 +12,8 @@ const label = { margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: 'var(--
 const pending = { margin: '0 0 14px', fontSize: 15, lineHeight: 1.6, color: 'var(--muted,#505C68)', fontStyle: 'italic' } as const
 const fact = { margin: '0 0 4px', fontSize: 14, color: 'var(--ink-3,#3C4854)' } as const
 const tba = { color: 'var(--muted,#505C68)', fontStyle: 'italic' } as const
+// ISBNs and contributor names are set bold wherever a volume is shown (publisher, November 2026).
+const strong = { fontWeight: 700, color: 'var(--ink,#101B27)' } as const
 const list = { margin: '0 0 18px', paddingLeft: 22, listStyle: 'disc', fontSize: 16, lineHeight: 1.8, color: 'var(--ink-2,#1F2A36)' } as const
 
 /**
@@ -41,11 +43,11 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
   const bibliographic: [string, ReactNode][] = [
     ['Series', `${series.title} (${series.code})`],
     ['Volume', String(v.number)],
-    [authored ? 'Authors' : 'Editors', volumeEditorLine(v.editors)],
+    [authored ? 'Authors' : 'Editors', <strong key="by" style={strong}>{volumeEditorLine(v.editors)}</strong>],
     ['Publisher', siteName],
     ['Format', 'E-book (PDF)'],
     ...(v.pages ? ([['Pages', String(v.pages)]] as [string, ReactNode][]) : []),
-    ['ISBN', v.isbn ?? <span style={tba}>To be assigned</span>],
+    ['ISBN', v.isbn ? <strong key="isbn" style={strong}>{v.isbn}</strong> : <span style={tba}>To be assigned</span>],
     ...(v.doi ? ([['DOI', <a key="doi" href={doiUrl(v.doi)}>{doiUrl(v.doi)}</a>]] as [string, ReactNode][]) : []),
     [v.publishedDate ? 'Date of publication' : 'Expected date of publication', v.publishedDate ?? v.expectedDate],
     ...(volumeAccessLabel(v) ? ([['Access', v.access === 'open' ? 'Open access · CC BY 4.0' : 'Subscription access']] as [string, ReactNode][]) : []),
@@ -164,12 +166,12 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
                 </p>
               ) : null}
               <p style={{ ...fact, margin: 0 }}>
-                {v.contributorRole === 'authors' ? 'Authors' : 'Edited by'}: {volumeEditorLine(v.editors)}
+                {v.contributorRole === 'authors' ? 'Authors' : 'Edited by'}: <strong style={strong}>{volumeEditorLine(v.editors)}</strong>
               </p>
             </div>
             <dl className="av-ids" style={{ margin: '0 0 0 auto', flex: '0 0 auto', alignSelf: 'flex-start', border: '2px solid var(--ink,#101B27)', borderRadius: 2, padding: '12px 16px', display: 'grid', gridTemplateColumns: 'max-content max-content', gap: '6px 14px', fontSize: 14 }}>
-              <dt style={{ fontWeight: 600, color: 'var(--ink,#101B27)' }}>ISBN</dt>
-              <dd style={{ margin: 0, color: 'var(--ink-2,#1F2A36)' }}>{v.isbn ?? <span style={tba}>To be assigned</span>}</dd>
+              <dt style={{ fontWeight: 700, color: 'var(--ink,#101B27)' }}>ISBN</dt>
+              <dd style={{ margin: 0, color: 'var(--ink-2,#1F2A36)' }}>{v.isbn ? <strong style={strong}>{v.isbn}</strong> : <span style={tba}>To be assigned</span>}</dd>
             </dl>
           </div>
 

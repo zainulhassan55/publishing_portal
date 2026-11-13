@@ -42,7 +42,18 @@ export type SideGroup = {
 export type PageNavItem = { href: string; title: string }
 
 /** `lead` (such as "Volume 1") is shown in bold before the meta line, and the item set one size larger. */
-export type PageListItem = { href: string; title: string; meta: string; lead?: string; /** Cover thumbnail shown beside the entry (book volumes). */ image?: string }
+export type PageListItem = {
+  href: string
+  title: string
+  meta: string
+  lead?: string
+  /** Cover thumbnail shown beside the entry (book volumes). */
+  image?: string
+  /** Book volumes: "Authors: …" / "Edited by …", set bold on its own line. */
+  byline?: string
+  /** Book volumes: the ISBN, or null for "To be assigned"; the line is left out when undefined. */
+  isbn?: string | null
+}
 
 export type PageCta = { title: string; text: string; label: string; href: string }
 
@@ -256,6 +267,12 @@ export function JournalStaticPage({ masthead, group, title, blocks, numbered = t
                       ) : null}
                       {r.meta}
                     </span>
+                    {r.byline ? <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink-2,#1F2A36)' }}>{r.byline}</span> : null}
+                    {r.isbn !== undefined ? (
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink-2,#1F2A36)' }}>
+                        ISBN: {r.isbn ?? <span style={{ fontWeight: 400, fontStyle: 'italic', color: 'var(--muted,#505C68)' }}>To be assigned</span>}
+                      </span>
+                    ) : null}
                   </div>
                 </article>
               ))}

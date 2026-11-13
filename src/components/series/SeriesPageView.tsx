@@ -39,7 +39,9 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
         // Same image the volume page shows: its own cover, else the series cover.
         image: v.cover ?? series?.profile.tile,
         lead: `Volume ${v.number}`,
-        meta: [volumeStatusLine(v), volumeByLine(v), volumeDateLine(v)].join(' · '),
+        meta: [volumeStatusLine(v), volumeDateLine(v)].join(' · '),
+        byline: volumeByLine(v),
+        isbn: v.isbn,
       }))
     list = [
       ...announced,
@@ -48,9 +50,9 @@ export async function SeriesPageView({ slug, pageId }: { slug: string; pageId: s
         title: v.subtitle ? `${v.title}: ${v.subtitle}` : v.title,
         image: v.coverUploadId ? `/series/${slug}/volumes/${v.slug}/cover` : series?.profile.tile,
         lead: v.volumeNumber ? `Volume ${v.volumeNumber}` : undefined,
-        meta: [contributorLine(v), v.publishedAt ? formatDate(v.publishedAt) : '']
-          .filter(Boolean)
-          .join(' · '),
+        meta: v.publishedAt ? formatDate(v.publishedAt) : '',
+        byline: contributorLine(v) || undefined,
+        isbn: v.isbnOnline ?? v.isbnPrint ?? null,
       })),
     ]
     calls = await openCalls(slug)

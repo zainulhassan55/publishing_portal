@@ -149,7 +149,12 @@ export type PublicationProfile = {
   editorsLabel: string
   editors: Editor[]
   editorsNote?: string
+  /** Shown as "In association with" logos (TQCIS: CCRI and Asia University, November 2026). */
+  affiliations?: Affiliation[]
 }
+
+/** A research centre or university the publication is run with; its logo shows in the masthead and on the home page. */
+export type Affiliation = { name: string; /** Label in the masthead row, where the full name is too long. */ short?: string; detail?: string; logo: string; /** The logo file's pixel size, so it keeps its shape. */ logoSize: [number, number]; href?: string }
 
 export type JournalDetail = {
   slug: string

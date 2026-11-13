@@ -48,7 +48,10 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
       access: null,
       title: v.title,
       authorLine: volumeNamesLine(v),
-      meta: [`Volume ${v.number}`, volumeDateLine(v)].join(' · '),
+      image: v.cover ?? item.profile.tile,
+      lead: `Volume ${v.number}`,
+      meta: volumeDateLine(v),
+      isbn: v.isbn,
     }))
   const items: HomeArticle[] = [...announced, ...fromAdmin.map((v) => ({
     id: String(v.id),
@@ -56,7 +59,10 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
     type: VOLUME_FORMATS.find((f) => f.value === v.format)?.label ?? 'Volume',
     title: v.subtitle ? `${v.title}: ${v.subtitle}` : v.title,
     authorLine: contributorLine(v),
-    meta: [v.volumeNumber ? `Volume ${v.volumeNumber}` : '', v.publishedAt ? formatDate(v.publishedAt) : '', v.doi ? `doi.org/${v.doi}` : '']
+    image: v.coverUploadId ? `/series/${slug}/volumes/${v.slug}/cover` : item.profile.tile,
+    lead: v.volumeNumber ? `Volume ${v.volumeNumber}` : 'Volume',
+    isbn: v.isbnOnline ?? v.isbnPrint ?? null,
+    meta: [v.publishedAt ? formatDate(v.publishedAt) : '', v.doi ? `doi.org/${v.doi}` : '']
       .filter(Boolean)
       .join(' · '),
   }))].slice(0, 5)

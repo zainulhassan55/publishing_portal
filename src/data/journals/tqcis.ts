@@ -7,6 +7,9 @@ import { journalTemplates } from '../templates'
  * Introduction and topics supplied by the publisher (October 2026) and
  * reproduced as given. The remaining pages follow TICR's, as the publisher
  * asked. Editorial board from "Updated EB" (November 2026).
+ *
+ * Run with the publisher's CCRI lab at Asia University, Taiwan (publisher,
+ * November 2026): both logos show in the masthead and on the journal home.
  */
 const slug = 'tqcis'
 const title = 'Transactions on Quantum Computing and Information Security'
@@ -77,6 +80,16 @@ export const tqcisDetail: JournalDetail = {
     facts: journalFacts(electronicIssn(slug)),
     editorsLabel: 'Editors',
     editors,
+    affiliations: [
+      {
+        name: 'International Center for AI and Cyber Security Research and Innovations (CCRI)',
+        short: 'CCRI, Asia University',
+        detail: 'Asia University, Taiwan',
+        logo: '/images/affiliations/ccri-lab.png',
+        logoSize: [363, 232],
+      },
+      { name: 'Asia University', short: 'Asia University, Taiwan', detail: 'Taiwan', logo: '/images/affiliations/asia-university.png', logoSize: [172, 172], href: 'https://www.asia.edu.tw/' },
+    ],
   },
   pages: [
     page('aims-scope', 'Aims & scope', 'Aims and scope', 'The research areas covered by TQCIS.', [

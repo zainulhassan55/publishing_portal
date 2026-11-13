@@ -120,6 +120,7 @@ export function homeRoute(kind: PeriodicalKind) {
           editorsLabel={journal.profile.editorsLabel}
           editors={journal.profile.editors}
           editorsNote={journal.profile.editorsNote}
+          affiliations={journal.profile.affiliations}
           boardHref={pub.pageHref('editorial-board')}
           cta={{
             title: `Submit to ${pub.code}`,
