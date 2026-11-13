@@ -37,8 +37,8 @@ export const POST = handler(async (request) => {
     field: 'multidisciplinary',
     value: body.multidisciplinary,
     label: 'Multidisciplinary focus',
-    required: series === 'lnmr',
-    min: series === 'lnmr' ? 50 : undefined,
+    required: series === 'lnmri',
+    min: series === 'lnmri' ? 50 : undefined,
     max: 3000,
   })
   const toc = v.string({ field: 'toc', value: body.toc, label: 'Preliminary table of contents', required: true, min: 50, max: 10000 })

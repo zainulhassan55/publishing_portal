@@ -6,10 +6,11 @@ import { retaDetail } from './journals/reta'
 import { ticrDetail } from './journals/ticr'
 import { tqcisDetail } from './journals/tqcis'
 import { dtcrDetail } from './magazines/dtcr'
-import { aiisc } from './series/aiisc'
-import { lnmr } from './series/lnmr'
+import { sisdt } from './series/sisdt'
+import { lnmri } from './series/lnmri'
 import { subjectFor } from './subjects'
 import { currentSlug } from '@/lib/ojs/contexts'
+import { currentSeriesSlug } from '@/lib/books/series-slugs'
 
 /**
  * Single ordered source of truth for the portfolio. Everything downstream —
@@ -179,11 +180,12 @@ export const journalPageHref = (slug: string, pageId: string) =>
 /* Book series                                                                */
 /* -------------------------------------------------------------------------- */
 
-export const series: Series[] = [aiisc, lnmr]
+export const series: Series[] = [sisdt, lnmri]
 
 export const seriesSlugs = series.map((s) => s.slug)
 
-export const getSeries = (slug: string) => series.find((s) => s.slug === slug.toLowerCase())
+/** A series by its slug; a pre-rename slug (aiisc, lnmr) still finds it, as database rows may carry one. */
+export const getSeries = (slug: string) => series.find((s) => s.slug === currentSeriesSlug(slug))
 
 /** The series' announced volumes the site shows: everything not marked `hidden`. */
 export const visibleVolumes = (s: Series | undefined) => (s?.volumes ?? []).filter((v) => !v.hidden)

@@ -57,8 +57,8 @@ const publications: Publication[] = [
   { slug: 'jaaise', code: 'JAAISE', name: 'Journal of Agentic AI for Sustainable Energy', kind: 'journal', cite: 'numbered' },
   { slug: 'reta', code: 'RETA', name: 'Reviews in Emerging Technology and Applications', kind: 'journal', cite: 'numbered' },
   { slug: 'dtcr', code: 'DTCR', name: 'Digital Trust & Cyber Resilience Magazine', kind: 'magazine', cite: 'numbered' },
-  { slug: 'aiisc', code: 'SISDT', name: 'Studies in Intelligent Systems and Digital Technologies', kind: 'series', cite: 'numbered' },
-  { slug: 'lnmr', code: 'LNMRI', name: 'Lecture Notes in Multidisciplinary Research and Innovation', kind: 'series', cite: 'authoryear' },
+  { slug: 'sisdt', code: 'SISDT', name: 'Studies in Intelligent Systems and Digital Technologies', kind: 'series', cite: 'numbered' },
+  { slug: 'lnmri', code: 'LNMRI', name: 'Lecture Notes in Multidisciplinary Research and Innovation', kind: 'series', cite: 'authoryear' },
 ]
 
 /** RETA publishes reviews only; its templates say so up front. */

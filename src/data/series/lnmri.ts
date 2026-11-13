@@ -192,8 +192,8 @@ const volumes: SeriesVolume[] = [
   },
 ]
 
-export const lnmr: Series = {
-  slug: 'lnmr',
+export const lnmri: Series = {
+  slug: 'lnmri', // was 'lnmr' until November 2026; old URLs redirect (next.config.ts)
   code: 'LNMRI',
   title: 'Lecture Notes in Multidisciplinary Research and Innovation',
   kind: 'book',
@@ -263,7 +263,7 @@ export const lnmr: Series = {
           'Volume editors coordinate contributors, maintain thematic coherence, and ensure that revisions are completed. Formatting requirements will be provided during the proposal process.',
           seriesDigitalPublication,
         ]),
-        seriesTemplates('lnmr', 'LNMRI'),
+        seriesTemplates('lnmri', 'LNMRI'),
       ],
     ),
     page('peer-review-ethics', 'Peer review & ethics', 'Peer review and ethics', 'How LNMRI volumes are reviewed.', [
@@ -273,7 +273,7 @@ export const lnmr: Series = {
         seriesSameStandards,
       ]),
     ]),
-    // The page id (and so the URL /series/lnmr/open-access-fees) is kept so shared links keep working.
+    // The page id (and so the URL /series/lnmri/open-access-fees) is kept so shared links keep working.
     page('open-access-fees', 'Access options & fees', 'Access options and fees', 'Access options and charges for LNMRI volumes.', [
       plain([
         'LNMRI publishes exclusively as e-books. Each volume’s page identifies how readers can access and use it.',
