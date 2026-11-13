@@ -6,7 +6,8 @@ import { journalTemplates } from '../templates'
 /**
  * Introduction and topics supplied by the publisher (October 2026) and
  * reproduced as given. The remaining pages follow TICR's, as the publisher
- * asked. Editorial board from "Updated EB" (November 2026).
+ * asked. Editorial board updated by the publisher on 13 November 2026, with
+ * two Co-Editors-in-Chief.
  *
  * Run with the publisher's CCRI lab at Asia University, Taiwan (publisher,
  * November 2026): both logos show in the masthead and on the journal home.
@@ -36,12 +37,18 @@ const topics = [
   'Applications of quantum computing in science, engineering and cybersecurity',
 ]
 
-/** Editorial board as supplied by the publisher ("Updated EB", November 2026), in the publisher's order. */
-const editors = [
+/** Editorial board as supplied by the publisher (13 November 2026), in the publisher's order. */
+const coEditorsInChief = [
+  { name: 'Konstantinos E. Psannis', affiliation: 'University of Macedonia, Greece' },
   { name: 'Dragan Peraković', affiliation: 'University of Zagreb, Croatia' },
-  { name: 'Vijayakumar Pandi', affiliation: 'SRM University, India' },
+]
+
+const editors = [
+  { name: 'Arcangelo Castiglione', affiliation: 'University of Salerno, Fisciano, Salerno, Italy' },
   { name: 'Bodhisatwa Mazumdar', affiliation: 'Indian Institute of Technology Indore, India' },
-  { name: 'Akshat Gaurav', affiliation: 'Ronin Institute, USA' },
+  { name: 'Brij B. Gupta', affiliation: 'Asia University, Taiwan' },
+  { name: 'Amit K. Singh', affiliation: 'National Institute of Technology Patna, India' },
+  { name: 'Vijayakumar Pandi', affiliation: 'SRM University, India' },
   { name: 'Ivan Cvitić', affiliation: 'University of Zagreb, Croatia' },
   { name: 'Sumana Maiti', affiliation: 'Indian Institute of Technology Bhubaneswar, India' },
   { name: 'Domenico Santaniello', affiliation: 'University of Salerno, Italy' },
@@ -64,7 +71,7 @@ export const tqcisDetail: JournalDetail = {
   scope: intro,
   overview: [intro],
   metrics: [],
-  board: editors.map((e) => `${e.name}, ${e.affiliation}`),
+  board: [...coEditorsInChief, ...editors].map((e) => `${e.name}, ${e.affiliation}`),
   topics,
   quickLinks: [],
   profile: {
@@ -80,6 +87,8 @@ export const tqcisDetail: JournalDetail = {
     facts: journalFacts(electronicIssn(slug)),
     editorsLabel: 'Editors',
     editors,
+    editorsNote: `Co-Editors-in-Chief: ${coEditorsInChief.map((e) => `${e.name}, ${e.affiliation}`).join('; ')}.`,
+    // Only the CCRI logo links out, to the centre's own site (publisher, November 2026).
     affiliations: [
       {
         name: 'International Center for AI and Cyber Security Research and Innovations (CCRI)',
@@ -87,8 +96,9 @@ export const tqcisDetail: JournalDetail = {
         detail: 'Asia University, Taiwan',
         logo: '/images/affiliations/ccri-lab.png',
         logoSize: [363, 232],
+        href: 'https://aicybersecuritycenter.com/',
       },
-      { name: 'Asia University', short: 'Asia University, Taiwan', detail: 'Taiwan', logo: '/images/affiliations/asia-university.png', logoSize: [172, 172], href: 'https://www.asia.edu.tw/' },
+      { name: 'Asia University', short: 'Asia University, Taiwan', detail: 'Taiwan', logo: '/images/affiliations/asia-university.png', logoSize: [172, 172] },
     ],
   },
   pages: [
@@ -101,6 +111,7 @@ export const tqcisDetail: JournalDetail = {
       },
     ]),
     page('editorial-board', 'Editorial board', 'Editorial board', 'The editors of TQCIS.', [
+      { title: 'Co-Editors-in-Chief', table: editorTable(coEditorsInChief) },
       { title: 'Editors', table: editorTable(editors) },
     ]),
     page('author-guidelines', 'Author guidelines', 'Author guidelines', 'How to prepare a manuscript for TQCIS.', [
