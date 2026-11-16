@@ -10,6 +10,8 @@ import { hasEditorialRole, roleLabel } from '@/lib/auth/roles'
 import { normalise } from '@/lib/search-core'
 import { journalCode, journalMenuGroups, journals, journalsOnly, magazines, periodicalBase, series, seriesPageHref, visibleVolumes } from '@/data/registry'
 import type { TypeaheadIndex } from '@/lib/search'
+import { useCart } from '@/lib/cart/store'
+import { CartIcon } from '@/components/cart/AddToCartButton'
 
 /**
  * Replicated from Header.dc.html. The mockup's control panel (theme picker,
@@ -242,6 +244,8 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
   const nav = NAV_ORDERED.map((item) => ({ ...item, active: item.key === a }))
 
   const signedIn = !!user
+  // The book-chapter cart (src/lib/cart/store.ts); the link shows only once something is in it.
+  const cartCount = useCart().length
   const fullName = user?.fullName || ''
   const initials = initialsOf(fullName) || 'U'
   // Readable role names, not OJS's internal slugs: "Journal manager", not
@@ -555,6 +559,13 @@ export function Header({ suggestions }: { suggestions: TypeaheadIndex }) {
               <Link href="/register" style={{ fontSize: 14, color: 'var(--ink-2, #1F2A36)', fontWeight: 500 }}>Register</Link>
             </>
           )}
+          {cartCount > 0 ? (
+            <Link href="/cart" aria-label={`Cart, ${cartCount} item${cartCount === 1 ? '' : 's'}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: 'var(--ink-2,#1F2A36)', textDecoration: 'none' }}>
+              <CartIcon size={18} />
+              Cart
+              <span aria-hidden="true" style={{ minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 10, background: 'var(--accent,#1D5DA8)', color: '#fff', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{cartCount}</span>
+            </Link>
+          ) : null}
           <Link href="/submit" className="ngiqHdrSubmit" style={{ background: 'var(--accent, #1D5DA8)', color: '#fff', padding: '9px 16px', borderRadius: 3, fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>Submit manuscript</Link>
         </div>
       </div>
