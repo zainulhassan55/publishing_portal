@@ -5,16 +5,18 @@ import { useRouter } from 'next/navigation'
 import { useState, type CSSProperties, type FormEvent } from 'react'
 import { useSession } from '@/components/auth/SessionProvider'
 import { signInHref } from '@/lib/auth/links'
-import { CHAPTER_PRICE_USD, formatUsd } from '@/lib/cart/pricing'
+import { cartTotalUsd, chapterPriceUsd, formatUsd } from '@/lib/cart/pricing'
 import { useCart } from '@/lib/cart/store'
 import { OrderSummary } from './OrderSummary'
 
 /**
  * Guest checkout, laid out after IGI Global's (publisher's reference, November 2026).
  *
- * "Place order" checks the form and moves on to PAYMENT_PAGE, a placeholder
- * until the payment step is built. Nothing typed here is sent or stored yet,
- * and there are deliberately no card fields: card details belong only on the
+ * "Place order" checks the form and posts the cart and billing details to
+ * /api/checkout, which creates the order in the payment Worker
+ * (workers/chapter-pay) and returns its payment page. While payments are not
+ * configured that route answers with PAYMENT_PAGE, the "coming soon" page.
+ * There are deliberately no card fields: card details belong only on the
  * payment provider's own page, never on ours.
  */
 export const PAYMENT_PAGE = '/checkout/payment'
@@ -82,6 +84,8 @@ export function CheckoutForm() {
   const countries = getCountries()
   const [f, setF] = useState<Fields>(EMPTY)
   const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({})
+  const [busy, setBusy] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   if (items.length === 0) {
     return (
@@ -94,7 +98,7 @@ export function CheckoutForm() {
     )
   }
 
-  const subtotal = items.length * CHAPTER_PRICE_USD
+  const subtotal = cartTotalUsd(items.map((i) => i.id))
 
   const set = (k: keyof Fields) => (e: { target: { value: string } }) => {
     setF({ ...f, [k]: e.target.value })
@@ -127,7 +131,7 @@ export function CheckoutForm() {
     )
   }
 
-  const placeOrder = (e: FormEvent) => {
+  const placeOrder = async (e: FormEvent) => {
     e.preventDefault()
     const next: Partial<Record<keyof Fields, string>> = {}
     for (const k of REQUIRED) if (!f[k].trim()) next[k] = `Enter your ${LABELS[k].toLowerCase()}.`
@@ -137,13 +141,37 @@ export function CheckoutForm() {
       document.getElementById(`co-${Object.keys(next)[0]}`)?.focus()
       return
     }
-    router.push(PAYMENT_PAGE)
+    setBusy(true)
+    setSubmitError('')
+    try {
+      const { method, ...buyer } = f
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: items.map(({ id, title, volumeTitle, seriesCode }) => ({ id, title, volumeTitle, seriesCode })), buyer, method }),
+      })
+      const data = (await res.json().catch(() => ({}))) as { payUrl?: string; error?: string; message?: string }
+      if (!res.ok || !data.payUrl) throw new Error(data.error || data.message || 'The order could not be placed.')
+      // The Worker's payment page is another origin: a full navigation, not router.push.
+      if (data.payUrl.startsWith('/')) router.push(data.payUrl)
+      else window.location.assign(data.payUrl)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'The order could not be placed.')
+      setBusy(false)
+    }
   }
 
   const placeButton = (
-    <button type="submit" form="checkout-form" style={{ width: '100%', border: 0, background: 'var(--accent,#0C8375)', color: '#fff', padding: '13px 16px', borderRadius: 3, font: 'inherit', fontSize: 17, fontWeight: 600, cursor: 'pointer' }}>
-      Place order
-    </button>
+    <>
+      <button type="submit" form="checkout-form" disabled={busy} style={{ width: '100%', border: 0, background: 'var(--accent,#0C8375)', color: '#fff', padding: '13px 16px', borderRadius: 3, font: 'inherit', fontSize: 17, fontWeight: 600, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1 }}>
+        {busy ? 'Placing order…' : 'Place order'}
+      </button>
+      {submitError ? (
+        <p role="alert" style={{ margin: 0, fontSize: 13.5, color: '#A52A2A' }}>
+          {submitError}
+        </p>
+      ) : null}
+    </>
   )
 
   return (
@@ -226,7 +254,7 @@ export function CheckoutForm() {
                 <span style={{ minWidth: 0 }}>
                   <strong style={{ fontWeight: 700 }}>Chapter {it.chapter}:</strong> {it.title} <span style={{ color: 'var(--muted,#505C68)' }}>({it.seriesCode})</span>
                 </span>
-                <span style={{ flex: '0 0 auto', fontWeight: 600 }}>{formatUsd(CHAPTER_PRICE_USD)}</span>
+                <span style={{ flex: '0 0 auto', fontWeight: 600 }}>{formatUsd(chapterPriceUsd(it.id) ?? 0)}</span>
               </li>
             ))}
           </ul>

@@ -6,7 +6,7 @@ import type { Publication } from '@/lib/publication'
 import { mastheadFor } from '@/lib/publication'
 import { doiUrl, siteName } from '@/lib/site'
 import { AddToCartButton } from '@/components/cart/AddToCartButton'
-import { CHAPTER_PRICE_USD, chapterItemId, formatUsd } from '@/lib/cart/pricing'
+import { chapterItemId, formatTwd, formatUsd, volumePrice } from '@/lib/cart/pricing'
 import type { Series, SeriesVolume } from '@/types/publishing'
 
 const body = { margin: '0 0 14px', fontSize: 16, lineHeight: 1.7, color: 'var(--ink-2,#1F2A36)' } as const
@@ -41,6 +41,7 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
   const hasDescription = v.description.length > 0 || v.readership !== null || Boolean(v.coverage)
   const seriesHome = `/series/${series.slug}`
   const authored = v.contributorRole === 'authors'
+  const price = volumePrice(series.slug, v.slug)
 
   const bibliographic: [string, ReactNode][] = [
     ['Series', `${series.title} (${series.code})`],
@@ -49,6 +50,7 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
     ['Publisher', siteName],
     ['Format', 'E-book (PDF)'],
     ...(v.pages ? ([['Pages', String(v.pages)]] as [string, ReactNode][]) : []),
+    ...(price ? ([['Price (e-book)', <strong key="price" style={strong}>{formatUsd(price.bookUsd)} ({formatTwd(price.bookTwd)})</strong>]] as [string, ReactNode][]) : []),
     ['ISBN', v.isbn ? <strong key="isbn" style={strong}>{v.isbn}</strong> : <span style={tba}>To be assigned</span>],
     ...(v.doi ? ([['DOI', <a key="doi" href={doiUrl(v.doi)}>{doiUrl(v.doi)}</a>]] as [string, ReactNode][]) : []),
     [v.publishedDate ? 'Date of publication' : 'Expected date of publication', v.publishedDate ?? v.expectedDate],
@@ -69,11 +71,17 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
             {authored ? <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--accent-dark,#0A685C)' }}>{v.editors.map((e) => e.name).join(', ')}</span> : null}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-            <span style={{ fontSize: 13.5, color: 'var(--muted,#505C68)' }}>Download this chapter</span>
-            <span style={{ fontSize: 19, fontWeight: 700, color: 'var(--ink,#101B27)' }}>{formatUsd(CHAPTER_PRICE_USD)}</span>
-            <AddToCartButton
-              item={{ id: chapterItemId(series.slug, v.slug, i + 1), seriesCode: series.code, volumeTitle: v.title, volumeHref, chapter: i + 1, title: c, cover: v.cover ?? series.profile.tile }}
-            />
+            {price ? (
+              <>
+                <span style={{ fontSize: 13.5, color: 'var(--muted,#505C68)' }}>Download this chapter</span>
+                <span style={{ fontSize: 19, fontWeight: 700, color: 'var(--ink,#101B27)' }}>{formatUsd(price.chapterUsd)}</span>
+                <AddToCartButton
+                  item={{ id: chapterItemId(series.slug, v.slug, i + 1), seriesCode: series.code, volumeTitle: v.title, volumeHref, chapter: i + 1, title: c, cover: v.cover ?? series.profile.tile }}
+                />
+              </>
+            ) : (
+              <span style={{ fontSize: 13.5, color: 'var(--muted,#505C68)', fontStyle: 'italic' }}>Price to be announced</span>
+            )}
           </div>
         </li>
       ))}
