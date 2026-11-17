@@ -181,6 +181,7 @@ These live in `~/portal/.env` on the server. `.env.example` documents each one:
 | `S3_ENDPOINT`, `S3_REGION=auto`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | R2 API token (Object Read & Write on the two buckets only) |
 | `S3_BUCKET_SUBMISSIONS`, `S3_BUCKET_PUBLICATIONS` | `ngiq-submissions`, `ngiq-publications` |
 | `TURNSTILE_SECRET_KEY` | Pair of the public site key |
+| `PAY_API_URL`, `PAY_PORTAL_SECRET`, `PAY_ADMIN_TOKEN` | Optional. The chapter-payment Worker (`workers/chapter-pay/README.md`): its URL, its `PORTAL_SECRET` and its `ADMIN_API_TOKEN`. Unset, checkout shows "payment coming soon" |
 | The `NEXT_PUBLIC_*` values above | Keep them identical to the build values |
 
 After changing `.env`, run `pm2 restart ngiq-portal --update-env`.
