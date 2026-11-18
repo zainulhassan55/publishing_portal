@@ -75,6 +75,7 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
               <>
                 <span style={{ fontSize: 13.5, color: 'var(--muted,#505C68)' }}>Download this chapter</span>
                 <span style={{ fontSize: 19, fontWeight: 700, color: 'var(--ink,#101B27)' }}>{formatUsd(price.chapterUsd)}</span>
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink-3,#3C4854)', marginTop: -4 }}>{formatTwd(price.chapterTwd)}</span>
                 <AddToCartButton
                   item={{ id: chapterItemId(series.slug, v.slug, i + 1), seriesCode: series.code, volumeTitle: v.title, volumeHref, chapter: i + 1, title: c, cover: v.cover ?? series.profile.tile }}
                 />

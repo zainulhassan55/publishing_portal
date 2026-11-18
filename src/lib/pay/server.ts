@@ -21,6 +21,8 @@ export type OrderStatus = {
   state: PaidState
   orderNo: string
   totalUsd: number
+  /** Absent on orders created before NT$ prices (November 2026). */
+  totalTwd?: number
   paidAt: string
   gateway: string
   itemIds: string[]
@@ -35,6 +37,7 @@ export type OrderSummary = {
   payTime: string | null
   gateway: string | null
   totalUsd: number
+  totalTwd: number | null
   paidUsd: number | null
   paidTwd: number | null
   tradeNo: string | null

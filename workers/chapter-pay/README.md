@@ -6,11 +6,11 @@ The book-chapter shop's payment backend. It is modelled on the TAIIS 2026 confer
 
 1. **Checkout.** The reader presses *Place order* on `/checkout`. The portal's `POST /api/checkout` then calls the Worker's `POST /order`, server to server, with `Bearer PORTAL_SECRET`.
 2. **The Worker creates the order.**
-   - The portal prices each chapter from `src/lib/cart/pricing.ts` (the browser never sends a price). The Worker checks every price is within US$1–500, totals the order, and stores `order:<NC…>` in KV.
+   - The portal prices each chapter from `src/lib/cart/pricing.ts` (the browser never sends a price). Each chapter has two fixed list prices, US$ and NT$. The Worker checks each is within range (US$1–500, NT$30–20,000), totals both, and stores `order:<NC…>` in KV.
    - It returns `/pay/<order>?t=<signed token>`.
 3. **Payment.** The reader pays on the Worker's page.
-   - **PayPal (USD).** The capture is re-read from PayPal's API. It must be `COMPLETED`, carry our order number as `invoice_id`, and match the amount exactly.
-   - **NewebPay (NT$ at the live rate).** Each hand-off uses a fresh `MerchantOrderNo`, which avoids the MPG03008 error. `/notify` and `/return` are both signature-checked. The amount must match.
+   - **PayPal (the fixed US$ total).** The capture is re-read from PayPal's API. It must be `COMPLETED`, carry our order number as `invoice_id`, and match the amount exactly.
+   - **NewebPay (the fixed NT$ total, no exchange-rate conversion).** Each hand-off uses a fresh `MerchantOrderNo`, which avoids the MPG03008 error. `/notify` and `/return` are both signature-checked. The amount must match.
 4. **Back to the portal.** The Worker redirects to `/checkout/complete?o=&t=`.
    - The portal reads `GET /status` on the server.
    - On success, it removes the paid chapters from the cart.

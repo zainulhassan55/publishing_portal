@@ -1,5 +1,5 @@
 import { requireAdminPage } from '@/lib/admin/guard'
-import { formatUsd } from '@/lib/cart/pricing'
+import { formatTwd, formatUsd } from '@/lib/cart/pricing'
 import { listPaymentOrders, paymentsConfigured, type OrderSummary } from '@/lib/pay/server'
 
 export const dynamic = 'force-dynamic'
@@ -29,7 +29,8 @@ export default async function AdminOrdersPage() {
     }
   }
   const paid = orders.filter((o) => o.status === 'paid')
-  const received = paid.reduce((sum, o) => sum + Number(o.paidUsd ?? o.totalUsd), 0)
+  const receivedUsd = paid.reduce((sum, o) => sum + Number(o.paidUsd ?? 0), 0)
+  const receivedTwd = paid.reduce((sum, o) => sum + Number(o.paidTwd ?? 0), 0)
 
   return (
     <section>
@@ -38,7 +39,7 @@ export default async function AdminOrdersPage() {
         <p role="alert" style={{ color: '#7f1d1d' }}>{error}</p>
       ) : (
         <p style={muted}>
-          {orders.length} orders · {paid.length} paid · {formatUsd(received)} received · times are Taipei (UTC+8)
+          {orders.length} orders · {paid.length} paid · {formatUsd(receivedUsd)} via PayPal + {formatTwd(receivedTwd)} via NewebPay received · times are Taipei (UTC+8)
         </p>
       )}
       {orders.length ? (
@@ -53,7 +54,10 @@ export default async function AdminOrdersPage() {
                   <td style={cell}><strong>{o.orderNo}</strong><br /><span style={muted}>{taipei(o.createdAt)}</span></td>
                   <td style={cell}>{o.name}<br /><span style={muted}>{o.email}{o.country ? ` · ${o.country}` : ''}</span></td>
                   <td style={cell}>{o.items.map((i) => <div key={i.id}>{i.seriesCode} · {i.title || i.id}</div>)}</td>
-                  <td style={cell}>{formatUsd(o.paidUsd ?? o.totalUsd)}{o.paidTwd ? <><br /><span style={muted}>NT${o.paidTwd}</span></> : null}</td>
+                  <td style={cell}>
+                    {o.paidTwd ? <strong>{formatTwd(o.paidTwd)}</strong> : o.paidUsd ? <strong>{formatUsd(o.paidUsd)}</strong> : formatUsd(o.totalUsd)}
+                    {!o.paidTwd && !o.paidUsd && o.totalTwd ? <><br /><span style={muted}>{formatTwd(o.totalTwd)}</span></> : null}
+                  </td>
                   <td style={cell}>
                     {o.status}
                     {o.payTime ? <><br /><span style={muted}>{taipei(o.payTime)} · {o.gateway}</span></> : null}

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState, type CSSProperties, type FormEvent } from 'react'
 import { useSession } from '@/components/auth/SessionProvider'
 import { signInHref } from '@/lib/auth/links'
-import { cartTotalUsd, chapterPriceUsd, formatUsd } from '@/lib/cart/pricing'
+import { cartTotal, chapterPrice, formatBoth, formatTwd, formatUsd } from '@/lib/cart/pricing'
 import { useCart } from '@/lib/cart/store'
 import { OrderSummary } from './OrderSummary'
 
@@ -98,7 +98,7 @@ export function CheckoutForm() {
     )
   }
 
-  const subtotal = cartTotalUsd(items.map((i) => i.id))
+  const subtotal = cartTotal(items.map((i) => i.id))
 
   const set = (k: keyof Fields) => (e: { target: { value: string } }) => {
     setF({ ...f, [k]: e.target.value })
@@ -228,8 +228,8 @@ export function CheckoutForm() {
             <legend style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Payment method</legend>
             {(
               [
-                ['card', 'Credit or debit card', 'Visa, Mastercard, American Express, Discover'],
-                ['paypal', 'PayPal', 'Pay with your PayPal account'],
+                ['card', `Credit or debit card · ${formatTwd(subtotal.twd)}`, 'Charged in New Taiwan dollars through NewebPay. Visa, Mastercard, JCB, UnionPay'],
+                ['paypal', `PayPal · ${formatUsd(subtotal.usd)}`, 'Charged in US dollars. Pay with your PayPal account or a card'],
               ] as const
             ).map(([value, label, hint]) => (
               <label key={value} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', border: `1px solid ${f.method === value ? 'var(--accent,#0C8375)' : 'var(--line,#DCE1E6)'}`, borderRadius: 4, background: f.method === value ? 'var(--accent-tint,#F3F9F8)' : 'var(--surface,#fff)', cursor: 'pointer' }}>
@@ -254,7 +254,7 @@ export function CheckoutForm() {
                 <span style={{ minWidth: 0 }}>
                   <strong style={{ fontWeight: 700 }}>Chapter {it.chapter}:</strong> {it.title} <span style={{ color: 'var(--muted,#505C68)' }}>({it.seriesCode})</span>
                 </span>
-                <span style={{ flex: '0 0 auto', fontWeight: 600 }}>{formatUsd(chapterPriceUsd(it.id) ?? 0)}</span>
+                <span style={{ flex: '0 0 auto', fontWeight: 600 }}>{formatBoth(chapterPrice(it.id) ?? { usd: 0, twd: 0 })}</span>
               </li>
             ))}
           </ul>

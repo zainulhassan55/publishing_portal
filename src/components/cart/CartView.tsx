@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { cartTotalUsd, chapterPriceUsd, formatUsd } from '@/lib/cart/pricing'
+import { cartTotal, chapterPrice, formatTwd, formatUsd } from '@/lib/cart/pricing'
 import { removeFromCart, useCart } from '@/lib/cart/store'
 import { OrderSummary } from './OrderSummary'
 
@@ -22,7 +22,7 @@ export function CartView() {
     )
   }
 
-  const subtotal = cartTotalUsd(items.map((i) => i.id))
+  const subtotal = cartTotal(items.map((i) => i.id))
 
   return (
     <div className="co-wrap" style={{ display: 'flex', gap: 40, alignItems: 'flex-start' }}>
@@ -43,7 +43,10 @@ export function CartView() {
                 </Link>
               </div>
               <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-                <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink,#101B27)' }}>{formatUsd(chapterPriceUsd(it.id) ?? 0)}</span>
+                <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink,#101B27)', textAlign: 'right' }}>
+                  {formatUsd(chapterPrice(it.id)?.usd ?? 0)}
+                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-3,#3C4854)' }}>{formatTwd(chapterPrice(it.id)?.twd ?? 0)}</span>
+                </span>
                 <button
                   type="button"
                   onClick={() => removeFromCart(it.id)}

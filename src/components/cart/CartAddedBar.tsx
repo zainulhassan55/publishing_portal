@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { chapterPriceUsd, formatUsd } from '@/lib/cart/pricing'
+import { chapterPrice, formatBoth } from '@/lib/cart/pricing'
 import { ADDED_EVENT, useCart, type CartItem } from '@/lib/cart/store'
 import { CartIcon } from './AddToCartButton'
 
@@ -59,7 +59,7 @@ export function CartAddedBar() {
                 {item.title}
               </span>
               <span style={{ fontSize: 13.5, color: 'var(--ink-3,#3C4854)' }}>
-                <strong style={{ fontWeight: 700 }}>Chapter {item.chapter}</strong> · {item.seriesCode} · {formatUsd(chapterPriceUsd(item.id) ?? 0)}
+                <strong style={{ fontWeight: 700 }}>Chapter {item.chapter}</strong> · {item.seriesCode} · {formatBoth(chapterPrice(item.id) ?? { usd: 0, twd: 0 })}
               </span>
             </div>
             <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }} className="cab-side">

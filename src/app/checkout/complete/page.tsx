@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ClearCartOnPaid } from '@/components/cart/ClearCartOnPaid'
 import { ShopShell } from '@/components/cart/ShopShell'
-import { formatUsd } from '@/lib/cart/pricing'
+import { formatTwd, formatUsd } from '@/lib/cart/pricing'
 import { getPaymentStatus, type PaidState } from '@/lib/pay/server'
 
 export const metadata: Metadata = { title: 'Order status', robots: { index: false, follow: false } }
@@ -34,7 +34,7 @@ export default async function CheckoutCompletePage({ searchParams }: { searchPar
         <p style={{ margin: '0 0 16px' }}>{c.text}</p>
         {status ? (
           <p style={{ margin: '0 0 22px', fontSize: 15 }}>
-            Order <strong>{status.orderNo}</strong> · {status.itemIds.length} chapter{status.itemIds.length === 1 ? '' : 's'} · <strong>{formatUsd(status.totalUsd)}</strong>
+            Order <strong>{status.orderNo}</strong> · {status.itemIds.length} chapter{status.itemIds.length === 1 ? '' : 's'} · <strong>{status.gateway === 'newebpay' && status.totalTwd ? formatTwd(status.totalTwd) : formatUsd(status.totalUsd)}</strong>
             {status.email ? <> · {status.email}</> : null}
           </p>
         ) : null}

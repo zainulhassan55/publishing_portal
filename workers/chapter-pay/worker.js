@@ -22,6 +22,10 @@
  *   ADMIN_USER, ADMIN_PASSWORD   sign-in for the standalone /admin page
  *   PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET   [PAYPAL_SANDBOX=1 for the sandbox]
  *   NEWEBPAY_MERCHANT_ID, NEWEBPAY_HASH_KEY, NEWEBPAY_HASH_IV   (optional; hidden until set)
+ *
+ * CURRENCIES: each chapter has two FIXED list prices set by the portal
+ * (src/lib/cart/pricing.ts). PayPal charges the US$ total, NewebPay the NT$
+ * total; there is no exchange-rate conversion.
  *   HOSTINGER_MAIL_TOKEN   (optional) confirmation emails via Hostinger Mail API
  * VARS: PORTAL_BASE.  BINDING: KV namespace ORDERS.  CRON: every 15 min.
  * Check: GET /ping
@@ -32,12 +36,11 @@ const SHOP_NAME = 'NextGenIQ Press';
 const ORDER_PREFIX = 'NC';                    // order numbers NC…; must differ from TAIIS (TA) / SysCom
 /* Chapter prices come from the portal (src/lib/cart/pricing.ts), which alone may call
    POST /order (Bearer PORTAL_SECRET); the browser never sends a price. Sanity bounds: */
-const MIN_PRICE_USD = 1, MAX_PRICE_USD = 500;
+const MIN_PRICE_USD = 1, MAX_PRICE_USD = 500, MIN_PRICE_TWD = 30, MAX_PRICE_TWD = 20000;
 const MAX_ITEMS = 50;
 const ORG_EMAIL = 'info@nextgeniqpress.com';  // CHANGE to the shop mailbox
 const EMAIL_FROM_NAME = 'NextGenIQ Press';
 const NOTIFY_ORG_TO = '';                     // '' = no "new order" email to the publisher
-const FX_FALLBACK = 32.5, FX_CACHE_HOURS = 6; // NewebPay charges NT$ at the live USD rate
 const NEWEBPAY_TEST = false;                  // true → ccore.newebpay.com (test keys!)
 const MPG_VERSION = '2.0';
 const ITEM_ID_RE = /^[a-z0-9-]{2,40}\/[a-z0-9-]{1,120}\/\d{1,3}$/;   // chapterItemId(): series/volume/chapter
@@ -100,8 +103,9 @@ async function handleOrder(env, request) {
     if (!ITEM_ID_RE.test(id)) return json(400, { ok: false, error: 'Unknown chapter in cart: ' + id });
     if (seen.has(id)) continue; seen.add(id);
     const priceUsd = Math.round(Number(it.priceUsd) * 100) / 100;
-    if (!(priceUsd >= MIN_PRICE_USD && priceUsd <= MAX_PRICE_USD)) return json(400, { ok: false, error: 'No price for chapter ' + id });
-    clean.push({ id, title: str(it.title, 400), volumeTitle: str(it.volumeTitle, 300), seriesCode: str(it.seriesCode, 20), priceUsd });
+    const priceTwd = Math.round(Number(it.priceTwd));
+    if (!(priceUsd >= MIN_PRICE_USD && priceUsd <= MAX_PRICE_USD) || !(priceTwd >= MIN_PRICE_TWD && priceTwd <= MAX_PRICE_TWD)) return json(400, { ok: false, error: 'No price for chapter ' + id });
+    clean.push({ id, title: str(it.title, 400), volumeTitle: str(it.volumeTitle, 300), seriesCode: str(it.seriesCode, 20), priceUsd, priceTwd });
   }
   const u = b.buyer || {};
   const buyer = { email: str(u.email, 120), firstName: str(u.firstName, 60), lastName: str(u.lastName, 60), company: str(u.company, 120),
@@ -110,13 +114,14 @@ async function handleOrder(env, request) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyer.email)) return json(400, { ok: false, error: 'Valid email is required.' });
   for (const k of ['firstName', 'lastName', 'street', 'city', 'country', 'postcode']) if (!buyer[k]) return json(400, { ok: false, error: 'Missing ' + k + '.' });
   const totalUsd = Math.round(clean.reduce((s, i) => s + i.priceUsd, 0) * 100) / 100;
+  const totalTwd = clean.reduce((s, i) => s + i.priceTwd, 0);
   const orderNo = (ORDER_PREFIX + Date.now() + Math.floor(Math.random() * 900 + 100)).substring(0, 20);
-  const o = { orderNo, status: 'created', items: clean, buyer, totalUsd, currency: 'USD',
+  const o = { orderNo, status: 'created', items: clean, buyer, totalUsd, totalTwd,
     method: b.method === 'paypal' ? 'paypal' : 'card', portalUserId: str(b.portalUserId, 60),
     ip: request.headers.get('X-Forwarded-For') || '', createdAt: new Date().toISOString() };
   await putOrder(env, o);
   const tok = await orderToken(env, orderNo);
-  return json(200, { ok: true, orderNo, totalUsd, payUrl: workerBase(request) + '/pay/' + orderNo + '?t=' + tok });
+  return json(200, { ok: true, orderNo, totalUsd, totalTwd, payUrl: workerBase(request) + '/pay/' + orderNo + '?t=' + tok });
 }
 
 /* ======================= NewebPay (MPG) ======================= */
@@ -142,21 +147,12 @@ async function aesDecrypt(env, hex) {
 async function tradeSha(env, info) {
   return toHex(await crypto.subtle.digest('SHA-256', te.encode('HashKey=' + env.NEWEBPAY_HASH_KEY.trim() + '&' + info + '&HashIV=' + env.NEWEBPAY_HASH_IV.trim()))).toUpperCase();
 }
-async function getRate(env) {
-  try { const c = JSON.parse((await env.ORDERS.get('fx:USDTWD')) || 'null'); if (c && Date.now() - c.ts < FX_CACHE_HOURS * 3600e3) return c.rate; } catch (e) {}
-  try {
-    const d = await (await fetch('https://open.er-api.com/v6/latest/USD')).json();
-    if (d && d.rates && d.rates.TWD > 0) { await env.ORDERS.put('fx:USDTWD', JSON.stringify({ rate: d.rates.TWD, ts: Date.now() })); return d.rates.TWD; }
-  } catch (e) {}
-  return FX_FALLBACK;
-}
 /* Every hand-off to NewebPay uses a FRESH MerchantOrderNo (NewebPay refuses a
    re-post of the same number, MPG03008); attempts map back to the order. */
 async function newebpayFields(env, o, base) {
   const attempt = (o.orderNo + String(Date.now()).slice(-6)).substring(0, 30);
-  const rate = await getRate(env);
-  const amt = Math.max(1, Math.ceil(o.totalUsd * rate));
-  o.np = { attempt, amountTwd: amt, fxRate: rate, at: new Date().toISOString() };
+  const amt = Math.round(Number(o.totalTwd));                       // fixed NT$ list prices, no conversion
+  o.np = { attempt, amountTwd: amt, at: new Date().toISOString() };
   o.npAttempts = (o.npAttempts || []).concat([attempt]).slice(-10);
   await putOrder(env, o);
   await env.ORDERS.put('npattempt:' + attempt, o.orderNo, { expirationTtl: 60 * 60 * 24 * 30 });
@@ -241,6 +237,7 @@ async function handlePaypalConfirm(env, request) {
 }
 
 /* ======================= after payment: index + emails ======================= */
+const paidText = (o) => (o.gateway === 'newebpay' ? nt(o.paidTwd || o.totalTwd) : usd(o.paidUsd || o.totalUsd));
 async function afterPaid(env, o) {
   try { await env.ORDERS.put('paid:' + (o.payTime || o.updatedAt) + ':' + o.orderNo, o.orderNo); } catch (e) {}
   await sendConfirmation(env, o);
@@ -266,17 +263,17 @@ async function sendConfirmation(env, o) {
   const key = 'mailsent:' + o.orderNo;
   if (await env.ORDERS.get(key)) return;
   await env.ORDERS.put(key, JSON.stringify({ at: new Date().toISOString(), result: 'pending' }));
-  const rows = o.items.map((i) => '<tr><td style="padding:4px 10px 4px 0">' + esc(i.seriesCode) + ' · Chapter ' + esc(i.id.split('/').pop()) + ': ' + esc(i.title) + '</td><td style="text-align:right">' + usd(i.priceUsd) + '</td></tr>').join('');
+  const rows = o.items.map((i) => '<tr><td style="padding:4px 10px 4px 0">' + esc(i.seriesCode) + ' · Chapter ' + esc(i.id.split('/').pop()) + ': ' + esc(i.title) + '</td><td style="text-align:right">' + (o.gateway === 'newebpay' ? nt(i.priceTwd) : usd(i.priceUsd)) + '</td></tr>').join('');
   const body = '<div style="font-family:Segoe UI,Helvetica,Arial,sans-serif;max-width:560px;color:#1b2435">'
     + '<h2 style="color:#0A685C">Thank you for your order</h2><p>Dear ' + esc(o.buyer.firstName + ' ' + o.buyer.lastName) + ',</p>'
     + '<p>Your payment for order <b>' + esc(o.orderNo) + '</b> has been received.</p><table style="border-collapse:collapse;font-size:14px">' + rows
-    + '<tr><td style="padding-top:8px"><b>Total</b></td><td style="text-align:right;padding-top:8px"><b>' + usd(o.totalUsd) + '</b></td></tr></table>'
+    + '<tr><td style="padding-top:8px"><b>Total</b></td><td style="text-align:right;padding-top:8px"><b>' + paidText(o) + '</b></td></tr></table>'
     + '<p style="font-size:13px;color:#555">Your chapter downloads will be sent to this address. Questions: ' + esc(ORG_EMAIL) + '</p></div>';
   let r; try { r = await sendMail(env, o.buyer.email, SHOP_NAME + ' order ' + o.orderNo, body); } catch (e) { r = { error: e.message }; }
   if (r.skipped || r.error) { await env.ORDERS.delete(key); o.emailError = r.error || 'no mail provider'; await putOrder(env, o); return; }
   await env.ORDERS.put(key, JSON.stringify({ at: new Date().toISOString(), result: 'sent' }));
   o.emailSent = new Date().toISOString(); o.emailError = null; await putOrder(env, o);
-  if (NOTIFY_ORG_TO) { try { await sendMail(env, NOTIFY_ORG_TO, '[' + SHOP_NAME + '] Paid ' + usd(o.totalUsd) + ' — ' + o.orderNo, body); } catch (e) {} }
+  if (NOTIFY_ORG_TO) { try { await sendMail(env, NOTIFY_ORG_TO, '[' + SHOP_NAME + '] Paid ' + paidText(o) + ' — ' + o.orderNo, body); } catch (e) {} }
 }
 
 /* ======================= /pay/<no> — the payment page ======================= */
@@ -291,17 +288,17 @@ async function handlePay(env, request, orderNo) {
   if (npReady(env)) {
     const f = await newebpayFields(env, o, base);
     np = '<form method="post" action="' + NP_GATEWAY + '">' + Object.entries(f).map(([k, v]) => '<input type="hidden" name="' + k + '" value="' + esc(v) + '">').join('')
-      + '<button class="b">Pay by card via NewebPay (' + nt(o.np.amountTwd) + ')</button></form><p class="s">Charged in NT$ at USD/TWD ' + o.np.fxRate.toFixed(3) + '.</p>';
+      + '<button class="b">Pay by card via NewebPay — ' + nt(o.np.amountTwd) + '</button></form><p class="s">Charged in New Taiwan dollars.</p>';
   }
-  const pp = env.PAYPAL_CLIENT_ID ? '<div id="pp"></div><script src="https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(env.PAYPAL_CLIENT_ID.trim()) + '&currency=USD&intent=capture&enable-funding=card"></script>'
+  const pp = env.PAYPAL_CLIENT_ID ? (np ? '<p class="s" style="margin-top:18px">Or pay ' + usd(o.totalUsd) + ' in US dollars with PayPal:</p>' : '<p class="s">Charged ' + usd(o.totalUsd) + ' in US dollars.</p>') + '<div id="pp"></div><script src="https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(env.PAYPAL_CLIENT_ID.trim()) + '&currency=USD&intent=capture&enable-funding=card"></script>'
     + '<script>paypal.Buttons({createOrder:function(d,a){return a.order.create({purchase_units:[{invoice_id:' + JSON.stringify(orderNo) + ',description:' + JSON.stringify(SHOP_NAME + ' chapters') + ',amount:{currency_code:"USD",value:' + JSON.stringify(Number(o.totalUsd).toFixed(2)) + '}}]})},'
     + 'onApprove:function(d,a){return a.order.capture().then(function(){return fetch("/paypal/confirm",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({orderNo:' + JSON.stringify(orderNo) + ',paypalOrderId:d.orderID,t:' + JSON.stringify(tok) + '})})}).then(function(r){return r.json()}).then(function(r){if(r.redirect)location.href=r.redirect;else document.getElementById("m").textContent=r.error||"Could not confirm."})},'
     + 'onError:function(){document.getElementById("m").textContent="PayPal error — please try again."}}).render("#pp")</script>' : '';
-  const items = o.items.map((i) => '<li>' + esc(i.title) + ' <span class="s">(' + esc(i.seriesCode) + ')</span> — ' + usd(i.priceUsd) + '</li>').join('');
+  const items = o.items.map((i) => '<li>' + esc(i.title) + ' <span class="s">(' + esc(i.seriesCode) + ')</span> — ' + usd(i.priceUsd) + ' · ' + nt(i.priceTwd) + '</li>').join('');
   return html(200, '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Payment — ' + esc(SHOP_NAME) + '</title>'
     + '<style>body{font-family:Segoe UI,Helvetica,Arial,sans-serif;background:#f4f6f8;color:#101B27;margin:0}.c{max-width:560px;margin:40px auto;background:#fff;border:1px solid #DCE1E6;border-radius:6px;padding:28px}'
     + 'h1{font-size:22px;margin:0 0 6px}.s{color:#505C68;font-size:13px}.b{width:100%;padding:13px;border:0;border-radius:4px;background:#0C8375;color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin:14px 0 4px}ul{padding-left:18px}</style></head>'
-    + '<body><div class="c"><h1>' + esc(SHOP_NAME) + ' — payment</h1><p class="s">Order ' + esc(orderNo) + '</p><ul>' + items + '</ul><p><b>Total ' + usd(o.totalUsd) + '</b></p>'
+    + '<body><div class="c"><h1>' + esc(SHOP_NAME) + ' — payment</h1><p class="s">Order ' + esc(orderNo) + '</p><ul>' + items + '</ul><p><b>Total ' + usd(o.totalUsd) + ' · ' + nt(o.totalTwd) + '</b></p>'
     + np + pp + (np || pp ? '' : '<p>Online payment is not configured yet.</p>') + '<p id="m" style="color:#A52A2A"></p>'
     + '<p class="s"><a href="' + esc((env.PORTAL_BASE || '') + '/cart') + '">← Back to cart</a> · Questions: ' + esc(ORG_EMAIL) + '</p></div></body></html>');
 }
@@ -312,7 +309,7 @@ async function handleStatus(env, request, orderNo) {
   if (!(await safeEq(tok, await orderToken(env, orderNo)))) return json(403, { ok: false, error: 'Invalid link' });
   const o = await getOrder(env, orderNo); if (!o) return json(404, { ok: false, error: 'Order not found' });
   const state = o.status === 'paid' ? 'success' : o.status === 'pending-payment' ? 'pending' : o.status === 'created' ? 'open' : 'fail';
-  return json(200, { ok: true, state, orderNo, totalUsd: o.totalUsd, paidAt: o.payTime || '', gateway: o.gateway || '', itemIds: o.items.map((i) => i.id),
+  return json(200, { ok: true, state, orderNo, totalUsd: o.totalUsd, totalTwd: o.totalTwd, paidAt: o.payTime || '', gateway: o.gateway || '', itemIds: o.items.map((i) => i.id),
     email: o.buyer.email.replace(/^(.{2}).*(@.*)$/, '$1***$2'), emailSent: !!o.emailSent });
 }
 async function listOrders(env) {
@@ -325,7 +322,7 @@ async function listOrders(env) {
   return out.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
 }
 const summary = (o) => ({ orderNo: o.orderNo, status: o.status, createdAt: o.createdAt, payTime: o.payTime || null, gateway: o.gateway || null,
-  totalUsd: o.totalUsd, paidUsd: o.paidUsd ?? null, paidTwd: o.paidTwd ?? null, tradeNo: o.tradeNo || null, email: o.buyer.email,
+  totalUsd: o.totalUsd, totalTwd: o.totalTwd ?? null, paidUsd: o.paidUsd ?? null, paidTwd: o.paidTwd ?? null, tradeNo: o.tradeNo || null, email: o.buyer.email,
   name: o.buyer.firstName + ' ' + o.buyer.lastName, country: o.buyer.country, company: o.buyer.company || null,
   items: o.items.map((i) => ({ id: i.id, title: i.title, seriesCode: i.seriesCode })), emailSent: o.emailSent || null, anomaly: o.anomaly || null });
 
@@ -348,17 +345,17 @@ async function handleAdmin(env, request, csv) {
   const orders = await listOrders(env);
   if (csv) {
     const cell = (v) => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    const cols = ['orderNo', 'status', 'createdAt', 'payTime', 'gateway', 'totalUsd', 'paidUsd', 'paidTwd', 'tradeNo', 'name', 'email', 'country', 'company'];
+    const cols = ['orderNo', 'status', 'createdAt', 'payTime', 'gateway', 'totalUsd', 'totalTwd', 'paidUsd', 'paidTwd', 'tradeNo', 'name', 'email', 'country', 'company'];
     const lines = [cols.concat(['items']).join(',')].concat(orders.map((o) => { const s = summary(o); return cols.map((c) => cell(s[c])).concat([cell(s.items.map((i) => i.id).join(' | '))]).join(','); }));
     return new Response('﻿' + lines.join('\n'), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="chapter-orders.csv"' } });
   }
   const paid = orders.filter((o) => o.status === 'paid');
   const rows = orders.map((o) => '<tr><td>' + esc(o.orderNo) + '<br><small>' + esc(tpe(o.createdAt)) + '</small></td><td>' + esc(o.buyer.firstName + ' ' + o.buyer.lastName) + '<br><small>' + esc(o.buyer.email) + '</small></td>'
-    + '<td>' + o.items.map((i) => esc(i.id)).join('<br>') + '</td><td>' + usd(o.totalUsd) + (o.paidTwd ? '<br><small>' + nt(o.paidTwd) + '</small>' : '') + '</td>'
+    + '<td>' + o.items.map((i) => esc(i.id)).join('<br>') + '</td><td>' + (o.status === 'paid' ? '<b>' + paidText(o) + '</b>' : usd(o.totalUsd) + '<br><small>' + nt(o.totalTwd || 0) + '</small>') + '</td>'
     + '<td>' + esc(o.status) + (o.payTime ? '<br><small>' + esc(tpe(o.payTime)) + ' · ' + esc(o.gateway) + '</small>' : '') + (o.anomaly ? '<br><small style="color:#a00">' + esc(o.anomaly) + '</small>' : '') + '</td>'
     + '<td>' + (o.emailSent ? '✉ sent' : o.status === 'paid' ? '<span style="color:#a60">✉ ' + esc(o.emailError || 'pending') + '</span>' : '') + '</td></tr>').join('');
   return html(200, '<!doctype html><html><head><meta charset="utf-8"><title>Chapter orders</title><style>body{font-family:Segoe UI,Helvetica,Arial,sans-serif;margin:20px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid #e3e8f0;padding:7px;text-align:left;vertical-align:top}small{color:#778}</style></head><body>'
-    + '<h2>' + esc(SHOP_NAME) + ' — chapter orders</h2><p>' + orders.length + ' orders · ' + paid.length + ' paid · ' + usd(paid.reduce((s, o) => s + Number(o.paidUsd || o.totalUsd), 0)) + ' received · <a href="/admin.csv">CSV</a></p>'
+    + '<h2>' + esc(SHOP_NAME) + ' — chapter orders</h2><p>' + orders.length + ' orders · ' + paid.length + ' paid · ' + usd(paid.reduce((s, o) => s + Number(o.paidUsd || 0), 0)) + ' + ' + nt(paid.reduce((s, o) => s + Number(o.paidTwd || 0), 0)) + ' received · <a href="/admin.csv">CSV</a></p>'
     + '<table><tr><th>Order</th><th>Buyer</th><th>Chapters</th><th>Amount</th><th>Status</th><th>Email</th></tr>' + (rows || '<tr><td colspan="6">No orders yet</td></tr>') + '</table></body></html>');
 }
 

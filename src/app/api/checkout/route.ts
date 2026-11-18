@@ -1,5 +1,5 @@
 import { enforceRateLimit, handler, jsonError, jsonOk, readJson } from '@/lib/api'
-import { chapterPriceUsd } from '@/lib/cart/pricing'
+import { chapterPrice } from '@/lib/cart/pricing'
 import { createPaymentOrder, paymentsConfigured } from '@/lib/pay/server'
 
 export const dynamic = 'force-dynamic'
@@ -26,9 +26,9 @@ export const POST = handler(async (request) => {
   const items = (Array.isArray(body.items) ? body.items : [])
     .map((i) => ({ id: s(i.id, 170), title: s(i.title, 400), volumeTitle: s(i.volumeTitle, 300), seriesCode: s(i.seriesCode, 20) }))
     .filter((i) => ITEM_ID.test(i.id))
-    .map((i) => ({ ...i, priceUsd: chapterPriceUsd(i.id) }))
+    .map((i) => ({ ...i, priceUsd: chapterPrice(i.id)?.usd ?? null, priceTwd: chapterPrice(i.id)?.twd ?? null }))
   if (items.length === 0) return jsonError('Your cart is empty.', 400)
-  const unpriced = items.find((i) => i.priceUsd === null)
+  const unpriced = items.find((i) => i.priceUsd === null || i.priceTwd === null)
   if (unpriced) return jsonError(`"${unpriced.title || unpriced.id}" is not on sale yet. Remove it from your cart to continue.`, 400)
   if (items.length > 50) return jsonError('At most 50 chapters per order.', 400)
 
