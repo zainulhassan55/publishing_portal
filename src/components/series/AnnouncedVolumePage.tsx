@@ -5,6 +5,8 @@ import { volumeAccessLabel, volumeDateLine, volumeEditorLine, volumeStatusLine }
 import type { Publication } from '@/lib/publication'
 import { mastheadFor } from '@/lib/publication'
 import { doiUrl, siteName } from '@/lib/site'
+import { AddToCartButton } from '@/components/cart/AddToCartButton'
+import { chapterItemId, formatTwd, formatUsd, volumePrice } from '@/lib/cart/pricing'
 import type { Series, SeriesVolume } from '@/types/publishing'
 
 const body = { margin: '0 0 14px', fontSize: 16, lineHeight: 1.7, color: 'var(--ink-2,#1F2A36)' } as const
@@ -22,9 +24,9 @@ const list = { margin: '0 0 18px', paddingLeft: 22, listStyle: 'disc', fontSize:
  * <details>: no JavaScript, keyboard and screen-reader friendly, and the
  * content stays in the server-rendered HTML for search engines.
  */
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, open = false, children }: { title: string; open?: boolean; children: ReactNode }) {
   return (
-    <details className="av-sec" style={{ borderBottom: '1px solid var(--line,#DCE1E6)' }}>
+    <details className="av-sec" open={open} style={{ borderBottom: '1px solid var(--line,#DCE1E6)' }}>
       <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '20px 4px', cursor: 'pointer', listStyle: 'none', fontSize: 20, fontWeight: 600, color: 'var(--ink,#101B27)' }}>
         <span>{title}</span>
         <span className="av-chev" aria-hidden="true" style={{ flex: '0 0 auto', width: 11, height: 11, borderRight: '2px solid var(--ink-3,#3C4854)', borderBottom: '2px solid var(--ink-3,#3C4854)', transform: 'rotate(45deg)', marginRight: 6, transition: 'transform .15s' }} />
@@ -39,6 +41,7 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
   const hasDescription = v.description.length > 0 || v.readership !== null || Boolean(v.coverage)
   const seriesHome = `/series/${series.slug}`
   const authored = v.contributorRole === 'authors'
+  const price = volumePrice(series.slug, v.slug)
 
   const bibliographic: [string, ReactNode][] = [
     ['Series', `${series.title} (${series.code})`],
@@ -47,18 +50,40 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
     ['Publisher', siteName],
     ['Format', 'E-book (PDF)'],
     ...(v.pages ? ([['Pages', String(v.pages)]] as [string, ReactNode][]) : []),
+    ...(price ? ([['Price (e-book)', <strong key="price" style={strong}>{formatUsd(price.bookUsd)} ({formatTwd(price.bookTwd)})</strong>]] as [string, ReactNode][]) : []),
     ['ISBN', v.isbn ? <strong key="isbn" style={strong}>{v.isbn}</strong> : <span style={tba}>To be assigned</span>],
     ...(v.doi ? ([['DOI', <a key="doi" href={doiUrl(v.doi)}>{doiUrl(v.doi)}</a>]] as [string, ReactNode][]) : []),
     [v.publishedDate ? 'Date of publication' : 'Expected date of publication', v.publishedDate ?? v.expectedDate],
     ...(volumeAccessLabel(v) ? ([['Access', v.access === 'open' ? 'Open access · CC BY 4.0' : 'Subscription access']] as [string, ReactNode][]) : []),
   ]
 
+  // Each chapter can be bought on its own (publisher, November 2026), laid out
+  // like IGI Global's table of contents: the chapter on the left, price and
+  // "Add to cart" on the right. An authored book's chapters are by its authors.
+  const volumeHref = `/series/${series.slug}/volumes/${v.slug}`
   const contents = v.contents.length ? (
-    <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+    <ol className="av-toc" style={{ margin: 0, padding: 0, listStyle: 'none' }}>
       {v.contents.map((c, i) => (
-        <li key={c} style={{ display: 'grid', gridTemplateColumns: '92px minmax(0,1fr)', gap: 12, padding: '12px 0', borderTop: i ? '1px solid var(--line,#DCE1E6)' : 'none', fontSize: 16, lineHeight: 1.55, color: 'var(--ink-2,#1F2A36)' }}>
-          <span style={{ fontWeight: 600, color: 'var(--ink,#101B27)' }}>Chapter {i + 1}</span>
-          <span>{c}</span>
+        <li key={c} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 220px', gap: '12px 28px', alignItems: 'start', padding: '18px 0', borderTop: i ? '1px solid var(--line,#DCE1E6)' : 'none' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
+            <span style={{ fontSize: 12.5, letterSpacing: '.06em', textTransform: 'uppercase', fontWeight: 700, color: 'var(--ink-3,#3C4854)' }}>Chapter {i + 1}</span>
+            <span style={{ fontFamily: 'var(--font-serif)', fontSize: 18, lineHeight: 1.4, fontWeight: 600, color: 'var(--ink,#101B27)' }}>{c}</span>
+            {authored ? <span style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--accent-dark,#0A685C)' }}>{v.editors.map((e) => e.name).join(', ')}</span> : null}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+            {price ? (
+              <>
+                <span style={{ fontSize: 13.5, color: 'var(--muted,#505C68)' }}>Download this chapter</span>
+                <span style={{ fontSize: 19, fontWeight: 700, color: 'var(--ink,#101B27)' }}>{formatUsd(price.chapterUsd)}</span>
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink-3,#3C4854)', marginTop: -4 }}>{formatTwd(price.chapterTwd)}</span>
+                <AddToCartButton
+                  item={{ id: chapterItemId(series.slug, v.slug, i + 1), seriesCode: series.code, volumeTitle: v.title, volumeHref, chapter: i + 1, title: c, cover: v.cover ?? series.profile.tile }}
+                />
+              </>
+            ) : (
+              <span style={{ fontSize: 13.5, color: 'var(--muted,#505C68)', fontStyle: 'italic' }}>Price to be announced</span>
+            )}
+          </div>
         </li>
       ))}
     </ol>
@@ -121,7 +146,7 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
 
   return (
     <>
-      <style>{`.av-sec>summary::-webkit-details-marker{display:none}.av-sec>summary:hover>span:first-child{color:var(--accent,#0C8375)}.av-sec>summary:focus-visible{outline:2px solid var(--accent,#0C8375);outline-offset:2px}.av-sec[open]>summary>.av-chev{transform:rotate(-135deg)!important}@media (max-width:640px){.av-head{flex-direction:column!important}.av-ids{margin:0!important}.av-cover{width:140px!important}.av-h1{font-size:25px!important}.av-sec>summary{font-size:18px!important}.av-sec ol>li{grid-template-columns:1fr!important;gap:2px!important}}`}</style>
+      <style>{`.av-sec>summary::-webkit-details-marker{display:none}.av-sec>summary:hover>span:first-child{color:var(--accent,#0C8375)}.av-sec>summary:focus-visible{outline:2px solid var(--accent,#0C8375);outline-offset:2px}.av-sec[open]>summary>.av-chev{transform:rotate(-135deg)!important}@media (max-width:640px){.av-head{flex-direction:column!important}.av-ids{margin:0!important}.av-cover{width:140px!important}.av-h1{font-size:25px!important}.av-sec>summary{font-size:18px!important}.av-toc>li{grid-template-columns:1fr!important}.av-toc>li>div:last-child{align-items:stretch!important}}`}</style>
       <JournalMasthead {...mastheadFor(pub, 'Volumes')} />
       <div id="main-content" style={{ maxWidth: 1280, margin: '0 auto', padding: '32px var(--shell-pad) 48px' }}>
         <article style={{ maxWidth: 960 }}>
@@ -187,7 +212,7 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
               </dl>
             </Section>
             <Section title="Description & Coverage">{description}</Section>
-            <Section title="Table of Contents">{contents}</Section>
+            <Section title="Table of Contents" open>{contents}</Section>
             <Section title={authored ? 'Author Bios' : 'Editor Bios'}>{authors}</Section>
           </div>
 

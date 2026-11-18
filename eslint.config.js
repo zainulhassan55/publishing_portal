@@ -6,7 +6,7 @@ import typescript from 'eslint-config-next/typescript'
 // validator JSON.stringifies a plugin object that references itself.
 const config = [
   {
-    ignores: ['.next/**', 'dist/**', 'dist-vps/**', 'node_modules/**', 'next-env.d.ts', 'content/**'],
+    ignores: ['.next/**', 'dist/**', 'dist-vps/**', 'node_modules/**', 'next-env.d.ts', 'content/**', 'workers/**'],
   },
   ...coreWebVitals,
   ...typescript,

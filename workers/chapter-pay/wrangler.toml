@@ -1,0 +1,16 @@
+# NextGenIQ Press: book-chapter payments (Cloudflare Worker).
+# Deploy:  npx wrangler deploy   (from this folder)
+# Secrets: npx wrangler secret put <NAME>   (see README.md for the list)
+name = "ngiq-chapter-pay"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[[kv_namespaces]]
+binding = "ORDERS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[vars]
+PORTAL_BASE = "https://www.nextgeniqpress.com"

@@ -22,6 +22,7 @@ const NAV = [
   { href: '/admin/proposals', label: 'Journal proposals' },
   { href: '/admin/forms', label: 'Editorial forms' },
   { href: '/admin/volumes', label: 'Book volumes' },
+  { href: '/admin/orders', label: 'Chapter orders' },
   { href: '/admin/submissions', label: 'All submissions' },
   { href: '/admin/activity', label: 'Activity' },
 ]

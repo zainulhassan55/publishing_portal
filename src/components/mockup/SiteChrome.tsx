@@ -1,6 +1,7 @@
 import { buildTypeaheadIndex } from '@/lib/search'
 import { Header } from './Header'
 import { Footer } from './Footer'
+import { CartAddedBar } from '@/components/cart/CartAddedBar'
 
 /**
  * Thin server wrapper around the replicated mockup chrome. Builds the compact
@@ -13,6 +14,7 @@ export async function SiteChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header suggestions={suggestions} />
+      <CartAddedBar />
       <main id="main">{children}</main>
       <Footer />
     </>
