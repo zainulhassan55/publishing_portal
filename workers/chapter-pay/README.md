@@ -10,13 +10,15 @@ The book-chapter shop's payment backend. It is modelled on the TAIIS 2026 confer
    - It returns `/pay/<order>?t=<signed token>`.
 3. **Payment.** The reader pays on the Worker's page.
    - **PayPal (the fixed US$ total).** The capture is re-read from PayPal's API. It must be `COMPLETED`, carry our order number as `invoice_id`, and match the amount exactly.
-   - **NewebPay (the fixed NT$ total, no exchange-rate conversion).** Each hand-off uses a fresh `MerchantOrderNo`, which avoids the MPG03008 error. `/notify` and `/return` are both signature-checked. The amount must match.
+   - **NewebPay (the fixed NT$ total, no exchange-rate conversion).** Offers only the methods in the `NEWEBPAY_METHODS` setting (default `CREDIT`); NewebPay refuses the whole request if a listed method is not enabled for the store (`MPG02003`). Each hand-off uses a fresh `MerchantOrderNo`, which avoids the MPG03008 error. `/notify` and `/return` are both signature-checked. The amount must match.
 4. **Back to the portal.** The Worker redirects to `/checkout/complete?o=&t=`.
    - The portal reads `GET /status` on the server.
    - On success, it removes the paid chapters from the cart.
 5. **Confirmation email.** The Worker sends it once, guarded by a `mailsent:` marker. The 15-minute cron retries failed sends.
 
 ## Dashboards
+
+Admin → Chapter orders lists orders with search, a status filter, sortable columns (date, buyer, amount, status, paid at) and a CSV download. Each order opens a page with the billing address, payment details, a printable receipt (not a 統一發票), and deletion: type the order number back, plus a tick for a paid order. The Worker keeps a `deleted:<order>` record of the amounts, and the portal logs the deletion under Admin → Activity.
 
 - **Inside the portal:** *Admin → Chapter orders* (`/admin/orders`). It reads `GET /admin/orders.json` with `Bearer ADMIN_API_TOKEN`.
 - **Standalone:** `https://<worker>/admin`, which needs `ADMIN_USER` / `ADMIN_PASSWORD`, plus `/admin.csv` for accounting. Use it when the portal is down.

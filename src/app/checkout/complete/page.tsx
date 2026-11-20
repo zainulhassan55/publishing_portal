@@ -43,6 +43,11 @@ export default async function CheckoutCompletePage({ searchParams }: { searchPar
       <div style={{ maxWidth: '62ch', padding: '24px 0', borderTop: '1px solid var(--line,#DCE1E6)', fontSize: 16, lineHeight: 1.65, color: 'var(--ink-2,#1F2A36)' }}>
         <p style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 600, color: c.tone }}>{c.title}</p>
         <p style={{ margin: '0 0 16px' }}>{c.text}</p>
+        {status?.state === 'fail' && status.failReason ? (
+          <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--ink-3,#3C4854)' }}>
+            Reason given by the payment provider: <code style={{ fontSize: 13.5 }}>{status.failReason}</code>
+          </p>
+        ) : null}
         {status ? (
           <p style={{ margin: '0 0 22px', fontSize: 15 }}>
             Order <strong>{status.orderNo}</strong> · {itemsLine(status.itemIds)} · <strong>{status.gateway === 'newebpay' && status.totalTwd ? formatTwd(status.totalTwd) : formatUsd(status.totalUsd)}</strong>

@@ -33,6 +33,7 @@ const ACTION_LABEL: Record<string, string> = {
   'upload.downloaded': 'Submitted file downloaded',
   'volume.changed': 'Book volume change',
   'chapter.changed': 'Book chapter change',
+  'order.deleted': 'Chapter order deleted',
 }
 
 const TARGET_LABEL: Record<string, string> = {
@@ -40,6 +41,7 @@ const TARGET_LABEL: Record<string, string> = {
   journal: 'Journal',
   article: 'Article',
   cfp_proposal: 'Call',
+  chapter_order: 'Order',
 }
 
 const summarise = (value: unknown): string => {
