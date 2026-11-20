@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { addToCart, useCart, type CartItem } from '@/lib/cart/store'
+import { addToCart, bookCovers, itemLabel, useCart, type CartItem } from '@/lib/cart/store'
 
 export function CartIcon({ size = 16 }: { size?: number }) {
   return (
@@ -29,10 +29,20 @@ const btn = {
   cursor: 'pointer',
 } as const
 
-/** "Add to cart" for one chapter; once added, a link to the cart instead. */
-export function AddToCartButton({ item }: { item: CartItem }) {
-  const inCart = useCart().some((i) => i.id === item.id)
-  if (inCart) {
+/**
+ * "Add to cart" for one chapter or a whole e-book; once added, a link to the
+ * cart instead. A chapter whose whole book is already in the cart says so.
+ */
+export function AddToCartButton({ item, label = 'Add to cart' }: { item: CartItem; label?: string }) {
+  const items = useCart()
+  if (bookCovers(items, item.id)) {
+    return (
+      <Link href="/cart" style={{ ...btn, background: 'var(--surface,#fff)', color: 'var(--accent-dark,#0A685C)', border: '1px solid var(--accent,#0C8375)' }}>
+        ✓ In full book · View cart
+      </Link>
+    )
+  }
+  if (items.some((i) => i.id === item.id)) {
     return (
       <Link href="/cart" style={{ ...btn, background: 'var(--surface,#fff)', color: 'var(--accent-dark,#0A685C)', border: '1px solid var(--accent,#0C8375)' }}>
         ✓ In cart · View cart
@@ -43,10 +53,10 @@ export function AddToCartButton({ item }: { item: CartItem }) {
     <button
       type="button"
       onClick={() => addToCart(item)}
-      aria-label={`Add chapter ${item.chapter}, ${item.title}, to cart`}
+      aria-label={`Add ${itemLabel(item).toLowerCase()}, ${item.title}, to cart`}
       style={{ ...btn, background: 'var(--accent,#0C8375)', color: '#fff', border: '1px solid var(--accent,#0C8375)' }}
     >
-      Add to cart <CartIcon />
+      {label} <CartIcon />
     </button>
   )
 }

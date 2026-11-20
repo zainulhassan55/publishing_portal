@@ -6,7 +6,7 @@ import type { Publication } from '@/lib/publication'
 import { mastheadFor } from '@/lib/publication'
 import { doiUrl, siteName } from '@/lib/site'
 import { AddToCartButton } from '@/components/cart/AddToCartButton'
-import { chapterItemId, formatTwd, formatUsd, volumePrice } from '@/lib/cart/pricing'
+import { bookItemId, chapterItemId, formatTwd, formatUsd, volumePrice } from '@/lib/cart/pricing'
 import type { Series, SeriesVolume } from '@/types/publishing'
 
 const body = { margin: '0 0 14px', fontSize: 16, lineHeight: 1.7, color: 'var(--ink-2,#1F2A36)' } as const
@@ -199,6 +199,27 @@ export function AnnouncedVolumePage({ series, pub, volume: v }: { series: Series
               <dd style={{ margin: 0, color: 'var(--ink-2,#1F2A36)' }}>{v.isbn ? <strong style={strong}>{v.isbn}</strong> : <span style={tba}>To be assigned</span>}</dd>
             </dl>
           </div>
+
+          {price && v.contents.length ? (
+            <div className="av-buybook" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '14px 28px', margin: '0 0 22px', padding: '16px 20px', border: '1px solid var(--accent-soft,#CDF0E7)', borderRadius: 4, background: 'var(--accent-tint,#F3F9F8)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink,#101B27)' }}>Buy the full e-book (PDF)</span>
+                <span style={{ fontSize: 14, color: 'var(--ink-3,#3C4854)' }}>
+                  All {v.contents.length} chapters · <strong style={strong}>{formatUsd(price.bookUsd)}</strong> · <strong style={strong}>{formatTwd(price.bookTwd)}</strong>
+                  <span style={{ color: 'var(--muted,#505C68)' }}>
+                    {' '}
+                    (chapters bought separately: {formatUsd(price.chapterUsd * v.contents.length)} · {formatTwd(price.chapterTwd * v.contents.length)})
+                  </span>
+                </span>
+              </div>
+              <div style={{ flex: '0 0 220px' }}>
+                <AddToCartButton
+                  label="Add full book to cart"
+                  item={{ id: bookItemId(series.slug, v.slug), seriesCode: series.code, volumeTitle: v.title, volumeHref, chapter: 0, title: v.title, cover: v.cover ?? series.profile.tile }}
+                />
+              </div>
+            </div>
+          ) : null}
 
           <div style={{ borderTop: '1px solid var(--line,#DCE1E6)' }}>
             <Section title="Bibliographic Information">
