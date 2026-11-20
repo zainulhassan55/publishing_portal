@@ -365,7 +365,34 @@ async function listOrders(env) {
 const summary = (o) => ({ orderNo: o.orderNo, status: o.status, createdAt: o.createdAt, payTime: o.payTime || null, gateway: o.gateway || null,
   totalUsd: o.totalUsd, totalTwd: o.totalTwd ?? null, paidUsd: o.paidUsd ?? null, paidTwd: o.paidTwd ?? null, tradeNo: o.tradeNo || null, email: o.buyer.email,
   name: o.buyer.firstName + ' ' + o.buyer.lastName, account: o.account ? o.account.userName : null, country: o.buyer.country, company: o.buyer.company || null,
-  items: o.items.map((i) => ({ id: i.id, title: i.title, seriesCode: i.seriesCode })), emailSent: o.emailSent || null, anomaly: o.anomaly || null, failReason: o.status === 'failed' ? o.failMsg || null : null });
+  items: o.items.map((i) => ({ id: i.id, title: i.title, seriesCode: i.seriesCode, volumeTitle: i.volumeTitle || '', priceUsd: i.priceUsd, priceTwd: i.priceTwd ?? null })),
+  emailSent: o.emailSent || null, emailError: o.emailError || null, anomaly: o.anomaly || null, failReason: o.status === 'failed' ? o.failMsg || null : null,
+  paymentType: o.paymentType || null, payerEmail: o.payerEmail || null, accountEmail: o.account ? o.account.email || null : null,
+  billing: { firstName: o.buyer.firstName, lastName: o.buyer.lastName, company: o.buyer.company || '', phone: o.buyer.phone || '', street: o.buyer.street || '',
+    unit: o.buyer.unit || '', city: o.buyer.city || '', region: o.buyer.region || '', postcode: o.buyer.postcode || '', country: o.buyer.country || '', countryCode: o.buyer.countryCode || '' } });
+
+/* DELETE /admin/orders/<no> (Bearer ADMIN_API_TOKEN), body { confirm: "<orderNo>", paidConfirmed?: true }.
+   Removes the order and its helper keys, keeping a small tombstone (deleted:<no>) with the
+   amounts, so the ledger can still account for a removed paid order. A paid order is only
+   removed when paidConfirmed is true: it is a financial record. */
+async function handleDeleteOrder(env, request, orderNo) {
+  if (!(await bearerOk(request, env.ADMIN_API_TOKEN))) return json(403, { ok: false, error: 'Forbidden' });
+  let b = {}; try { b = await request.json(); } catch (e) {}
+  if (str(b.confirm, 30) !== orderNo) return json(400, { ok: false, error: 'Confirmation does not match the order number.' });
+  return withLock(orderNo, async () => {
+    const o = await getOrder(env, orderNo);
+    if (!o) return json(404, { ok: false, error: 'Order not found.' });
+    if (o.status === 'paid' && b.paidConfirmed !== true) return json(409, { ok: false, error: 'This order is paid. Confirm deleting a paid order.' });
+    const tomb = { orderNo, status: o.status, gateway: o.gateway || null, totalUsd: o.totalUsd, totalTwd: o.totalTwd ?? null, paidUsd: o.paidUsd ?? null, paidTwd: o.paidTwd ?? null,
+      tradeNo: o.tradeNo || null, payTime: o.payTime || null, createdAt: o.createdAt, deletedAt: new Date().toISOString(), deletedBy: str(b.by, 120) || null };
+    await env.ORDERS.put('deleted:' + orderNo, JSON.stringify(tomb));
+    for (const a of o.npAttempts || []) { try { await env.ORDERS.delete('npattempt:' + a); } catch (e) {} }
+    try { await env.ORDERS.delete('mailsent:' + orderNo); } catch (e) {}
+    await env.ORDERS.delete('order:' + orderNo);
+    console.log('order deleted', JSON.stringify(tomb));
+    return json(200, { ok: true, deleted: tomb });
+  });
+}
 
 /* standalone dashboard sign-in: signed HttpOnly cookie, 8 h (same scheme as the TAIIS engine) */
 const COOKIE = 'ngiqpay_admin';
@@ -447,6 +474,7 @@ export default {
         const state = o.status === 'paid' ? 'success' : o.status === 'pending-payment' ? 'pending' : 'fail';
         return Response.redirect(completeUrl(env, o.orderNo, await orderToken(env, o.orderNo), state), 303);
       }
+      if ((m = path.match(/^\/admin\/orders\/([\w-]{1,30})$/)) && request.method === 'DELETE') return handleDeleteOrder(env, request, m[1]);
       if (path === '/admin/orders.json') {
         if (!(await bearerOk(request, env.ADMIN_API_TOKEN))) return json(403, { ok: false, error: 'Forbidden' });
         return json(200, { ok: true, orders: (await listOrders(env)).map(summary) });

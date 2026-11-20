@@ -18,6 +18,8 @@ The book-chapter shop's payment backend. It is modelled on the TAIIS 2026 confer
 
 ## Dashboards
 
+Admin → Chapter orders lists orders with search, a status filter, sortable columns (date, buyer, amount, status, paid at) and a CSV download. Each order opens a page with the billing address, payment details, a printable receipt (not a 統一發票), and deletion: type the order number back, plus a tick for a paid order. The Worker keeps a `deleted:<order>` record of the amounts, and the portal logs the deletion under Admin → Activity.
+
 - **Inside the portal:** *Admin → Chapter orders* (`/admin/orders`). It reads `GET /admin/orders.json` with `Bearer ADMIN_API_TOKEN`.
 - **Standalone:** `https://<worker>/admin`, which needs `ADMIN_USER` / `ADMIN_PASSWORD`, plus `/admin.csv` for accounting. Use it when the portal is down.
 

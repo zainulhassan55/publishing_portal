@@ -31,6 +31,7 @@ export type AuditAction =
   | 'upload.downloaded'
   | 'volume.changed'
   | 'chapter.changed'
+  | 'order.deleted'
 
 export type AuditEntry = {
   actor: SessionUser
@@ -46,6 +47,7 @@ export type AuditEntry = {
     | 'upload'
     | 'book_volume'
     | 'book_chapter'
+    | 'chapter_order'
   targetId: string | number
   before?: unknown
   after?: unknown

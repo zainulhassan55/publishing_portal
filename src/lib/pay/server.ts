@@ -49,11 +49,52 @@ export type OrderSummary = {
   account?: string | null
   country: string
   company: string | null
-  items: { id: string; title: string; seriesCode: string }[]
+  items: { id: string; title: string; seriesCode: string; volumeTitle?: string; priceUsd?: number; priceTwd?: number | null }[]
   emailSent: string | null
+  emailError?: string | null
   anomaly: string | null
   /** Why the payment provider refused it, for failed orders. */
   failReason?: string | null
+  /** e.g. CREDIT (NewebPay) or PAYPAL. */
+  paymentType?: string | null
+  payerEmail?: string | null
+  accountEmail?: string | null
+  /** The billing details entered at checkout; absent on orders older than November 2026's dashboard. */
+  billing?: OrderBilling
+}
+
+export type OrderBilling = {
+  firstName: string
+  lastName: string
+  company: string
+  phone: string
+  street: string
+  unit: string
+  city: string
+  region: string
+  postcode: string
+  country: string
+  countryCode: string
+}
+
+/** The currency an order was (or will be) paid in, and that amount. */
+export function orderAmount(o: OrderSummary): { currency: 'TWD' | 'USD'; amount: number; paid: boolean } {
+  if (o.paidTwd) return { currency: 'TWD', amount: o.paidTwd, paid: true }
+  if (o.paidUsd) return { currency: 'USD', amount: o.paidUsd, paid: true }
+  return { currency: 'USD', amount: o.totalUsd, paid: false }
+}
+
+/** Deletes an order in the Worker. `paidConfirmed` must be true to delete a paid order. */
+export async function deletePaymentOrder(orderNo: string, opts: { paidConfirmed: boolean; by: string }): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
+  const res = await fetch(`${base()}/admin/orders/${encodeURIComponent(orderNo)}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${(process.env.PAY_ADMIN_TOKEN || '').trim()}` },
+    body: JSON.stringify({ confirm: orderNo, paidConfirmed: opts.paidConfirmed, by: opts.by }),
+    cache: 'no-store',
+    signal: AbortSignal.timeout(15_000),
+  })
+  const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string }
+  return res.ok && data.ok ? { ok: true } : { ok: false, status: res.status, error: data.error || `payment service answered ${res.status}` }
 }
 
 const base = () => (process.env.PAY_API_URL || '').trim().replace(/\/+$/, '')
