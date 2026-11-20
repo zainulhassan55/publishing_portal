@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ClearCartOnPaid } from '@/components/cart/ClearCartOnPaid'
 import { ShopShell } from '@/components/cart/ShopShell'
-import { formatTwd, formatUsd } from '@/lib/cart/pricing'
+import { formatTwd, formatUsd, isBookItemId } from '@/lib/cart/pricing'
 import { getPaymentStatus, type PaidState } from '@/lib/pay/server'
 
 export const metadata: Metadata = { title: 'Order status', robots: { index: false, follow: false } }
@@ -21,6 +21,17 @@ const COPY: Record<PaidState | 'unknown', { title: string; tone: string; text: s
  * number and its signed token come in the query string, and the status is read
  * from the Worker server-side, so the page never trusts the `s` hint alone.
  */
+/** "Full e-book", "2 chapters", "Full e-book + 1 chapter": what an order contains. */
+function itemsLine(ids: string[]): string {
+  const books = ids.filter(isBookItemId).length
+  const chapters = ids.length - books
+  const parts = [
+    books ? (books === 1 ? 'Full e-book' : `${books} full e-books`) : '',
+    chapters ? `${chapters} chapter${chapters === 1 ? '' : 's'}` : '',
+  ].filter(Boolean)
+  return parts.join(' + ')
+}
+
 export default async function CheckoutCompletePage({ searchParams }: { searchParams: Promise<{ o?: string; t?: string }> }) {
   const { o = '', t = '' } = await searchParams
   const status = await getPaymentStatus(o, t)
@@ -34,7 +45,7 @@ export default async function CheckoutCompletePage({ searchParams }: { searchPar
         <p style={{ margin: '0 0 16px' }}>{c.text}</p>
         {status ? (
           <p style={{ margin: '0 0 22px', fontSize: 15 }}>
-            Order <strong>{status.orderNo}</strong> · {status.itemIds.length} chapter{status.itemIds.length === 1 ? '' : 's'} · <strong>{status.gateway === 'newebpay' && status.totalTwd ? formatTwd(status.totalTwd) : formatUsd(status.totalUsd)}</strong>
+            Order <strong>{status.orderNo}</strong> · {itemsLine(status.itemIds)} · <strong>{status.gateway === 'newebpay' && status.totalTwd ? formatTwd(status.totalTwd) : formatUsd(status.totalUsd)}</strong>
             {status.email ? <> · {status.email}</> : null}
           </p>
         ) : null}
