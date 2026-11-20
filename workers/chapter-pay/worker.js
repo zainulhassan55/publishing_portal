@@ -196,7 +196,11 @@ async function confirmNewebpay(env, d, via) {
       await putOrder(env, o); await afterPaid(env, o); return o;
     }
     if (d.Status === 'SUCCESS' && canMove(o.status, 'pending-payment')) { o.status = 'pending-payment'; await putOrder(env, o); }
-    else if (d.Status !== 'SUCCESS' && canMove(o.status, 'failed')) { o.status = 'failed'; o.failMsg = str(d.Message || d.Status, 200); await putOrder(env, o); }
+    else if (d.Status !== 'SUCCESS' && canMove(o.status, 'failed')) {
+      o.status = 'failed'; o.failMsg = str([d.Status, d.Message].filter(Boolean).join(' '), 200); o.failAt = new Date().toISOString();
+      console.log('NewebPay refused', orderNo, attempt, o.failMsg);
+      await putOrder(env, o);
+    }
     return o;
   });
 }
@@ -335,7 +339,7 @@ async function handleStatus(env, request, orderNo) {
   if (!(await safeEq(tok, await orderToken(env, orderNo)))) return json(403, { ok: false, error: 'Invalid link' });
   const o = await getOrder(env, orderNo); if (!o) return json(404, { ok: false, error: 'Order not found' });
   const state = o.status === 'paid' ? 'success' : o.status === 'pending-payment' ? 'pending' : o.status === 'created' ? 'open' : 'fail';
-  return json(200, { ok: true, state, orderNo, totalUsd: o.totalUsd, totalTwd: o.totalTwd, paidAt: o.payTime || '', gateway: o.gateway || '', itemIds: o.items.map((i) => i.id),
+  return json(200, { ok: true, state, orderNo, failReason: state === 'fail' ? o.failMsg || '' : '', totalUsd: o.totalUsd, totalTwd: o.totalTwd, paidAt: o.payTime || '', gateway: o.gateway || '', itemIds: o.items.map((i) => i.id),
     email: o.buyer.email.replace(/^(.{2}).*(@.*)$/, '$1***$2'), emailSent: !!o.emailSent });
 }
 async function listOrders(env) {
@@ -350,7 +354,7 @@ async function listOrders(env) {
 const summary = (o) => ({ orderNo: o.orderNo, status: o.status, createdAt: o.createdAt, payTime: o.payTime || null, gateway: o.gateway || null,
   totalUsd: o.totalUsd, totalTwd: o.totalTwd ?? null, paidUsd: o.paidUsd ?? null, paidTwd: o.paidTwd ?? null, tradeNo: o.tradeNo || null, email: o.buyer.email,
   name: o.buyer.firstName + ' ' + o.buyer.lastName, account: o.account ? o.account.userName : null, country: o.buyer.country, company: o.buyer.company || null,
-  items: o.items.map((i) => ({ id: i.id, title: i.title, seriesCode: i.seriesCode })), emailSent: o.emailSent || null, anomaly: o.anomaly || null });
+  items: o.items.map((i) => ({ id: i.id, title: i.title, seriesCode: i.seriesCode })), emailSent: o.emailSent || null, anomaly: o.anomaly || null, failReason: o.status === 'failed' ? o.failMsg || null : null });
 
 /* standalone dashboard sign-in: signed HttpOnly cookie, 8 h (same scheme as the TAIIS engine) */
 const COOKIE = 'ngiqpay_admin';
@@ -378,7 +382,7 @@ async function handleAdmin(env, request, csv) {
   const paid = orders.filter((o) => o.status === 'paid');
   const rows = orders.map((o) => '<tr><td>' + esc(o.orderNo) + '<br><small>' + esc(tpe(o.createdAt)) + '</small></td><td>' + esc(o.buyer.firstName + ' ' + o.buyer.lastName) + '<br><small>' + esc(o.buyer.email) + (o.account ? ' · account ' + esc(o.account.userName) : '') + '</small></td>'
     + '<td>' + o.items.map((i) => esc(i.seriesCode + ' · ' + itemLabel(i.id))).join('<br>') + '</td><td>' + (o.status === 'paid' ? '<b>' + paidText(o) + '</b>' : usd(o.totalUsd) + '<br><small>' + nt(o.totalTwd || 0) + '</small>') + '</td>'
-    + '<td>' + esc(o.status) + (o.payTime ? '<br><small>' + esc(tpe(o.payTime)) + ' · ' + esc(o.gateway) + '</small>' : '') + (o.anomaly ? '<br><small style="color:#a00">' + esc(o.anomaly) + '</small>' : '') + '</td>'
+    + '<td>' + esc(o.status) + (o.payTime ? '<br><small>' + esc(tpe(o.payTime)) + ' · ' + esc(o.gateway) + '</small>' : '') + (o.anomaly ? '<br><small style="color:#a00">' + esc(o.anomaly) + '</small>' : '') + (o.failMsg ? '<br><small style="color:#a00">' + esc(o.failMsg) + '</small>' : '') + '</td>'
     + '<td>' + (o.emailSent ? '✉ sent' : o.status === 'paid' ? '<span style="color:#a60">✉ ' + esc(o.emailError || 'pending') + '</span>' : '') + '</td></tr>').join('');
   return html(200, '<!doctype html><html><head><meta charset="utf-8"><title>Chapter orders</title><style>body{font-family:Segoe UI,Helvetica,Arial,sans-serif;margin:20px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid #e3e8f0;padding:7px;text-align:left;vertical-align:top}small{color:#778}</style></head><body>'
     + '<h2>' + esc(SHOP_NAME) + ' — chapter orders</h2><p>' + orders.length + ' orders · ' + paid.length + ' paid · ' + usd(paid.reduce((s, o) => s + Number(o.paidUsd || 0), 0)) + ' + ' + nt(paid.reduce((s, o) => s + Number(o.paidTwd || 0), 0)) + ' received · <a href="/admin.csv">CSV</a></p>'
@@ -410,8 +414,25 @@ export default {
         try { await confirmNewebpay(env, await parseNewebpay(env, request), 'notify'); return new Response('OK'); } catch (e) { return new Response('ERR', { status: 400 }); }
       }
       if (path === '/return' && request.method === 'POST') {
-        let o = null; try { o = await confirmNewebpay(env, await parseNewebpay(env, request), 'return'); } catch (e) {}
-        if (!o) return Response.redirect((env.PORTAL_BASE || '') + '/cart', 303);
+        const raw = new URLSearchParams(await request.clone().text());
+        let o = null; try { o = await confirmNewebpay(env, await parseNewebpay(env, request), 'return'); } catch (e) { console.log('NewebPay return not decodable:', e.message); }
+        if (!o) {
+          /* NewebPay rejects some requests before a transaction exists (wrong keys, store not
+             enabled, payment method off …) and posts back only plain Status / Message fields.
+             Record them on the order so the reason is visible, instead of losing it. */
+          const status = str(raw.get('Status'), 40), message = str(raw.get('Message'), 200);
+          const attempt = str(raw.get('MerchantOrderNo') || '', 30);
+          console.log('NewebPay plain return', JSON.stringify({ status, message, attempt, keys: [...raw.keys()] }));
+          const orderNo = attempt ? await env.ORDERS.get('npattempt:' + attempt) : null;
+          const ord = orderNo ? await getOrder(env, orderNo) : null;
+          if (ord && ord.status !== 'paid') {
+            ord.status = canMove(ord.status, 'failed') ? 'failed' : ord.status;
+            ord.failMsg = str([status, message].filter(Boolean).join(' ') || 'NewebPay returned no reason', 200); ord.failAt = new Date().toISOString();
+            await putOrder(env, ord);
+            return Response.redirect(completeUrl(env, ord.orderNo, await orderToken(env, ord.orderNo), 'fail'), 303);
+          }
+          return Response.redirect((env.PORTAL_BASE || '') + '/cart', 303);
+        }
         const state = o.status === 'paid' ? 'success' : o.status === 'pending-payment' ? 'pending' : 'fail';
         return Response.redirect(completeUrl(env, o.orderNo, await orderToken(env, o.orderNo), state), 303);
       }

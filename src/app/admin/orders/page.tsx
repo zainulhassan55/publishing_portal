@@ -62,6 +62,7 @@ export default async function AdminOrdersPage() {
                     {o.status}
                     {o.payTime ? <><br /><span style={muted}>{taipei(o.payTime)} · {o.gateway}</span></> : null}
                     {o.anomaly ? <><br /><span style={{ ...muted, color: '#7f1d1d' }}>{o.anomaly}</span></> : null}
+                    {o.failReason ? <><br /><span style={{ ...muted, color: '#7f1d1d' }}>{o.failReason}</span></> : null}
                   </td>
                   <td style={cell}>{o.emailSent ? 'sent' : o.status === 'paid' ? <span style={{ color: '#7a5a12' }}>pending</span> : ''}</td>
                 </tr>

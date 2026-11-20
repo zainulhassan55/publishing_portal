@@ -26,6 +26,8 @@ export type OrderStatus = {
   paidAt: string
   gateway: string
   itemIds: string[]
+  /** NewebPay's code and message when it refused the payment, e.g. "MPG02002 …". */
+  failReason?: string
   email: string
   emailSent: boolean
 }
@@ -50,6 +52,8 @@ export type OrderSummary = {
   items: { id: string; title: string; seriesCode: string }[]
   emailSent: string | null
   anomaly: string | null
+  /** Why the payment provider refused it, for failed orders. */
+  failReason?: string | null
 }
 
 const base = () => (process.env.PAY_API_URL || '').trim().replace(/\/+$/, '')
