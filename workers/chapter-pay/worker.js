@@ -22,6 +22,8 @@
  *   ADMIN_USER, ADMIN_PASSWORD   sign-in for the standalone /admin page
  *   PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET   [PAYPAL_SANDBOX=1 for the sandbox]
  *   NEWEBPAY_MERCHANT_ID, NEWEBPAY_HASH_KEY, NEWEBPAY_HASH_IV   (optional; hidden until set)
+ *   NEWEBPAY_METHODS (Text, optional): e.g. CREDIT,APPLEPAY,ANDROIDPAY — only methods
+ *     enabled for the store; default CREDIT
  *
  * ITEMS: a chapter (series/volume/3) or a whole e-book (series/volume/book). Buyers
  * are signed-in portal members; the portal passes their account with the order.
@@ -151,6 +153,15 @@ async function aesDecrypt(env, hex) {
 async function tradeSha(env, info) {
   return toHex(await crypto.subtle.digest('SHA-256', te.encode('HashKey=' + env.NEWEBPAY_HASH_KEY.trim() + '&' + info + '&HashIV=' + env.NEWEBPAY_HASH_IV.trim()))).toUpperCase();
 }
+/* Payment methods offered on the NewebPay page. NewebPay refuses the WHOLE request if
+   any method asked for is not enabled for the store (e.g. MPG02003 銀聯卡服務未啟用),
+   so this must list only what is switched on in 商店管理 → 開啟付款方式.
+   Worker variable NEWEBPAY_METHODS, comma-separated; default: credit card only. */
+const NP_ALLOWED_METHODS = ['CREDIT', 'APPLEPAY', 'ANDROIDPAY', 'SAMSUNGPAY', 'UNIONPAY', 'WEBATM', 'VACC', 'CVS', 'BARCODE'];
+function npMethods(env) {
+  const wanted = String(env.NEWEBPAY_METHODS || 'CREDIT').toUpperCase().split(/[\s,]+/).filter((m) => NP_ALLOWED_METHODS.includes(m));
+  return Object.fromEntries((wanted.length ? wanted : ['CREDIT']).map((m) => [m, 1]));
+}
 /* Every hand-off to NewebPay uses a FRESH MerchantOrderNo (NewebPay refuses a
    re-post of the same number, MPG03008); attempts map back to the order. */
 async function newebpayFields(env, o, base) {
@@ -166,7 +177,7 @@ async function newebpayFields(env, o, base) {
     MerchantOrderNo: attempt, Amt: amt, ItemDesc: (SHOP_NAME + ' book chapters (' + o.items.length + ')').substring(0, 50),
     Email: o.buyer.email, EmailModify: 0, LoginType: 0,
     NotifyURL: base + '/notify', ReturnURL: base + '/return', ClientBackURL: completeUrl(env, o.orderNo, tok),
-    CREDIT: 1, APPLEPAY: 1, ANDROIDPAY: 1, UNIONPAY: 1
+    ...npMethods(env)
   };
   const info = await aesEncrypt(env, Object.keys(trade).map((k) => k + '=' + encodeURIComponent(trade[k])).join('&'));
   return { MerchantID: trade.MerchantID, TradeInfo: info, TradeSha: await tradeSha(env, info), Version: MPG_VERSION };
