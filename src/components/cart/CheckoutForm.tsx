@@ -3,14 +3,15 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, type CSSProperties, type FormEvent } from 'react'
-import { useSession } from '@/components/auth/SessionProvider'
 import { signInHref } from '@/lib/auth/links'
-import { cartTotal, chapterPrice, formatBoth, formatTwd, formatUsd } from '@/lib/cart/pricing'
-import { useCart } from '@/lib/cart/store'
+import { cartTotal, formatBoth, formatTwd, formatUsd, itemPrice } from '@/lib/cart/pricing'
+import { itemLabel, useCart } from '@/lib/cart/store'
 import { OrderSummary } from './OrderSummary'
 
 /**
- * Guest checkout, laid out after IGI Global's (publisher's reference, November 2026).
+ * Checkout for a signed-in buyer, laid out after IGI Global's (publisher's
+ * reference, November 2026). The page (app/checkout) requires sign-in and
+ * passes the account in, so the contact and name fields start filled in.
  *
  * "Place order" checks the form and posts the cart and billing details to
  * /api/checkout, which creates the order in the payment Worker
@@ -77,12 +78,20 @@ const input: CSSProperties = { font: 'inherit', fontSize: 15, padding: '11px 12p
 const h2: CSSProperties = { margin: '0 0 14px', fontSize: 20, fontWeight: 600, color: 'var(--ink,#101B27)' }
 const section: CSSProperties = { padding: '22px 0', borderTop: '1px solid var(--line,#DCE1E6)' }
 
-export function CheckoutForm() {
+/** The signed-in buyer, from the server session; used to fill in the form. */
+export type CheckoutAccount = { email: string; givenName: string; familyName: string; fullName: string; affiliation: string }
+
+export function CheckoutForm({ account }: { account: CheckoutAccount }) {
   const items = useCart()
-  const { user } = useSession()
   const router = useRouter()
   const countries = getCountries()
-  const [f, setF] = useState<Fields>(EMPTY)
+  const [f, setF] = useState<Fields>(() => ({
+    ...EMPTY,
+    email: account.email,
+    firstName: account.givenName,
+    lastName: account.familyName,
+    company: account.affiliation,
+  }))
   const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({})
   const [busy, setBusy] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -150,6 +159,11 @@ export function CheckoutForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items: items.map(({ id, title, volumeTitle, seriesCode }) => ({ id, title, volumeTitle, seriesCode })), buyer, method }),
       })
+      if (res.status === 401) {
+        // Signed out in another tab, or the session ended: sign in again, then come back here.
+        window.location.assign(signInHref('/checkout'))
+        return
+      }
       const data = (await res.json().catch(() => ({}))) as { payUrl?: string; error?: string; message?: string }
       if (!res.ok || !data.payUrl) throw new Error(data.error || data.message || 'The order could not be placed.')
       // The Worker's payment page is another origin: a full navigation, not router.push.
@@ -178,14 +192,13 @@ export function CheckoutForm() {
     <div className="co-wrap" style={{ display: 'flex', gap: 40, alignItems: 'flex-start' }}>
       <form id="checkout-form" onSubmit={placeOrder} noValidate style={{ flex: '1 1 auto', minWidth: 0 }}>
         <style>{`.co-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 16px}@media (max-width:640px){.co-grid{grid-template-columns:1fr}.co-grid>*{grid-column:auto!important}}`}</style>
-        {!user ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', padding: '14px 18px', marginBottom: 8, background: 'var(--accent-tint,#F3F9F8)', border: '1px solid var(--accent-soft,#CDF0E7)', borderRadius: 4 }}>
-            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink,#101B27)' }}>Already have an account?</span>
-            <Link href={signInHref('/checkout')} style={{ background: 'var(--surface,#fff)', border: '1px solid var(--accent,#0C8375)', color: 'var(--accent-dark,#0A685C)', padding: '8px 16px', borderRadius: 3, fontSize: 15, fontWeight: 600, textDecoration: 'none' }}>
-              Sign in
-            </Link>
-          </div>
-        ) : null}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', padding: '12px 18px', marginBottom: 8, background: 'var(--accent-tint,#F3F9F8)', border: '1px solid var(--accent-soft,#CDF0E7)', borderRadius: 4, fontSize: 14.5, color: 'var(--ink-2,#1F2A36)' }}>
+          <span>
+            Signed in as <strong style={{ fontWeight: 700, color: 'var(--ink,#101B27)' }}>{account.fullName || account.email}</strong>
+            {account.fullName ? <span style={{ color: 'var(--muted,#505C68)' }}> ({account.email})</span> : null}
+          </span>
+          <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>This order will be saved to your account.</span>
+        </div>
 
         <section style={{ ...section, borderTop: 'none' }}>
           <h2 style={h2}>Contact information</h2>
@@ -252,9 +265,9 @@ export function CheckoutForm() {
             {items.map((it) => (
               <li key={it.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, padding: '8px 0', fontSize: 14.5, color: 'var(--ink-2,#1F2A36)' }}>
                 <span style={{ minWidth: 0 }}>
-                  <strong style={{ fontWeight: 700 }}>Chapter {it.chapter}:</strong> {it.title} <span style={{ color: 'var(--muted,#505C68)' }}>({it.seriesCode})</span>
+                  <strong style={{ fontWeight: 700 }}>{itemLabel(it)}:</strong> {it.title} <span style={{ color: 'var(--muted,#505C68)' }}>({it.seriesCode})</span>
                 </span>
-                <span style={{ flex: '0 0 auto', fontWeight: 600 }}>{formatBoth(chapterPrice(it.id) ?? { usd: 0, twd: 0 })}</span>
+                <span style={{ flex: '0 0 auto', fontWeight: 600 }}>{formatBoth(itemPrice(it.id) ?? { usd: 0, twd: 0 })}</span>
               </li>
             ))}
           </ul>

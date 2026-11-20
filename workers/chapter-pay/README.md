@@ -4,7 +4,7 @@ The book-chapter shop's payment backend. It is modelled on the TAIIS 2026 confer
 
 ## How a purchase flows
 
-1. **Checkout.** The reader presses *Place order* on `/checkout`. The portal's `POST /api/checkout` then calls the Worker's `POST /order`, server to server, with `Bearer PORTAL_SECRET`.
+1. **Checkout.** A signed-in reader presses *Place order* on `/checkout` (signing in is required; the order records their OJS account). The cart can hold chapters (`series/volume/3`) or a whole e-book (`series/volume/book`). The portal's `POST /api/checkout` then calls the Worker's `POST /order`, server to server, with `Bearer PORTAL_SECRET`.
 2. **The Worker creates the order.**
    - The portal prices each chapter from `src/lib/cart/pricing.ts` (the browser never sends a price). Each chapter has two fixed list prices, US$ and NT$. The Worker checks each is within range (US$1–500, NT$30–20,000), totals both, and stores `order:<NC…>` in KV.
    - It returns `/pay/<order>?t=<signed token>`.

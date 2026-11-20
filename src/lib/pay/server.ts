@@ -43,6 +43,8 @@ export type OrderSummary = {
   tradeNo: string | null
   email: string
   name: string
+  /** OJS user name of the signed-in buyer; null on orders placed before sign-in was required. */
+  account?: string | null
   country: string
   company: string | null
   items: { id: string; title: string; seriesCode: string }[]

@@ -1,8 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { cartTotal, chapterPrice, formatTwd, formatUsd } from '@/lib/cart/pricing'
-import { removeFromCart, useCart } from '@/lib/cart/store'
+import { useSession } from '@/components/auth/SessionProvider'
+import { registerHref, signInHref } from '@/lib/auth/links'
+import { cartTotal, formatTwd, formatUsd, isBookItemId, itemPrice } from '@/lib/cart/pricing'
+import { itemLabel, removeFromCart, useCart } from '@/lib/cart/store'
 import { OrderSummary } from './OrderSummary'
 
 const primary = { display: 'block', textAlign: 'center', background: 'var(--accent,#0C8375)', color: '#fff', padding: '12px 16px', borderRadius: 3, fontSize: 16, fontWeight: 600, textDecoration: 'none' } as const
@@ -10,6 +12,7 @@ const primary = { display: 'block', textAlign: 'center', background: 'var(--acce
 /** The cart: each chapter with its price and a remove button, then the order summary. */
 export function CartView() {
   const items = useCart()
+  const { user, loading } = useSession()
 
   if (items.length === 0) {
     return (
@@ -28,29 +31,29 @@ export function CartView() {
     <div className="co-wrap" style={{ display: 'flex', gap: 40, alignItems: 'flex-start' }}>
       <section aria-label="Items in your cart" style={{ flex: '1 1 auto', minWidth: 0 }}>
         <p style={{ margin: '0 0 10px', fontSize: 14, color: 'var(--muted,#505C68)' }}>
-          {items.length} chapter{items.length === 1 ? '' : 's'} · e-book (PDF)
+          {items.length} item{items.length === 1 ? '' : 's'} · e-book (PDF)
         </p>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0, borderTop: '2px solid var(--ink,#101B27)' }}>
           {items.map((it) => (
             <li key={it.id} style={{ display: 'flex', gap: 20, alignItems: 'flex-start', justifyContent: 'space-between', padding: '18px 0', borderBottom: '1px solid var(--line,#DCE1E6)' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5, minWidth: 0 }}>
                 <span style={{ fontSize: 12, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--ink-3,#3C4854)' }}>
-                  {it.seriesCode} · <strong style={{ fontWeight: 700, color: 'var(--ink,#101B27)' }}>Chapter {it.chapter}</strong>
+                  {it.seriesCode} · <strong style={{ fontWeight: 700, color: 'var(--ink,#101B27)' }}>{itemLabel(it)}</strong>
                 </span>
                 <span style={{ fontFamily: 'var(--font-serif)', fontSize: 18, lineHeight: 1.35, fontWeight: 600, color: 'var(--ink,#101B27)' }}>{it.title}</span>
                 <Link href={it.volumeHref} style={{ fontSize: 14 }}>
-                  From: {it.volumeTitle}
+                  {isBookItemId(it.id) ? 'View the book page' : `From: ${it.volumeTitle}`}
                 </Link>
               </div>
               <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
                 <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink,#101B27)', textAlign: 'right' }}>
-                  {formatUsd(chapterPrice(it.id)?.usd ?? 0)}
-                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-3,#3C4854)' }}>{formatTwd(chapterPrice(it.id)?.twd ?? 0)}</span>
+                  {formatUsd(itemPrice(it.id)?.usd ?? 0)}
+                  <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink-3,#3C4854)' }}>{formatTwd(itemPrice(it.id)?.twd ?? 0)}</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => removeFromCart(it.id)}
-                  aria-label={`Remove chapter ${it.chapter}, ${it.title}, from cart`}
+                  aria-label={`Remove ${itemLabel(it).toLowerCase()}, ${it.title}, from cart`}
                   style={{ border: 0, background: 'none', padding: 0, font: 'inherit', fontSize: 14, color: '#A52A2A', cursor: 'pointer', textDecoration: 'underline' }}
                 >
                   Remove
@@ -66,9 +69,20 @@ export function CartView() {
         </p>
       </section>
       <OrderSummary subtotal={subtotal}>
-        <Link href="/checkout" style={primary}>
-          Proceed to checkout
-        </Link>
+        {user || loading ? (
+          <Link href="/checkout" style={primary}>
+            Proceed to checkout
+          </Link>
+        ) : (
+          <>
+            <Link href={signInHref('/checkout')} style={primary}>
+              Sign in to check out
+            </Link>
+            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: 'var(--muted,#505C68)', textAlign: 'center' }}>
+              Purchases are saved to your account. No account yet? <Link href={registerHref('/checkout')}>Register</Link>
+            </p>
+          </>
+        )}
       </OrderSummary>
     </div>
   )

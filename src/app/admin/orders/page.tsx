@@ -1,5 +1,5 @@
 import { requireAdminPage } from '@/lib/admin/guard'
-import { formatTwd, formatUsd } from '@/lib/cart/pricing'
+import { formatTwd, formatUsd, isBookItemId } from '@/lib/cart/pricing'
 import { listPaymentOrders, paymentsConfigured, type OrderSummary } from '@/lib/pay/server'
 
 export const dynamic = 'force-dynamic'
@@ -52,8 +52,8 @@ export default async function AdminOrdersPage() {
               {orders.map((o) => (
                 <tr key={o.orderNo}>
                   <td style={cell}><strong>{o.orderNo}</strong><br /><span style={muted}>{taipei(o.createdAt)}</span></td>
-                  <td style={cell}>{o.name}<br /><span style={muted}>{o.email}{o.country ? ` · ${o.country}` : ''}</span></td>
-                  <td style={cell}>{o.items.map((i) => <div key={i.id}>{i.seriesCode} · {i.title || i.id}</div>)}</td>
+                  <td style={cell}>{o.name}<br /><span style={muted}>{o.email}{o.account ? ` · account ${o.account}` : ''}{o.country ? ` · ${o.country}` : ''}</span></td>
+                  <td style={cell}>{o.items.map((i) => <div key={i.id}>{i.seriesCode} · {isBookItemId(i.id) ? <strong>Full e-book: </strong> : null}{i.title || i.id}</div>)}</td>
                   <td style={cell}>
                     {o.paidTwd ? <strong>{formatTwd(o.paidTwd)}</strong> : o.paidUsd ? <strong>{formatUsd(o.paidUsd)}</strong> : formatUsd(o.totalUsd)}
                     {!o.paidTwd && !o.paidUsd && o.totalTwd ? <><br /><span style={muted}>{formatTwd(o.totalTwd)}</span></> : null}

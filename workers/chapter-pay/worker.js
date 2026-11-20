@@ -23,6 +23,9 @@
  *   PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET   [PAYPAL_SANDBOX=1 for the sandbox]
  *   NEWEBPAY_MERCHANT_ID, NEWEBPAY_HASH_KEY, NEWEBPAY_HASH_IV   (optional; hidden until set)
  *
+ * ITEMS: a chapter (series/volume/3) or a whole e-book (series/volume/book). Buyers
+ * are signed-in portal members; the portal passes their account with the order.
+ *
  * CURRENCIES: each chapter has two FIXED list prices set by the portal
  * (src/lib/cart/pricing.ts). PayPal charges the US$ total, NewebPay the NT$
  * total; there is no exchange-rate conversion.
@@ -38,12 +41,13 @@ const ORDER_PREFIX = 'NC';                    // order numbers NC…; must diffe
    POST /order (Bearer PORTAL_SECRET); the browser never sends a price. Sanity bounds: */
 const MIN_PRICE_USD = 1, MAX_PRICE_USD = 500, MIN_PRICE_TWD = 30, MAX_PRICE_TWD = 20000;
 const MAX_ITEMS = 50;
-const ORG_EMAIL = 'info@nextgeniqpress.com';  // CHANGE to the shop mailbox
+const ORG_EMAIL = 'contact@nextgeniqpress.com';  // CHANGE to the shop mailbox
 const EMAIL_FROM_NAME = 'NextGenIQ Press';
-const NOTIFY_ORG_TO = '';                     // '' = no "new order" email to the publisher
+const NOTIFY_ORG_TO = 'contact@nextgeniqpress.com';                     // '' = no "new order" email to the publisher
 const NEWEBPAY_TEST = false;                  // true → ccore.newebpay.com (test keys!)
 const MPG_VERSION = '2.0';
-const ITEM_ID_RE = /^[a-z0-9-]{2,40}\/[a-z0-9-]{1,120}\/\d{1,3}$/;   // chapterItemId(): series/volume/chapter
+const ITEM_ID_RE = /^[a-z0-9-]{2,40}\/[a-z0-9-]{1,120}\/(\d{1,3}|book)$/;   // series/volume/<chapter> or series/volume/book (whole e-book)
+const itemLabel = (id) => (id.split('/').pop() === 'book' ? 'Full e-book' : 'Chapter ' + id.split('/').pop());
 
 /* ======================= small helpers ======================= */
 const te = new TextEncoder(), td = new TextDecoder();
@@ -100,7 +104,7 @@ async function handleOrder(env, request) {
   const seen = new Set(), clean = [];
   for (const it of items) {
     const id = str(it && it.id, 170);
-    if (!ITEM_ID_RE.test(id)) return json(400, { ok: false, error: 'Unknown chapter in cart: ' + id });
+    if (!ITEM_ID_RE.test(id)) return json(400, { ok: false, error: 'Unknown item in cart: ' + id });
     if (seen.has(id)) continue; seen.add(id);
     const priceUsd = Math.round(Number(it.priceUsd) * 100) / 100;
     const priceTwd = Math.round(Number(it.priceTwd));
@@ -117,7 +121,7 @@ async function handleOrder(env, request) {
   const totalTwd = clean.reduce((s, i) => s + i.priceTwd, 0);
   const orderNo = (ORDER_PREFIX + Date.now() + Math.floor(Math.random() * 900 + 100)).substring(0, 20);
   const o = { orderNo, status: 'created', items: clean, buyer, totalUsd, totalTwd,
-    method: b.method === 'paypal' ? 'paypal' : 'card', portalUserId: str(b.portalUserId, 60),
+    method: b.method === 'paypal' ? 'paypal' : 'card', account: b.account && typeof b.account === 'object' ? { id: Number(b.account.id) || null, userName: str(b.account.userName, 60), email: str(b.account.email, 120) } : null,
     ip: request.headers.get('X-Forwarded-For') || '', createdAt: new Date().toISOString() };
   await putOrder(env, o);
   const tok = await orderToken(env, orderNo);
@@ -263,7 +267,7 @@ async function sendConfirmation(env, o) {
   const key = 'mailsent:' + o.orderNo;
   if (await env.ORDERS.get(key)) return;
   await env.ORDERS.put(key, JSON.stringify({ at: new Date().toISOString(), result: 'pending' }));
-  const rows = o.items.map((i) => '<tr><td style="padding:4px 10px 4px 0">' + esc(i.seriesCode) + ' · Chapter ' + esc(i.id.split('/').pop()) + ': ' + esc(i.title) + '</td><td style="text-align:right">' + (o.gateway === 'newebpay' ? nt(i.priceTwd) : usd(i.priceUsd)) + '</td></tr>').join('');
+  const rows = o.items.map((i) => '<tr><td style="padding:4px 10px 4px 0">' + esc(i.seriesCode) + ' · ' + esc(itemLabel(i.id)) + ': ' + esc(i.title) + '</td><td style="text-align:right">' + (o.gateway === 'newebpay' ? nt(i.priceTwd) : usd(i.priceUsd)) + '</td></tr>').join('');
   const body = '<div style="font-family:Segoe UI,Helvetica,Arial,sans-serif;max-width:560px;color:#1b2435">'
     + '<h2 style="color:#0A685C">Thank you for your order</h2><p>Dear ' + esc(o.buyer.firstName + ' ' + o.buyer.lastName) + ',</p>'
     + '<p>Your payment for order <b>' + esc(o.orderNo) + '</b> has been received.</p><table style="border-collapse:collapse;font-size:14px">' + rows
@@ -323,7 +327,7 @@ async function listOrders(env) {
 }
 const summary = (o) => ({ orderNo: o.orderNo, status: o.status, createdAt: o.createdAt, payTime: o.payTime || null, gateway: o.gateway || null,
   totalUsd: o.totalUsd, totalTwd: o.totalTwd ?? null, paidUsd: o.paidUsd ?? null, paidTwd: o.paidTwd ?? null, tradeNo: o.tradeNo || null, email: o.buyer.email,
-  name: o.buyer.firstName + ' ' + o.buyer.lastName, country: o.buyer.country, company: o.buyer.company || null,
+  name: o.buyer.firstName + ' ' + o.buyer.lastName, account: o.account ? o.account.userName : null, country: o.buyer.country, company: o.buyer.company || null,
   items: o.items.map((i) => ({ id: i.id, title: i.title, seriesCode: i.seriesCode })), emailSent: o.emailSent || null, anomaly: o.anomaly || null });
 
 /* standalone dashboard sign-in: signed HttpOnly cookie, 8 h (same scheme as the TAIIS engine) */
@@ -345,18 +349,18 @@ async function handleAdmin(env, request, csv) {
   const orders = await listOrders(env);
   if (csv) {
     const cell = (v) => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    const cols = ['orderNo', 'status', 'createdAt', 'payTime', 'gateway', 'totalUsd', 'totalTwd', 'paidUsd', 'paidTwd', 'tradeNo', 'name', 'email', 'country', 'company'];
+    const cols = ['orderNo', 'status', 'createdAt', 'payTime', 'gateway', 'totalUsd', 'totalTwd', 'paidUsd', 'paidTwd', 'tradeNo', 'name', 'account', 'email', 'country', 'company'];
     const lines = [cols.concat(['items']).join(',')].concat(orders.map((o) => { const s = summary(o); return cols.map((c) => cell(s[c])).concat([cell(s.items.map((i) => i.id).join(' | '))]).join(','); }));
     return new Response('﻿' + lines.join('\n'), { headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="chapter-orders.csv"' } });
   }
   const paid = orders.filter((o) => o.status === 'paid');
-  const rows = orders.map((o) => '<tr><td>' + esc(o.orderNo) + '<br><small>' + esc(tpe(o.createdAt)) + '</small></td><td>' + esc(o.buyer.firstName + ' ' + o.buyer.lastName) + '<br><small>' + esc(o.buyer.email) + '</small></td>'
-    + '<td>' + o.items.map((i) => esc(i.id)).join('<br>') + '</td><td>' + (o.status === 'paid' ? '<b>' + paidText(o) + '</b>' : usd(o.totalUsd) + '<br><small>' + nt(o.totalTwd || 0) + '</small>') + '</td>'
+  const rows = orders.map((o) => '<tr><td>' + esc(o.orderNo) + '<br><small>' + esc(tpe(o.createdAt)) + '</small></td><td>' + esc(o.buyer.firstName + ' ' + o.buyer.lastName) + '<br><small>' + esc(o.buyer.email) + (o.account ? ' · account ' + esc(o.account.userName) : '') + '</small></td>'
+    + '<td>' + o.items.map((i) => esc(i.seriesCode + ' · ' + itemLabel(i.id))).join('<br>') + '</td><td>' + (o.status === 'paid' ? '<b>' + paidText(o) + '</b>' : usd(o.totalUsd) + '<br><small>' + nt(o.totalTwd || 0) + '</small>') + '</td>'
     + '<td>' + esc(o.status) + (o.payTime ? '<br><small>' + esc(tpe(o.payTime)) + ' · ' + esc(o.gateway) + '</small>' : '') + (o.anomaly ? '<br><small style="color:#a00">' + esc(o.anomaly) + '</small>' : '') + '</td>'
     + '<td>' + (o.emailSent ? '✉ sent' : o.status === 'paid' ? '<span style="color:#a60">✉ ' + esc(o.emailError || 'pending') + '</span>' : '') + '</td></tr>').join('');
   return html(200, '<!doctype html><html><head><meta charset="utf-8"><title>Chapter orders</title><style>body{font-family:Segoe UI,Helvetica,Arial,sans-serif;margin:20px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid #e3e8f0;padding:7px;text-align:left;vertical-align:top}small{color:#778}</style></head><body>'
     + '<h2>' + esc(SHOP_NAME) + ' — chapter orders</h2><p>' + orders.length + ' orders · ' + paid.length + ' paid · ' + usd(paid.reduce((s, o) => s + Number(o.paidUsd || 0), 0)) + ' + ' + nt(paid.reduce((s, o) => s + Number(o.paidTwd || 0), 0)) + ' received · <a href="/admin.csv">CSV</a></p>'
-    + '<table><tr><th>Order</th><th>Buyer</th><th>Chapters</th><th>Amount</th><th>Status</th><th>Email</th></tr>' + (rows || '<tr><td colspan="6">No orders yet</td></tr>') + '</table></body></html>');
+    + '<table><tr><th>Order</th><th>Buyer</th><th>Items</th><th>Amount</th><th>Status</th><th>Email</th></tr>' + (rows || '<tr><td colspan="6">No orders yet</td></tr>') + '</table></body></html>');
 }
 
 /* cron: retry confirmation emails for paid orders */

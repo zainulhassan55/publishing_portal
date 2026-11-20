@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { VOLUME_PRICES, cartTotal, cartTotalUsd, chapterItemId, chapterPrice, chapterPriceUsd, formatBoth, formatTwd, formatUsd } from './pricing.ts'
+import { VOLUME_PRICES, bookItemId, cartTotal, cartTotalUsd, chapterItemId, formatBoth, formatTwd, formatUsd, isBookItemId, itemPrice, itemPriceUsd, volumeKeyOf } from './pricing.ts'
 
 /** Chapters per priced volume, from the tables of contents in src/data/series/*.ts. */
 const CHAPTERS: Record<string, number> = {
@@ -33,10 +33,10 @@ test('the NT$ price stays close to the book\'s own NT$/US$ ratio', () => {
 })
 
 test('cart items are priced by their volume', () => {
-  assert.deepEqual(chapterPrice(chapterItemId('sisdt', 'quantum-safe-cyber-defense', 3)), { usd: 25, twd: 800 })
-  assert.equal(chapterPriceUsd(chapterItemId('lnmri', 'agentic-generative-ai-intelligent-automation', 1)), 20)
-  assert.equal(chapterPrice(chapterItemId('sisdt', 'not-for-sale', 1)), null)
-  assert.equal(chapterPrice('garbage'), null)
+  assert.deepEqual(itemPrice(chapterItemId('sisdt', 'quantum-safe-cyber-defense', 3)), { usd: 25, twd: 800 })
+  assert.equal(itemPriceUsd(chapterItemId('lnmri', 'agentic-generative-ai-intelligent-automation', 1)), 20)
+  assert.equal(itemPrice(chapterItemId('sisdt', 'not-for-sale', 1)), null)
+  assert.equal(itemPrice('garbage'), null)
 })
 
 test('cart total adds each chapter at its own price in both currencies and ignores unpriced ones', () => {
@@ -55,4 +55,32 @@ test('formatting', () => {
   assert.equal(formatUsd(25), 'US $25.00')
   assert.equal(formatTwd(4000), 'NT$4,000')
   assert.equal(formatBoth({ usd: 25, twd: 800 }), 'US $25.00 · NT$800')
+})
+
+test('a whole e-book is one item at the book price', () => {
+  const id = bookItemId('sisdt', 'quantum-safe-cyber-defense')
+  assert.equal(id, 'sisdt/quantum-safe-cyber-defense/book')
+  assert.ok(isBookItemId(id))
+  assert.ok(!isBookItemId(chapterItemId('sisdt', 'quantum-safe-cyber-defense', 2)))
+  assert.deepEqual(itemPrice(id), { usd: 120, twd: 4000 })
+  assert.deepEqual(itemPrice(bookItemId('lnmri', 'agentic-generative-ai-intelligent-automation')), { usd: 100, twd: 3300 })
+  assert.equal(itemPrice(bookItemId('sisdt', 'not-for-sale')), null)
+  assert.equal(itemPrice('sisdt/quantum-safe-cyber-defense/chapter-two'), null)
+})
+
+test('a book and its chapters share a volume key', () => {
+  assert.equal(volumeKeyOf(bookItemId('sisdt', 'quantum-safe-cyber-defense')), volumeKeyOf(chapterItemId('sisdt', 'quantum-safe-cyber-defense', 7)))
+  assert.notEqual(volumeKeyOf(bookItemId('sisdt', 'quantum-safe-cyber-defense')), volumeKeyOf(bookItemId('lnmri', 'agentic-generative-ai-intelligent-automation')))
+})
+
+test('buying the book costs less than buying every chapter', () => {
+  for (const [key, p] of Object.entries(VOLUME_PRICES)) {
+    const n = CHAPTERS[key]
+    assert.ok(p.bookUsd < p.chapterUsd * n, `${key}: book US$${p.bookUsd} not below ${n} × US$${p.chapterUsd}`)
+    assert.ok(p.bookTwd < p.chapterTwd * n, `${key}: book NT$${p.bookTwd} not below ${n} × NT$${p.chapterTwd}`)
+  }
+})
+
+test('cart total with a book and a chapter of another book', () => {
+  assert.deepEqual(cartTotal([bookItemId('sisdt', 'quantum-safe-cyber-defense'), chapterItemId('lnmri', 'agentic-generative-ai-intelligent-automation', 2)]), { usd: 140, twd: 4650 })
 })

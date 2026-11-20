@@ -1,6 +1,7 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
+import { isBookItemId, volumeKeyOf } from './pricing'
 
 /**
  * The book-chapter cart, kept in the reader's own browser (localStorage).
@@ -15,13 +16,15 @@ import { useSyncExternalStore } from 'react'
  * through a custom event.
  */
 export type CartItem = {
-  /** chapterItemId(): `<series>/<volume>/<chapter>`. */
+  /** chapterItemId() `<series>/<volume>/<chapter>`, or bookItemId() `<series>/<volume>/book` for a whole e-book. */
   id: string
   seriesCode: string
   volumeTitle: string
   /** The volume page, where the chapter is listed. */
   volumeHref: string
+  /** Chapter number; 0 for a whole e-book. */
   chapter: number
+  /** The chapter's title, or the book's title for a whole e-book. */
   title: string
   /** The volume's cover, shown in the "added to cart" bar. */
   cover?: string
@@ -81,10 +84,23 @@ function subscribe(onChange: () => void) {
 /** The cart's items. Empty during server rendering and the first client render, so hydration matches. */
 export const useCart = (): CartItem[] => useSyncExternalStore(subscribe, read, () => EMPTY)
 
+/** "Full e-book" or "Chapter 3": how an item is labelled in the cart and at checkout. */
+export const itemLabel = (item: Pick<CartItem, 'id' | 'chapter'>) => (isBookItemId(item.id) ? 'Full e-book' : `Chapter ${item.chapter}`)
+
+/** True when the cart holds the whole e-book a chapter belongs to (so the chapter is already covered). */
+export const bookCovers = (items: CartItem[], itemId: string) =>
+  !isBookItemId(itemId) && items.some((i) => isBookItemId(i.id) && volumeKeyOf(i.id) === volumeKeyOf(itemId))
+
+/**
+ * Adds an item. A whole e-book replaces any of its own chapters already in the
+ * cart (the book includes them); a chapter whose book is already in the cart is
+ * not added.
+ */
 export function addToCart(item: CartItem) {
   const items = read()
-  if (items.some((i) => i.id === item.id)) return
-  write([...items, item])
+  if (items.some((i) => i.id === item.id) || bookCovers(items, item.id)) return
+  const kept = isBookItemId(item.id) ? items.filter((i) => volumeKeyOf(i.id) !== volumeKeyOf(item.id)) : items
+  write([...kept, item])
   window.dispatchEvent(new CustomEvent<CartItem>(ADDED_EVENT, { detail: item }))
 }
 

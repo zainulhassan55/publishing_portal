@@ -16,6 +16,8 @@
  * chapter prices follow the batch's ≈ NT$33 per US$1, rounded to clean
  * figures (Quantum-Safe NT$500 share → NT$800; Agentic NT$367 share → NT$650).
  *
+ * A whole e-book is also sold as one cart item (bookItemId), at the book price.
+ *
  * Prices are looked up here whenever they are shown, never stored in the cart,
  * so a change here reprices carts already in progress. The portal's
  * /api/checkout sends these prices to the payment Worker; the browser never does.
@@ -42,22 +44,39 @@ export const VOLUME_PRICES: Record<string, VolumePrice> = {
 
 export const volumePrice = (seriesSlug: string, volumeSlug: string): VolumePrice | null => VOLUME_PRICES[`${seriesSlug}/${volumeSlug}`] ?? null
 
-/** Price of a cart item (see chapterItemId) in both currencies; null when its volume has no price. */
-export function chapterPrice(itemId: string): Money | null {
-  const [series, volume] = itemId.split('/')
+/** Last path segment of a full-book item id. */
+export const BOOK_ITEM = 'book'
+
+/** Stable cart id of a chapter: series, volume and chapter number. */
+export const chapterItemId = (seriesSlug: string, volumeSlug: string, chapter: number) => `${seriesSlug}/${volumeSlug}/${chapter}`
+
+/** Stable cart id of a whole e-book: `<series>/<volume>/book`. */
+export const bookItemId = (seriesSlug: string, volumeSlug: string) => `${seriesSlug}/${volumeSlug}/${BOOK_ITEM}`
+
+/** True for a whole-book item id. */
+export const isBookItemId = (itemId: string) => itemId.split('/')[2] === BOOK_ITEM
+
+/** `<series>/<volume>` of any item id: chapters and their book share it. */
+export const volumeKeyOf = (itemId: string) => itemId.split('/').slice(0, 2).join('/')
+
+/** Price of a cart item (a chapter or a whole book) in both currencies; null when its volume has no price. */
+export function itemPrice(itemId: string): Money | null {
+  const [series, volume, part] = itemId.split('/')
   const p = volumePrice(series ?? '', volume ?? '')
-  return p ? { usd: p.chapterUsd, twd: p.chapterTwd } : null
+  if (!p) return null
+  if (part === BOOK_ITEM) return { usd: p.bookUsd, twd: p.bookTwd }
+  return /^\d{1,3}$/.test(part ?? '') ? { usd: p.chapterUsd, twd: p.chapterTwd } : null
 }
 
-/** US$ price of a cart item; null when its volume has no price. */
-export const chapterPriceUsd = (itemId: string): number | null => chapterPrice(itemId)?.usd ?? null
+/** US$ price of a cart item; null when it has no price. */
+export const itemPriceUsd = (itemId: string): number | null => itemPrice(itemId)?.usd ?? null
 
 /** Sum of the given cart items in both currencies; an item without a price counts as 0 (checkout refuses it). */
 export function cartTotal(itemIds: string[]): Money {
   let usd = 0
   let twd = 0
   for (const id of itemIds) {
-    const p = chapterPrice(id)
+    const p = itemPrice(id)
     if (p) {
       usd += p.usd
       twd += p.twd
@@ -80,6 +99,3 @@ export const formatTwd = (amount: number) => `NT$${amount.toLocaleString('en-US'
 
 /** "US $25.00 · NT$800": both prices, US$ first. */
 export const formatBoth = (m: Money) => `${formatUsd(m.usd)} · ${formatTwd(m.twd)}`
-
-/** Stable cart id of a chapter: series, volume and chapter number. */
-export const chapterItemId = (seriesSlug: string, volumeSlug: string, chapter: number) => `${seriesSlug}/${volumeSlug}/${chapter}`
