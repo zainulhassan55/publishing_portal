@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, type CSSProperties, type FormEvent } from 'react'
 import { signInHref } from '@/lib/auth/links'
+import { CHECKOUT_KEYS, MAX_LENGTH, countryList, normalizeCheckout, postcodeRequired, validateCheckout } from '@/lib/cart/checkout-fields'
 import { cartTotal, formatBoth, formatTwd, formatUsd, itemPrice } from '@/lib/cart/pricing'
 import { itemLabel, useCart } from '@/lib/cart/store'
 import { OrderSummary } from './OrderSummary'
@@ -13,7 +14,12 @@ import { OrderSummary } from './OrderSummary'
  * reference, November 2026). The page (app/checkout) requires sign-in and
  * passes the account in, so the contact and name fields start filled in.
  *
- * "Place order" checks the form and posts the cart and billing details to
+ * Every field is checked against the rules in src/lib/cart/checkout-fields.ts
+ * when the reader leaves it and again on "Place order"; /api/checkout applies
+ * the same rules and its field errors are shown the same way. A rejected value
+ * stays in its field, marked, for the reader to correct.
+ *
+ * "Place order" then posts the cart and billing details to
  * /api/checkout, which creates the order in the payment Worker
  * (workers/chapter-pay) and returns its payment page. While payments are not
  * configured that route answers with PAYMENT_PAGE, the "coming soon" page.
@@ -38,7 +44,7 @@ type Fields = {
 }
 
 const EMPTY: Fields = { email: '', phone: '', firstName: '', lastName: '', company: '', street: '', unit: '', city: '', country: '', region: '', postcode: '', method: 'card' }
-const REQUIRED: (keyof Fields)[] = ['email', 'firstName', 'lastName', 'street', 'city', 'country', 'postcode']
+const REQUIRED: (keyof Fields)[] = ['email', 'firstName', 'lastName', 'street', 'city', 'country']
 const LABELS: Record<keyof Fields, string> = {
   email: 'Email',
   phone: 'Phone number (optional)',
@@ -54,25 +60,14 @@ const LABELS: Record<keyof Fields, string> = {
   method: 'Payment method',
 }
 
-/** Every country and territory name the browser knows, in English, A–Z. */
-function countryNames(): string[] {
-  const names = new Intl.DisplayNames(['en'], { type: 'region' })
-  const out: string[] = []
-  for (let a = 65; a <= 90; a++) {
-    for (let b = 65; b <= 90; b++) {
-      const code = String.fromCharCode(a, b)
-      // Groupings and reserved codes (EU, UN, QO, XA, ZZ …) are not places to bill.
-      if (['EU', 'EZ', 'UN', 'QO', 'ZZ'].includes(code) || code.startsWith('X')) continue
-      const name = names.of(code)
-      if (name && name !== code) out.push(name)
-    }
-  }
-  return [...new Set(out)].sort((x, y) => x.localeCompare(y))
-}
+let countryCache: { code: string; name: string }[] | null = null
+/** countryList(), worked out once per page load. */
+const getCountries = () => (countryCache ??= countryList())
 
-let countryCache: string[] | null = null
-/** countryNames(), worked out once per page load. */
-const getCountries = () => (countryCache ??= countryNames())
+type Errors = Partial<Record<keyof Fields, string>>
+
+/** The rules' verdict on the current values, as a field → message map. */
+const check = (f: Fields): Errors => Object.fromEntries(validateCheckout(normalizeCheckout(f)).map((e) => [e.field, e.message])) as Errors
 
 const input: CSSProperties = { font: 'inherit', fontSize: 15, padding: '11px 12px', border: '1px solid var(--line-strong,#B9C1C9)', borderRadius: 3, background: 'var(--surface,#fff)', color: 'var(--ink,#101B27)', width: '100%', boxSizing: 'border-box' }
 const h2: CSSProperties = { margin: '0 0 14px', fontSize: 20, fontWeight: 600, color: 'var(--ink,#101B27)' }
@@ -92,7 +87,7 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
     lastName: account.familyName,
     company: account.affiliation,
   }))
-  const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({})
+  const [errors, setErrors] = useState<Errors>({})
   const [busy, setBusy] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
@@ -114,18 +109,28 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
     if (errors[k]) setErrors({ ...errors, [k]: undefined })
   }
 
-  const field = (k: keyof Fields, opts: { type?: string; autoComplete?: string; span?: number } = {}) => {
-    const required = REQUIRED.includes(k)
+  /** On leaving a field: show its problem now (an empty field is only flagged on "Place order"). */
+  const checkField = (k: keyof Fields) => () => {
+    if (!f[k].trim()) return
+    setErrors((prev) => ({ ...prev, [k]: check(f)[k] }))
+  }
+
+  const field = (k: Exclude<keyof Fields, 'method' | 'country'>, opts: { type?: string; autoComplete?: string; span?: number; inputMode?: 'tel' | 'email' | 'text' } = {}) => {
+    const required = REQUIRED.includes(k) || (k === 'postcode' && postcodeRequired(f.country))
     const err = errors[k]
+    const label = k === 'postcode' && !required ? 'Postal code (optional)' : LABELS[k]
     return (
       <label style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: 13, fontWeight: 500, color: 'var(--ink-2,#1F2A36)', gridColumn: opts.span ? `span ${opts.span}` : undefined, minWidth: 0 }}>
-        {LABELS[k]}
+        {label}
         <input
           id={`co-${k}`}
           type={opts.type ?? 'text'}
           value={f[k]}
           onChange={set(k)}
+          onBlur={checkField(k)}
           autoComplete={opts.autoComplete}
+          inputMode={opts.inputMode}
+          maxLength={MAX_LENGTH[k]}
           required={required}
           aria-invalid={err ? true : undefined}
           aria-describedby={err ? `err-${k}` : undefined}
@@ -142,18 +147,20 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
 
   const placeOrder = async (e: FormEvent) => {
     e.preventDefault()
-    const next: Partial<Record<keyof Fields, string>> = {}
-    for (const k of REQUIRED) if (!f[k].trim()) next[k] = `Enter your ${LABELS[k].toLowerCase()}.`
-    if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) next.email = 'Enter a valid email address.'
+    const next = check(f)
     setErrors(next)
-    if (Object.keys(next).length > 0) {
-      document.getElementById(`co-${Object.keys(next)[0]}`)?.focus()
+    const first = CHECKOUT_KEYS.find((k) => next[k])
+    if (first) {
+      const n = Object.keys(next).length
+      setSubmitError(`Please correct the ${n === 1 ? 'field' : `${n} fields`} marked in red.`)
+      document.getElementById(`co-${first}`)?.focus()
       return
     }
     setBusy(true)
     setSubmitError('')
     try {
-      const { method, ...buyer } = f
+      const { method, ...rest } = f
+      const buyer = normalizeCheckout(rest)
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -164,8 +171,18 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
         window.location.assign(signInHref('/checkout'))
         return
       }
-      const data = (await res.json().catch(() => ({}))) as { payUrl?: string; error?: string; message?: string }
-      if (!res.ok || !data.payUrl) throw new Error(data.error || data.message || 'The order could not be placed.')
+      const data = (await res.json().catch(() => ({}))) as { payUrl?: string; error?: string; message?: string; errors?: { field: string; message: string }[] }
+      if (res.status === 422 && data.errors?.length) {
+        // The server's rules are the same as ours; show its verdict on the fields, keeping what was typed.
+        const server = Object.fromEntries(data.errors.map((x) => [x.field, x.message])) as Errors
+        setErrors(server)
+        setSubmitError('Please correct the fields marked in red.')
+        setBusy(false)
+        const firstBad = CHECKOUT_KEYS.find((k) => server[k])
+        if (firstBad) document.getElementById(`co-${firstBad}`)?.focus()
+        return
+      }
+      if (!res.ok || !data.payUrl) throw new Error(data.message || (data.error && data.error !== 'validation' ? data.error : '') || 'The order could not be placed.')
       // The Worker's payment page is another origin: a full navigation, not router.push.
       if (data.payUrl.startsWith('/')) router.push(data.payUrl)
       else window.location.assign(data.payUrl)
@@ -204,7 +221,7 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
           <h2 style={h2}>Contact information</h2>
           <div className="co-grid">
             {field('email', { type: 'email', autoComplete: 'email', span: 2 })}
-            {field('phone', { type: 'tel', autoComplete: 'tel' })}
+            {field('phone', { type: 'tel', autoComplete: 'tel', inputMode: 'tel' })}
           </div>
           <p style={{ margin: '10px 0 0', fontSize: 13, color: 'var(--muted,#505C68)' }}>Your receipt and download links will be sent to this address.</p>
         </section>
@@ -220,15 +237,32 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
             {field('city', { autoComplete: 'address-level2', span: 3 })}
             <label style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: 13, fontWeight: 500, color: 'var(--ink-2,#1F2A36)', minWidth: 0 }}>
               {LABELS.country}
-              <select id="co-country" value={f.country} onChange={set('country')} autoComplete="country-name" required aria-invalid={errors.country ? true : undefined} style={errors.country ? { ...input, borderColor: '#A52A2A' } : input}>
+              <select
+                id="co-country"
+                value={f.country}
+                onChange={(e) => {
+                  // A new country changes the postcode rule, so its old verdict no longer applies.
+                  setF({ ...f, country: e.target.value })
+                  setErrors({ ...errors, country: undefined, postcode: undefined })
+                }}
+                autoComplete="country"
+                required
+                aria-invalid={errors.country ? true : undefined}
+                aria-describedby={errors.country ? 'err-country' : undefined}
+                style={errors.country ? { ...input, borderColor: '#A52A2A' } : input}
+              >
                 <option value="">Select a country</option>
                 {countries.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                  <option key={c.code} value={c.code}>
+                    {c.name}
                   </option>
                 ))}
               </select>
-              {errors.country ? <span style={{ fontSize: 12.5, fontWeight: 400, color: '#A52A2A' }}>{errors.country}</span> : null}
+              {errors.country ? (
+                <span id="err-country" style={{ fontSize: 12.5, fontWeight: 400, color: '#A52A2A' }}>
+                  {errors.country}
+                </span>
+              ) : null}
             </label>
             {field('region', { autoComplete: 'address-level1' })}
             {field('postcode', { autoComplete: 'postal-code' })}
