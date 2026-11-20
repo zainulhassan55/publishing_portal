@@ -281,6 +281,26 @@ async function sendConfirmation(env, o) {
 }
 
 /* ======================= /pay/<no> — the payment page ======================= */
+/* POST /pay/<no>/newebpay?t= — builds fresh NewebPay fields (new MerchantOrderNo
+   and TimeStamp) and auto-posts them to the gateway. Every press of the button,
+   back-navigation or retry after a failure gets a fresh, valid hand-off. */
+async function handleNewebpayGo(env, request, orderNo) {
+  const tok = new URL(request.url).searchParams.get('t') || '';
+  if (!(await safeEq(tok, await orderToken(env, orderNo)))) return html(403, '<p>Invalid payment link.</p>');
+  if (!npReady(env)) return html(503, '<p>Card payment is not available.</p>');
+  return withLock(orderNo, async () => {
+    const o = await getOrder(env, orderNo);
+    if (!o) return html(404, '<p>Order not found.</p>');
+    if (o.status === 'paid') return Response.redirect(completeUrl(env, orderNo, tok, 'success'), 303);
+    const f = await newebpayFields(env, o, workerBase(request));
+    const inputs = Object.entries(f).map(([k, v]) => '<input type="hidden" name="' + k + '" value="' + esc(v) + '">').join('');
+    return html(200, '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Redirecting to NewebPay…</title></head>'
+      + '<body style="font-family:Segoe UI,Helvetica,Arial,sans-serif;color:#101B27;text-align:center;padding:60px 16px">'
+      + '<p style="font-size:16px">Redirecting to the secure NewebPay payment page…</p><p style="font-size:13px;color:#505C68">Order ' + esc(orderNo) + ' · ' + nt(o.np.amountTwd) + '</p>'
+      + '<form id="np" method="post" action="' + NP_GATEWAY + '">' + inputs + '<noscript><button type="submit">Continue to NewebPay</button></noscript></form>'
+      + '<script>document.getElementById("np").submit()</script></body></html>');
+  });
+}
 async function handlePay(env, request, orderNo) {
   const tok = new URL(request.url).searchParams.get('t') || '';
   if (!(await safeEq(tok, await orderToken(env, orderNo)))) return html(403, '<p>Invalid payment link.</p>');
@@ -290,9 +310,11 @@ async function handlePay(env, request, orderNo) {
   const base = workerBase(request);
   let np = '';
   if (npReady(env)) {
-    const f = await newebpayFields(env, o, base);
-    np = '<form method="post" action="' + NP_GATEWAY + '">' + Object.entries(f).map(([k, v]) => '<input type="hidden" name="' + k + '" value="' + esc(v) + '">').join('')
-      + '<button class="b">Pay by card via NewebPay — ' + nt(o.np.amountTwd) + '</button></form><p class="s">Charged in New Taiwan dollars.</p>';
+    /* The NewebPay fields (with their TimeStamp) are built when the button is
+       pressed, in handleNewebpayGo, not when this page loads: NewebPay refuses a
+       stale TimeStamp (「頁面已逾時失效」), and readers leave this page open. */
+    np = '<form method="post" action="' + base + '/pay/' + encodeURIComponent(orderNo) + '/newebpay?t=' + encodeURIComponent(tok) + '">'
+      + '<button class="b">Pay by card via NewebPay — ' + nt(o.totalTwd) + '</button></form><p class="s">Charged in New Taiwan dollars.</p>';
   }
   const pp = env.PAYPAL_CLIENT_ID ? (np ? '<p class="s" style="margin-top:18px">Or pay ' + usd(o.totalUsd) + ' in US dollars with PayPal:</p>' : '<p class="s">Charged ' + usd(o.totalUsd) + ' in US dollars.</p>') + '<div id="pp"></div><script src="https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(env.PAYPAL_CLIENT_ID.trim()) + '&currency=USD&intent=capture&enable-funding=card"></script>'
     + '<script>paypal.Buttons({createOrder:function(d,a){return a.order.create({purchase_units:[{invoice_id:' + JSON.stringify(orderNo) + ',description:' + JSON.stringify(SHOP_NAME + ' chapters') + ',amount:{currency_code:"USD",value:' + JSON.stringify(Number(o.totalUsd).toFixed(2)) + '}}]})},'
@@ -379,6 +401,7 @@ export default {
       if (!env.ORDERS) return json(503, { ok: false, error: 'KV not bound' });
       if (path === '/order' && request.method === 'POST') return handleOrder(env, request);
       let m;
+      if ((m = path.match(/^\/pay\/([\w-]{1,30})\/newebpay$/)) && request.method === 'POST') return handleNewebpayGo(env, request, m[1]);
       if ((m = path.match(/^\/pay\/([\w-]{1,30})$/))) return handlePay(env, request, m[1]);
       if ((m = path.match(/^\/status\/([\w-]{1,30})$/))) return handleStatus(env, request, m[1]);
       if (path === '/paypal/confirm' && request.method === 'POST') return handlePaypalConfirm(env, request);
