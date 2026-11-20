@@ -1,7 +1,9 @@
 import { enforceRateLimit, handler, jsonError, jsonOk, readJson } from '@/lib/api'
 import { requireMember } from '@/lib/auth/require'
+import { countryName, normalizeCheckout, validateCheckout } from '@/lib/cart/checkout-fields'
 import { isBookItemId, itemPrice, volumeKeyOf } from '@/lib/cart/pricing'
 import { createPaymentOrder, paymentsConfigured } from '@/lib/pay/server'
+import { ValidationError } from '@/lib/validate'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +22,10 @@ const s = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, 
  * Buyers must be signed in (publisher, November 2026): the /checkout page sends
  * a signed-out visitor to sign-in, and this route refuses the request, which is
  * the actual enforcement. The order records the OJS account that placed it.
+ *
+ * Billing details are checked with the same rules as the form
+ * (src/lib/cart/checkout-fields.ts); any problem is a 422 with field errors,
+ * which the form shows next to the fields without clearing them.
  *
  * With payments not configured, answers with the "coming soon" page so the
  * checkout keeps working exactly as before the Worker existed.
@@ -44,10 +50,11 @@ export const POST = handler(async (request) => {
   if (unpriced) return jsonError(`"${unpriced.title || unpriced.id}" is not on sale yet. Remove it from your cart to continue.`, 400)
   if (items.length > 50) return jsonError('At most 50 items per order.', 400)
 
-  const b = body.buyer ?? {}
-  const buyer = Object.fromEntries(
-    ['email', 'phone', 'firstName', 'lastName', 'company', 'street', 'unit', 'city', 'country', 'region', 'postcode'].map((k) => [k, s(b[k], 160)]),
-  )
+  const fields = normalizeCheckout(body.buyer ?? {})
+  const problems = validateCheckout(fields)
+  if (problems.length) throw new ValidationError(problems)
+  // The Worker, emails and admin views show the country by name; keep the code beside it.
+  const buyer = { ...fields, country: countryName(fields.country), countryCode: fields.country }
 
   const r = await createPaymentOrder({
     items,
