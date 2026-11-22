@@ -323,15 +323,32 @@ async function handlePay(env, request, orderNo) {
   if (!o) return html(404, '<p>Order not found.</p>');
   if (o.status === 'paid') return Response.redirect(completeUrl(env, orderNo, tok, 'success'), 303);
   const base = workerBase(request);
+  /* The buyer chose a method at checkout (o.method). Show only that gateway; with
+     card, forward straight to NewebPay so there is no extra page to click through.
+     ?choose=1 (the "use another method" link) shows every available gateway. A
+     chosen gateway that is not available falls back to showing what is. */
+  const canCard = npReady(env), canPP = ppReady(env);
+  const choose = new URL(request.url).searchParams.get('choose') === '1';
+  let showCard = canCard, showPP = canPP;
+  if (!choose) {
+    if (o.method === 'paypal' && canPP) showCard = false;
+    else if (o.method !== 'paypal' && canCard) showPP = false;
+  }
+  const autoCard = !choose && showCard && !showPP;
+  const otherLink = canCard && canPP && !choose
+    ? '<p class="s"><a href="' + base + '/pay/' + encodeURIComponent(orderNo) + '?t=' + encodeURIComponent(tok) + '&choose=1">Use another payment method</a></p>' : '';
   let np = '';
-  if (npReady(env)) {
+  if (showCard) {
     /* The NewebPay fields (with their TimeStamp) are built when the button is
        pressed, in handleNewebpayGo, not when this page loads: NewebPay refuses a
        stale TimeStamp (「頁面已逾時失效」), and readers leave this page open. */
-    np = '<form method="post" action="' + base + '/pay/' + encodeURIComponent(orderNo) + '/newebpay?t=' + encodeURIComponent(tok) + '">'
-      + '<button class="b">Pay by card via NewebPay — ' + nt(o.totalTwd) + '</button></form><p class="s">Charged in New Taiwan dollars.</p>';
+    np = (autoCard ? '<p id="go">Taking you to the secure NewebPay card page…</p>' : '')
+      + '<form id="npgo" method="post" action="' + base + '/pay/' + encodeURIComponent(orderNo) + '/newebpay?t=' + encodeURIComponent(tok) + '">'
+      + '<button class="b">Pay by card via NewebPay — ' + nt(o.totalTwd) + '</button></form><p class="s">Charged in New Taiwan dollars.</p>'
+      // Forward automatically, except when the reader came Back from NewebPay (then let them choose).
+      + (autoCard ? '<script>(function(){var n=performance.getEntriesByType("navigation")[0];if(n&&n.type==="back_forward"){document.getElementById("go").remove();return}document.getElementById("npgo").submit()})()</script>' : '');
   }
-  const pp = env.PAYPAL_CLIENT_ID ? (np ? '<p class="s" style="margin-top:18px">Or pay ' + usd(o.totalUsd) + ' in US dollars with PayPal:</p>' : '<p class="s">Charged ' + usd(o.totalUsd) + ' in US dollars.</p>') + '<div id="pp"></div><script src="https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(env.PAYPAL_CLIENT_ID.trim()) + '&currency=USD&intent=capture&enable-funding=card"></script>'
+  const pp = showPP ? (np ? '<p class="s" style="margin-top:18px">Or pay ' + usd(o.totalUsd) + ' in US dollars with PayPal:</p>' : '<p class="s">Charged ' + usd(o.totalUsd) + ' in US dollars.</p>') + '<div id="pp"></div><script src="https://www.paypal.com/sdk/js?client-id=' + encodeURIComponent(env.PAYPAL_CLIENT_ID.trim()) + '&currency=USD&intent=capture&enable-funding=card"></script>'
     + '<script>paypal.Buttons({createOrder:function(d,a){return a.order.create({purchase_units:[{invoice_id:' + JSON.stringify(orderNo) + ',description:' + JSON.stringify(SHOP_NAME + ' chapters') + ',amount:{currency_code:"USD",value:' + JSON.stringify(Number(o.totalUsd).toFixed(2)) + '}}]})},'
     + 'onApprove:function(d,a){return a.order.capture().then(function(){return fetch("/paypal/confirm",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({orderNo:' + JSON.stringify(orderNo) + ',paypalOrderId:d.orderID,t:' + JSON.stringify(tok) + '})})}).then(function(r){return r.json()}).then(function(r){if(r.redirect)location.href=r.redirect;else document.getElementById("m").textContent=r.error||"Could not confirm."})},'
     + 'onError:function(){document.getElementById("m").textContent="PayPal error — please try again."}}).render("#pp")</script>' : '';
@@ -340,7 +357,7 @@ async function handlePay(env, request, orderNo) {
     + '<style>body{font-family:Segoe UI,Helvetica,Arial,sans-serif;background:#f4f6f8;color:#101B27;margin:0}.c{max-width:560px;margin:40px auto;background:#fff;border:1px solid #DCE1E6;border-radius:6px;padding:28px}'
     + 'h1{font-size:22px;margin:0 0 6px}.s{color:#505C68;font-size:13px}.b{width:100%;padding:13px;border:0;border-radius:4px;background:#0C8375;color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin:14px 0 4px}ul{padding-left:18px}</style></head>'
     + '<body><div class="c"><h1>' + esc(SHOP_NAME) + ' — payment</h1><p class="s">Order ' + esc(orderNo) + '</p><ul>' + items + '</ul><p><b>Total ' + usd(o.totalUsd) + ' · ' + nt(o.totalTwd) + '</b></p>'
-    + np + pp + (np || pp ? '' : '<p>Online payment is not configured yet.</p>') + '<p id="m" style="color:#A52A2A"></p>'
+    + np + pp + (np || pp ? '' : '<p>Online payment is not configured yet.</p>') + otherLink + '<p id="m" style="color:#A52A2A"></p>'
     + '<p class="s"><a href="' + esc((env.PORTAL_BASE || '') + '/cart') + '">← Back to cart</a> · Questions: ' + esc(ORG_EMAIL) + '</p></div></body></html>');
 }
 
@@ -439,7 +456,7 @@ export default {
   async fetch(request, env) {
     const path = new URL(request.url).pathname.replace(/\/+$/, '') || '/';
     try {
-      if (path === '/ping') return json(200, { ok: true, kv: !!env.ORDERS, portalSecret: !!env.PORTAL_SECRET, receiptSecret: !!env.RECEIPT_SECRET, paypal: ppReady(env), paypalSandbox: env.PAYPAL_SANDBOX === '1', newebpay: npReady(env), email: !!env.HOSTINGER_MAIL_TOKEN, portal: env.PORTAL_BASE || '' });
+      if (path === '/ping') return json(200, { ok: true, kv: !!env.ORDERS, portalSecret: !!env.PORTAL_SECRET, receiptSecret: !!env.RECEIPT_SECRET, paypal: ppReady(env), paypalSandbox: env.PAYPAL_SANDBOX === '1', newebpay: npReady(env), cardMethods: npReady(env) ? Object.keys(npMethods(env)) : [], email: !!env.HOSTINGER_MAIL_TOKEN, portal: env.PORTAL_BASE || '' });
       if (!env.ORDERS) return json(503, { ok: false, error: 'KV not bound' });
       if (path === '/order' && request.method === 'POST') return handleOrder(env, request);
       let m;
