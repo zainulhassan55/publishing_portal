@@ -8,7 +8,21 @@ import { signInHref } from '@/lib/auth/links'
 import { CHECKOUT_KEYS, MAX_LENGTH, countryList, normalizeCheckout, postcodeRequired, validateCheckout } from '@/lib/cart/checkout-fields'
 import { cartTotal, formatBoth, formatTwd, formatUsd, itemPrice } from '@/lib/cart/pricing'
 import { itemLabel, useCart } from '@/lib/cart/store'
+import type { PaymentOptions } from '@/lib/pay/server'
 import { OrderSummary } from './OrderSummary'
+
+/** How each NewebPay method reads to a buyer. */
+const CARD_METHOD_NAMES: Record<string, string> = {
+  CREDIT: 'Visa, Mastercard, JCB',
+  APPLEPAY: 'Apple Pay',
+  ANDROIDPAY: 'Google Pay',
+  SAMSUNGPAY: 'Samsung Pay',
+  UNIONPAY: 'UnionPay',
+  WEBATM: 'WebATM',
+  VACC: 'ATM transfer',
+  CVS: 'convenience-store code',
+  BARCODE: 'convenience-store barcode',
+}
 
 /**
  * Checkout for a signed-in buyer, laid out after IGI Global's (publisher's
@@ -82,12 +96,13 @@ const section: CSSProperties = { padding: '22px 0', borderTop: '1px solid var(--
 /** The signed-in buyer, from the server session; used to fill in the form. */
 export type CheckoutAccount = { email: string; givenName: string; familyName: string; fullName: string; affiliation: string }
 
-export function CheckoutForm({ account }: { account: CheckoutAccount }) {
+export function CheckoutForm({ account, options }: { account: CheckoutAccount; options: PaymentOptions }) {
   const items = useCart()
   const router = useRouter()
   const countries = getCountries()
   const [f, setF] = useState<Fields>(() => ({
     ...EMPTY,
+    method: options.card ? 'card' : 'paypal',
     email: account.email,
     firstName: account.givenName,
     lastName: account.familyName,
@@ -300,14 +315,16 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
           <h2 style={h2}>Payment information</h2>
           <fieldset style={{ margin: 0, padding: 0, border: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <legend style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Payment method</legend>
+            {/* Only the gateways that are configured, and only the card methods that are enabled. */}
             {(
               [
-                ['card', `Credit or debit card · ${formatTwd(subtotal.twd)}`, 'Charged in New Taiwan dollars through NewebPay. Visa, Mastercard, JCB, UnionPay'],
-                ['paypal', `PayPal · ${formatUsd(subtotal.usd)}`, 'Charged in US dollars. Pay with your PayPal account or a card'],
-              ] as const
-            ).map(([value, label, hint]) => (
-              <label key={value} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', border: `1px solid ${f.method === value ? 'var(--accent,#0C8375)' : 'var(--line,#DCE1E6)'}`, borderRadius: 4, background: f.method === value ? 'var(--accent-tint,#F3F9F8)' : 'var(--surface,#fff)', cursor: 'pointer' }}>
-                <input type="radio" name="method" value={value} checked={f.method === value} onChange={() => setF({ ...f, method: value })} />
+                options.card ? (['card', `Credit or debit card · ${formatTwd(subtotal.twd)}`, `Charged in New Taiwan dollars through NewebPay: ${options.cardMethods.map((m) => CARD_METHOD_NAMES[m] ?? m).join(', ')}.`] as const) : null,
+                options.paypal ? (['paypal', `PayPal · ${formatUsd(subtotal.usd)}`, 'Charged in US dollars. Pay with your PayPal account or a card.'] as const) : null,
+              ].filter((x) => x !== null)
+            ).map(([value, label, hint], _i, all) => (
+              <label key={value} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', border: `1px solid ${f.method === value ? 'var(--accent,#0C8375)' : 'var(--line,#DCE1E6)'}`, borderRadius: 4, background: f.method === value ? 'var(--accent-tint,#F3F9F8)' : 'var(--surface,#fff)', cursor: all.length > 1 ? 'pointer' : 'default' }}>
+                {/* With a single option there is nothing to choose: no radio button. */}
+                {all.length > 1 ? <input type="radio" name="method" value={value} checked={f.method === value} onChange={() => setF({ ...f, method: value })} /> : null}
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink,#101B27)' }}>{label}</span>
                   <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>{hint}</span>
@@ -316,7 +333,7 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
             ))}
           </fieldset>
           <p style={{ margin: '12px 0 0', fontSize: 13.5, lineHeight: 1.5, color: 'var(--ink-3,#3C4854)' }}>
-            🔒 You will enter your payment details on a secure payment page after you place the order. NextGenIQ Press never sees or stores your card number.
+            🔒 After you place the order you go straight to the secure {f.method === 'paypal' ? 'PayPal' : 'NewebPay'} page to pay. NextGenIQ Press never sees or stores your card number.
           </p>
         </section>
 

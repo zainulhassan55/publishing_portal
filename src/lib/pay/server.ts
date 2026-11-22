@@ -101,6 +101,44 @@ const base = () => (process.env.PAY_API_URL || '').trim().replace(/\/+$/, '')
 
 export const paymentsConfigured = () => !!base() && !!process.env.PAY_PORTAL_SECRET?.trim()
 
+/** What the payment Worker can actually take right now. */
+export type PaymentOptions = {
+  /** NewebPay is configured. */
+  card: boolean
+  /** NewebPay methods enabled in the Worker (NEWEBPAY_METHODS), e.g. ['CREDIT']. */
+  cardMethods: string[]
+  /** PayPal is configured. */
+  paypal: boolean
+}
+
+let optionsCache: { at: number; value: PaymentOptions } | null = null
+
+/**
+ * The gateways checkout should offer, from the Worker's /ping. Cached for a
+ * minute. With payments off, or the Worker unreachable, card only: checkout
+ * then still leads to the "coming soon" page or an honest error, never to a
+ * method that cannot work.
+ */
+export async function paymentOptions(): Promise<PaymentOptions> {
+  const fallback: PaymentOptions = { card: true, cardMethods: ['CREDIT'], paypal: false }
+  if (!base()) return fallback
+  if (optionsCache && Date.now() - optionsCache.at < 60_000) return optionsCache.value
+  try {
+    const res = await fetch(`${base()}/ping`, { cache: 'no-store', signal: AbortSignal.timeout(5000) })
+    const d = (await res.json()) as { newebpay?: boolean; paypal?: boolean; cardMethods?: string[] }
+    const value: PaymentOptions = {
+      card: !!d.newebpay,
+      cardMethods: Array.isArray(d.cardMethods) && d.cardMethods.length ? d.cardMethods : ['CREDIT'],
+      paypal: !!d.paypal,
+    }
+    if (!value.card && !value.paypal) return fallback
+    optionsCache = { at: Date.now(), value }
+    return value
+  } catch {
+    return fallback
+  }
+}
+
 /** Create the order in the Worker; returns where to send the reader to pay. */
 export async function createPaymentOrder(body: object): Promise<{ ok: true; orderNo: string; payUrl: string } | { ok: false; error: string; status: number }> {
   const res = await fetch(`${base()}/order`, {
