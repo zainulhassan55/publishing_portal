@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState, type CSSProperties, type FormEvent } from 'react'
+import { useRef, useState, type CSSProperties, type FormEvent } from 'react'
+import { Turnstile, captchaRequired, type TurnstileHandle } from '@/components/auth/Turnstile'
 import { signInHref } from '@/lib/auth/links'
 import { CHECKOUT_KEYS, MAX_LENGTH, countryList, normalizeCheckout, postcodeRequired, validateCheckout } from '@/lib/cart/checkout-fields'
 import { cartTotal, formatBoth, formatTwd, formatUsd, itemPrice } from '@/lib/cart/pricing'
@@ -18,6 +19,11 @@ import { OrderSummary } from './OrderSummary'
  * when the reader leaves it and again on "Place order"; /api/checkout applies
  * the same rules and its field errors are shown the same way. A rejected value
  * stays in its field, marked, for the reader to correct.
+ *
+ * A Cloudflare Turnstile check ("verify you are human") sits above "Place
+ * order" and /api/checkout verifies its token before an order is created; the
+ * widget is reset after every answer from the server, since tokens are
+ * single-use. With no Turnstile keys configured it is hidden and skipped.
  *
  * "Place order" then posts the cart and billing details to
  * /api/checkout, which creates the order in the payment Worker
@@ -90,6 +96,8 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
   const [errors, setErrors] = useState<Errors>({})
   const [busy, setBusy] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const captcha = useRef<TurnstileHandle>(null)
 
   if (items.length === 0) {
     return (
@@ -156,6 +164,10 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
       document.getElementById(`co-${first}`)?.focus()
       return
     }
+    if (captchaRequired && !captchaToken) {
+      setSubmitError('Please complete the security check above "Place order".')
+      return
+    }
     setBusy(true)
     setSubmitError('')
     try {
@@ -164,8 +176,10 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: items.map(({ id, title, volumeTitle, seriesCode }) => ({ id, title, volumeTitle, seriesCode })), buyer, method }),
+        body: JSON.stringify({ items: items.map(({ id, title, volumeTitle, seriesCode }) => ({ id, title, volumeTitle, seriesCode })), buyer, method, captchaToken }),
       })
+      // Field errors (422) are answered before the security check, so that token is still unused.
+      if (res.status !== 422) captcha.current?.reset()
       if (res.status === 401) {
         // Signed out in another tab, or the session ended: sign in again, then come back here.
         window.location.assign(signInHref('/checkout'))
@@ -182,6 +196,11 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
         if (firstBad) document.getElementById(`co-${firstBad}`)?.focus()
         return
       }
+      if (data.error === 'captcha-failed' || data.error === 'captcha-unavailable') {
+        setSubmitError(data.message || 'Please complete the security check, then press "Place order" again.')
+        setBusy(false)
+        return
+      }
       if (!res.ok || !data.payUrl) throw new Error(data.message || (data.error && data.error !== 'validation' ? data.error : '') || 'The order could not be placed.')
       // The Worker's payment page is another origin: a full navigation, not router.push.
       if (data.payUrl.startsWith('/')) router.push(data.payUrl)
@@ -194,6 +213,14 @@ export function CheckoutForm({ account }: { account: CheckoutAccount }) {
 
   const placeButton = (
     <>
+      <Turnstile
+        ref={captcha}
+        action="checkout"
+        onToken={(t) => {
+          setCaptchaToken(t)
+          if (t && submitError.startsWith('Please complete the security check')) setSubmitError('')
+        }}
+      />
       <button type="submit" form="checkout-form" disabled={busy} style={{ width: '100%', border: 0, background: 'var(--accent,#0C8375)', color: '#fff', padding: '13px 16px', borderRadius: 3, font: 'inherit', fontSize: 17, fontWeight: 600, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.7 : 1 }}>
         {busy ? 'Placing order…' : 'Place order'}
       </button>
