@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useSession } from '@/components/auth/SessionProvider'
-import { registerHref, signInHref } from '@/lib/auth/links'
 import { cartTotal, formatTwd, formatUsd, isBookItemId, itemPrice } from '@/lib/cart/pricing'
 import { itemLabel, removeFromCart, useCart } from '@/lib/cart/store'
 import { OrderSummary } from './OrderSummary'
@@ -75,11 +74,14 @@ export function CartView() {
           </Link>
         ) : (
           <>
-            <Link href={signInHref('/checkout')} style={primary}>
+            {/* /checkout itself decides: a reader signed in with Google for the
+                shop (invisible to useSession) goes straight through; anyone
+                else is sent to the shop's sign-in page. */}
+            <Link href="/checkout" style={primary}>
               Sign in to check out
             </Link>
             <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: 'var(--muted,#505C68)', textAlign: 'center' }}>
-              Purchases are saved to your account. No account yet? <Link href={registerHref('/checkout')}>Register</Link>
+              Purchases are saved to the account you sign in with.
             </p>
           </>
         )}

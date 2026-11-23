@@ -57,6 +57,14 @@ Two hard rules:
 2. **The portal never becomes a second account store.** Its rows refer to people
    by `ojs_user_id`.
 
+   The one deliberate exception to "every signed-in person is an OJS account"
+   is the book shop's **Continue with Google** (`src/lib/shop/`). It is for
+   buying only. It is held in a signed cookie, not a table, so it is still not
+   an account store. It is never linked to an OJS account and `getSession()`
+   never sees it, so journal pages, forms and the dashboard treat a Google
+   buyer as signed out. Only `/checkout` and `/api/checkout` accept it, through
+   `requireBuyerPage` / `requireBuyer`.
+
 ## 3. Content: where each thing comes from
 
 | Content | Source | Changed by |
