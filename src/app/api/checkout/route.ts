@@ -1,9 +1,9 @@
 import { enforceRateLimit, handler, jsonError, jsonOk, readJson } from '@/lib/api'
-import { requireMember } from '@/lib/auth/require'
 import { captchaGate } from '@/lib/captcha'
 import { countryName, normalizeCheckout, validateCheckout } from '@/lib/cart/checkout-fields'
 import { isBookItemId, itemPrice, volumeKeyOf } from '@/lib/cart/pricing'
 import { createPaymentOrder, paymentsConfigured } from '@/lib/pay/server'
+import { orderAccount, requireBuyer } from '@/lib/shop/buyer'
 import { ValidationError } from '@/lib/validate'
 
 export const dynamic = 'force-dynamic'
@@ -22,7 +22,8 @@ const s = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, 
  *
  * Buyers must be signed in (publisher, November 2026): the /checkout page sends
  * a signed-out visitor to sign-in, and this route refuses the request, which is
- * the actual enforcement. The order records the OJS account that placed it.
+ * the actual enforcement. Either an OJS account or the shop's Google sign-in
+ * will do (src/lib/shop/buyer.ts); the order records which one placed it.
  *
  * Billing details are checked with the same rules as the form
  * (src/lib/cart/checkout-fields.ts); any problem is a 422 with field errors,
@@ -37,8 +38,8 @@ const s = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, 
  */
 export const POST = handler(async (request) => {
   enforceRateLimit(request, 'checkout', 10)
-  const user = await requireMember()
-  if (user instanceof Response) return user
+  const who = await requireBuyer()
+  if (who instanceof Response) return who
   if (!paymentsConfigured()) return jsonOk({ ok: true, payUrl: '/checkout/payment' })
 
   const body = await readJson<Body>(request)
@@ -68,7 +69,7 @@ export const POST = handler(async (request) => {
     items,
     buyer,
     method: body.method === 'paypal' ? 'paypal' : 'card',
-    account: { id: user.id, userName: user.userName, email: user.email },
+    account: orderAccount(who),
   })
   if (!r.ok) return jsonError(r.error, r.status)
   return jsonOk({ ok: true, orderNo: r.orderNo, payUrl: r.payUrl })

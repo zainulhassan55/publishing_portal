@@ -182,9 +182,51 @@ These live in `~/portal/.env` on the server. `.env.example` documents each one:
 | `S3_BUCKET_SUBMISSIONS`, `S3_BUCKET_PUBLICATIONS` | `ngiq-submissions`, `ngiq-publications` |
 | `TURNSTILE_SECRET_KEY` | Pair of the public site key |
 | `PAY_API_URL`, `PAY_PORTAL_SECRET`, `PAY_ADMIN_TOKEN` | Optional. The chapter-payment Worker (`workers/chapter-pay/README.md`): its URL, its `PORTAL_SECRET` and its `ADMIN_API_TOKEN`. Unset, checkout shows "payment coming soon" |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `SHOP_SESSION_SECRET` | Optional. "Continue with Google" for the book shop only. See [Google sign-in for the shop](#google-sign-in-for-the-shop) below. Unset, checkout asks for the OJS account |
 | The `NEXT_PUBLIC_*` values above | Keep them identical to the build values |
 
 After changing `.env`, run `pm2 restart ngiq-portal --update-env`.
+
+### Google sign-in for the shop
+
+Buyers can sign in with Google on `/checkout/sign-in` to buy chapters and
+books. This is separate from the journals: a Google sign-in is **not** an OJS
+account, is not linked to one, and opens nothing in OJS or the dashboard.
+Authors, reviewers and editors keep using their OJS account, which also still
+works at checkout. Nothing needs changing in OJS. The portal stores nothing
+either: the sign-in lives in a signed cookie (`ngiq_shop`, 7 days), and each
+order records `Google: <email>` as its account.
+
+To turn it on:
+
+1. Google Cloud Console → pick or create a project → **APIs & Services →
+   OAuth consent screen**. User type **External**, app name "NextGenIQ Press",
+   support email, authorized domain `nextgeniqpress.com`. Scopes: `openid`,
+   `email`, `profile` only (these need no Google verification). Then
+   **Publish app**, or only listed test users can sign in.
+2. **Credentials → Create credentials → OAuth client ID**, type **Web
+   application**. Authorized redirect URIs, exactly:
+   - `https://www.nextgeniqpress.com/api/shop/google/callback`
+   - `http://localhost:3000/api/shop/google/callback` (development only)
+3. Add to `~/portal/.env`, one per line, no quotes or spaces around `=`:
+   ```
+   GOOGLE_CLIENT_ID=<client id>.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=<client secret>
+   SHOP_SESSION_SECRET=<output of: openssl rand -hex 32>
+   ```
+   then `pm2 restart ngiq-portal --update-env`.
+4. Check: with an empty browser session, add a chapter to the cart, press
+   "Sign in to check out". The shop sign-in page should show "Continue with
+   Google". After choosing an account you land on checkout with your name and
+   email filled in, and the site header still shows you as signed out of the
+   journals.
+
+If any of the three is missing (or the secret is under 32 characters), the
+Google button is not shown and checkout goes straight to the OJS sign-in. A
+failed Google sign-in is logged as `[shop-google] sign-in not completed: <reason>`
+in `pm2 logs ngiq-portal`. `state-mismatch` or `no-or-expired-flow-cookie`
+means the reader took more than 10 minutes or switched browsers. `token-exchange`
+usually means a wrong client secret or a redirect URI that doesn't match step 2.
 
 ## 5. Publishing pipeline: harvest
 

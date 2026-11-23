@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import { Turnstile, captchaRequired, type TurnstileHandle } from '@/components/auth/Turnstile'
-import { signInHref } from '@/lib/auth/links'
+import { shopSignInHref } from '@/lib/shop/buyer-core'
 import { CHECKOUT_KEYS, MAX_LENGTH, countryList, normalizeCheckout, postcodeRequired, validateCheckout } from '@/lib/cart/checkout-fields'
 import { cartTotal, formatBoth, formatTwd, formatUsd, itemPrice } from '@/lib/cart/pricing'
 import { itemLabel, useCart } from '@/lib/cart/store'
@@ -93,8 +93,19 @@ const input: CSSProperties = { font: 'inherit', fontSize: 15, padding: '11px 12p
 const h2: CSSProperties = { margin: '0 0 14px', fontSize: 20, fontWeight: 600, color: 'var(--ink,#101B27)' }
 const section: CSSProperties = { padding: '22px 0', borderTop: '1px solid var(--line,#DCE1E6)' }
 
-/** The signed-in buyer, from the server session; used to fill in the form. */
-export type CheckoutAccount = { email: string; givenName: string; familyName: string; fullName: string; affiliation: string }
+/**
+ * The signed-in buyer, from the server; used to fill in the form. `google` is
+ * the shop's own Google sign-in, which is not an OJS account (src/lib/shop/buyer.ts).
+ */
+export type CheckoutAccount = { kind: 'member' | 'google'; email: string; givenName: string; familyName: string; fullName: string; affiliation: string }
+
+/** Ends the shop's Google sign-in and goes back to the cart, which is kept. */
+async function shopSignOut() {
+  await fetch('/api/shop/sign-out', { method: 'POST' }).catch(() => null)
+  // A full load, not router.push: the cookie just cleared must reach the server render.
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+  window.location.assign('/cart')
+}
 
 export function CheckoutForm({ account, options }: { account: CheckoutAccount; options: PaymentOptions }) {
   const items = useCart()
@@ -197,7 +208,7 @@ export function CheckoutForm({ account, options }: { account: CheckoutAccount; o
       if (res.status !== 422) captcha.current?.reset()
       if (res.status === 401) {
         // Signed out in another tab, or the session ended: sign in again, then come back here.
-        window.location.assign(signInHref('/checkout'))
+        window.location.assign(shopSignInHref('/checkout'))
         return
       }
       const data = (await res.json().catch(() => ({}))) as { payUrl?: string; error?: string; message?: string; errors?: { field: string; message: string }[] }
@@ -256,7 +267,16 @@ export function CheckoutForm({ account, options }: { account: CheckoutAccount; o
             Signed in as <strong style={{ fontWeight: 700, color: 'var(--ink,#101B27)' }}>{account.fullName || account.email}</strong>
             {account.fullName ? <span style={{ color: 'var(--muted,#505C68)' }}> ({account.email})</span> : null}
           </span>
-          <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>This order will be saved to your account.</span>
+          {account.kind === 'google' ? (
+            <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>
+              Signed in with Google for the shop.{' '}
+              <button type="button" onClick={shopSignOut} style={{ border: 0, background: 'none', padding: 0, font: 'inherit', color: 'var(--accent,#0C8375)', textDecoration: 'underline', cursor: 'pointer' }}>
+                Use another account
+              </button>
+            </span>
+          ) : (
+            <span style={{ fontSize: 13, color: 'var(--muted,#505C68)' }}>This order will be saved to your account.</span>
+          )}
         </div>
 
         <section style={{ ...section, borderTop: 'none' }}>
