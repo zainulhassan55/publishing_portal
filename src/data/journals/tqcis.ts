@@ -6,8 +6,8 @@ import { journalTemplates } from '../templates'
 /**
  * Introduction and topics supplied by the publisher (October 2026) and
  * reproduced as given. The remaining pages follow TICR's, as the publisher
- * asked. Editorial board updated by the publisher on 13 November 2026, with
- * two Co-Editors-in-Chief.
+ * asked. Editorial board updated by the publisher on 13 and 28 November 2026, with
+ * three Co-Editors-in-Chief.
  *
  * Run with the publisher's CCRI lab at Asia University, Taiwan (publisher,
  * November 2026): both logos show in the masthead and on the journal home.
@@ -37,9 +37,10 @@ const topics = [
   'Applications of quantum computing in science, engineering and cybersecurity',
 ]
 
-/** Editorial board as supplied by the publisher (13 November 2026), in the publisher's order. */
+/** Editorial board as supplied by the publisher (13 November 2026, updated 28 November 2026), in the publisher's order. */
 const coEditorsInChief = [
   { name: 'Konstantinos E. Psannis', affiliation: 'University of Macedonia, Greece' },
+  { name: 'Vijayakumar Pandi', affiliation: 'SRM University, India' },
   { name: 'Dragan Peraković', affiliation: 'University of Zagreb, Croatia' },
 ]
 
@@ -47,8 +48,8 @@ const editors = [
   { name: 'Arcangelo Castiglione', affiliation: 'University of Salerno, Fisciano, Salerno, Italy' },
   { name: 'Bodhisatwa Mazumdar', affiliation: 'Indian Institute of Technology Indore, India' },
   { name: 'Brij B. Gupta', affiliation: 'Asia University, Taiwan' },
+  { name: 'Ayan Mondal', affiliation: 'Indian Institute of Technology Indore, India' },
   { name: 'Amit K. Singh', affiliation: 'National Institute of Technology Patna, India' },
-  { name: 'Vijayakumar Pandi', affiliation: 'SRM University, India' },
   { name: 'Ivan Cvitić', affiliation: 'University of Zagreb, Croatia' },
   { name: 'Sumana Maiti', affiliation: 'Indian Institute of Technology Bhubaneswar, India' },
   { name: 'Domenico Santaniello', affiliation: 'University of Salerno, Italy' },

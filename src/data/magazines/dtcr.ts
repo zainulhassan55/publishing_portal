@@ -38,7 +38,7 @@ const topics = [
   'Security, safety and trust in healthcare, energy, transportation and industry',
 ]
 
-/** Editorial board as supplied by the publisher (13 November 2026), in the publisher's order. */
+/** Editorial board as supplied by the publisher (13 November 2026, updated 28 November 2026), in the publisher's order. */
 const editors = [
   { name: 'Shingo Yamaguchi', affiliation: 'Yamaguchi University, Japan' },
   { name: 'Gregorio Martinez Perez', affiliation: 'University of Murcia (UMU), Spain' },
@@ -46,7 +46,6 @@ const editors = [
   { name: 'Nitin Auluck', affiliation: 'Indian Institute of Technology Ropar, India' },
   { name: 'Akshat Gaurav', affiliation: 'Ronin Institute, USA' },
   { name: 'Dragan Peraković', affiliation: 'University of Zagreb, Croatia' },
-  { name: 'Ayan Mondal', affiliation: 'Indian Institute of Technology Indore, India' },
 ]
 
 export const dtcrDetail: JournalDetail = {
